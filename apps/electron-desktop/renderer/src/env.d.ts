@@ -12,6 +12,9 @@ declare global {
       retry: () => Promise<void>;
       resetAndClose: () => Promise<ResetAndCloseResult>;
       getGatewayInfo: () => Promise<{ state: GatewayState | null }>;
+      getConsentInfo: () => Promise<{ accepted: boolean }>;
+      acceptConsent: () => Promise<{ ok: true }>;
+      startGateway: () => Promise<{ ok: true }>;
       openExternal: (url: string) => Promise<void>;
       setAnthropicApiKey: (apiKey: string) => Promise<{ ok: true }>;
       gogAuthList: () => Promise<GogExecResult>;

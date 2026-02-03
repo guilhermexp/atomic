@@ -9,6 +9,9 @@ export function registerIpcHandlers(params: {
   getMainWindow: () => BrowserWindow | null;
   getGatewayState: () => GatewayState | null;
   getLogsDir: () => string | null;
+  getConsentAccepted: () => boolean;
+  acceptConsent: () => Promise<void>;
+  startGateway: () => Promise<void>;
   userData: string;
   stateDir: string;
   logsDir: string;
@@ -47,6 +50,19 @@ export function registerIpcHandlers(params: {
   });
 
   ipcMain.handle("gateway-get-info", async () => ({ state: params.getGatewayState() }));
+
+  ipcMain.handle("consent-get", async () => ({ accepted: params.getConsentAccepted() }));
+
+  ipcMain.handle("consent-accept", async () => {
+    await params.acceptConsent();
+    await params.startGateway();
+    return { ok: true } as const;
+  });
+
+  ipcMain.handle("gateway-start", async () => {
+    await params.startGateway();
+    return { ok: true } as const;
+  });
 
   ipcMain.handle("gateway-retry", async () => {
     app.relaunch();

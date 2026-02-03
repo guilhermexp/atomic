@@ -7,6 +7,7 @@
   --muted: rgba(230, 237, 243, 0.82);
   --muted2: rgba(230, 237, 243, 0.65);
   --accent: #ff7a00;
+  --lime: #c2ff40;
 }
 
 html,
@@ -112,6 +113,226 @@ button:disabled {
   height: 100%;
   display: grid;
   place-items: center;
+}
+
+.GatewaySplash {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(900px 520px at 50% 35%, rgba(194, 255, 64, 0.10), transparent 55%),
+    radial-gradient(800px 500px at 50% 60%, rgba(0, 229, 204, 0.05), transparent 60%),
+    var(--bg);
+}
+
+.GatewaySplashInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 18px;
+  animation: gatewaySplashEnter 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.GatewaySplashLogo {
+  width: 160px;
+  height: 160px;
+  border-radius: 28%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 22px 55px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 32px rgba(255, 122, 0, 0.16));
+  animation: gatewaySplashSpin 3.2s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.GatewaySplashText {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+.GatewaySplashDots {
+  height: 14px;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.GatewaySplashDots span {
+  width: 9px;
+  height: 9px;
+  background: rgba(230, 237, 243, 0.78);
+}
+
+@keyframes gatewaySplashSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gatewaySplashEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .GatewaySplashInner {
+    animation: none;
+  }
+  .GatewaySplashLogo {
+    animation: none;
+  }
+  .ChatTypingDots span {
+    animation: none;
+  }
+}
+
+.ConsentShell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(900px 520px at 50% 28%, rgba(194, 255, 64, 0.12), transparent 58%),
+    radial-gradient(900px 520px at 50% 60%, rgba(194, 255, 64, 0.06), transparent 62%),
+    var(--bg);
+}
+
+.ConsentTopbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.ConsentBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.ConsentMark {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(194, 255, 64, 0.18);
+  color: var(--lime);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ConsentBrandText {
+  letter-spacing: 0.4px;
+  font-weight: 750;
+  color: rgba(230, 237, 243, 0.95);
+}
+
+.ConsentHero {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: start center;
+  padding: 52px 18px 24px;
+}
+
+.ConsentTitle {
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.92;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0 0 14px;
+  text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+
+.ConsentSubtitle {
+  text-align: center;
+  color: rgba(230, 237, 243, 0.70);
+  font-size: 14px;
+  margin: 0 0 24px;
+}
+
+.ConsentCard {
+  width: min(720px, 92vw);
+  border: 1px solid rgba(230, 237, 243, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+  padding: 18px 18px 16px;
+  animation: gatewaySplashEnter 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.ConsentBody {
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.30);
+  border: 1px solid rgba(230, 237, 243, 0.10);
+  color: rgba(230, 237, 243, 0.86);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ConsentBody p {
+  margin: 0 0 12px;
+}
+
+.ConsentBody p:last-child {
+  margin-bottom: 0;
+}
+
+.ConsentCheck {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: rgba(230, 237, 243, 0.90);
+  font-size: 13px;
+}
+
+.ConsentCheck input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--lime);
+}
+
+.ConsentButton {
+  margin-top: 14px;
+  width: min(340px, 100%);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lime);
+  color: rgba(0, 0, 0, 0.86);
+  font-weight: 800;
+  padding: 12px 14px;
+}
+
+.ConsentButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ConsentError {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(255, 122, 0, 0.95);
 }
 
 .Card {

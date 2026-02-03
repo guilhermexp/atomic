@@ -1,4 +1,5 @@
 export const routes = {
+  consent: "/consent",
   loading: "/loading",
   error: "/error",
   welcome: "/welcome",
@@ -8,6 +9,6 @@ export const routes = {
 } as const;
 
 export function isBootstrapPath(pathname: string): boolean {
-  return pathname === "/" || pathname === routes.loading || pathname === routes.error;
+  return pathname === "/" || pathname === routes.consent || pathname === routes.loading || pathname === routes.error;
 }
 

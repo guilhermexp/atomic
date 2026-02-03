@@ -3,6 +3,8 @@ import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "reac
 import { ChatPage } from "./ChatPage";
 import { SettingsPage } from "./SettingsPage";
 import { WelcomePage } from "./WelcomePage";
+import { ConsentScreen, type ConsentDesktopApi } from "./ConsentScreen";
+import { LoadingScreen } from "./LoadingScreen";
 import { GatewayRpcProvider } from "../gateway/context";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { initGatewayState } from "../store/slices/gatewaySlice";
@@ -56,28 +58,6 @@ function Topbar() {
         >
           Retry
         </button>
-      </div>
-    </div>
-  );
-}
-
-function LoadingScreen({ state }: { state: GatewayState | null }) {
-  const port = state?.kind ? String(state.port) : "?";
-  const logsDir = state?.kind ? state.logsDir : "?";
-  return (
-    <div className="Centered">
-      <div className="Card">
-        <div className="CardTitle">Starting OpenClaw Gateway…</div>
-        <div className="CardSubtitle">
-          The desktop app is launching a local Gateway process and then loading the Control UI.
-        </div>
-        <div className="Meta">
-          <div className="Pill">port: {port}</div>
-          <div className="Pill">logs: {logsDir}</div>
-        </div>
-        <div className="CardSubtitle" style={{ margin: 0, opacity: 0.78 }}>
-          If this takes longer than ~30 seconds, check the logs.
-        </div>
       </div>
     </div>
   );
@@ -153,11 +133,33 @@ export function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const didAutoNavRef = React.useRef(false);
+  const [consent, setConsent] = React.useState<"unknown" | "required" | "accepted">("unknown");
 
   React.useEffect(() => {
     void dispatch(initGatewayState());
     void dispatch(loadOnboardingFromStorage());
   }, [dispatch]);
+
+  React.useEffect(() => {
+    const api = window.openclawDesktop as ConsentDesktopApi | undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const info = await api?.getConsentInfo();
+        const accepted = info?.accepted === true;
+        if (alive) {
+          setConsent(accepted ? "accepted" : "required");
+        }
+      } catch {
+        if (alive) {
+          setConsent("required");
+        }
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!state) {
@@ -185,6 +187,21 @@ export function App() {
       navigate(routes.loading, { replace: true });
     }
   }, [state, onboarded, navigate, location.pathname]);
+
+  if (consent !== "accepted") {
+    // While consent is loading, keep showing the splash to avoid a flash of unstyled content.
+    if (consent === "unknown") {
+      return <LoadingScreen state={null} />;
+    }
+    return (
+      <ConsentScreen
+        onAccepted={() => {
+          setConsent("accepted");
+          navigate(routes.loading, { replace: true });
+        }}
+      />
+    );
+  }
 
   return (
     <div className="AppShell">

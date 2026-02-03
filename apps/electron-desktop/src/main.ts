@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, Tray, nativeImage } from "electron";
 import type { ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import * as fs from "node:fs";
 import * as path from "node:path";
 import { registerIpcHandlers } from "./main/ipc/register";
 import { DEFAULT_PORT } from "./main/constants";
@@ -30,6 +31,7 @@ let rendererIndexForWindow: string | null = null;
 let gateway: ChildProcess | null = null;
 let logsDirForUi: string | null = null;
 let gatewayState: GatewayState | null = null;
+let consentAccepted = false;
 
 async function stopGatewayChild(): Promise<void> {
   const child = gateway;
@@ -182,10 +184,77 @@ app.whenReady().then(async () => {
     : (process.env.OPENCLAW_DESKTOP_NODE_BIN || "node").trim() || "node";
   const gogBin = app.isPackaged ? resolveBundledGogBin() : resolveDownloadedGogBin(MAIN_DIR);
 
+  const port = await pickPort(DEFAULT_PORT);
+  const url = `http://127.0.0.1:${port}/`;
+  const configPath = path.join(stateDir, "openclaw.json");
+  const tokenFromConfig = readGatewayTokenFromConfig(configPath);
+  const token = tokenFromConfig ?? randomBytes(24).toString("base64url");
+  ensureGatewayConfigFile({ configPath, token });
+
+  const rendererIndex = resolveRendererIndex({ isPackaged: app.isPackaged, appPath: app.getAppPath(), mainDir: MAIN_DIR });
+  const preloadPath = resolvePreloadPath(MAIN_DIR);
+  preloadPathForWindow = preloadPath;
+  rendererIndexForWindow = rendererIndex;
+
+  await ensureMainWindow();
+  ensureTray();
+
+  // Consent is stored in the same per-user state dir as the embedded gateway config.
+  const consentPath = path.join(stateDir, "consent.json");
+  consentAccepted = readConsentAccepted(consentPath);
+
+  const stderrTail = createTailBuffer(24_000);
+
+  const startGateway = async () => {
+    if (gateway) {
+      return;
+    }
+    const nextWin = await ensureMainWindow();
+    broadcastGatewayState(nextWin, { kind: "starting", port, logsDir, token });
+    gateway = spawnGateway({
+      port,
+      logsDir,
+      stateDir,
+      configPath,
+      token,
+      openclawDir,
+      nodeBin,
+      gogBin,
+      electronRunAsNode: nodeBin === process.execPath,
+      stderrTail,
+    });
+
+    const ok = await waitForPortOpen("127.0.0.1", port, 30_000);
+    if (!ok) {
+      const details = [
+        `Gateway did not open the port within 30s.`,
+        "",
+        `openclawDir: ${openclawDir}`,
+        `nodeBin: ${nodeBin}`,
+        `stderr (tail):`,
+        stderrTail.read().trim() || "<empty>",
+        "",
+        `See logs in: ${logsDir}`,
+      ].join("\n");
+      broadcastGatewayState(nextWin, { kind: "failed", port, logsDir, details, token });
+      return;
+    }
+
+    // Keep the Electron window on the React renderer. The legacy Control UI is embedded in an iframe
+    // and can be switched to/from the native pages without losing the top-level navigation.
+    broadcastGatewayState(nextWin, { kind: "ready", port, logsDir, url, token });
+  };
+
   registerIpcHandlers({
     getMainWindow: () => mainWindow,
     getGatewayState: () => gatewayState,
     getLogsDir: () => logsDirForUi,
+    getConsentAccepted: () => consentAccepted,
+    acceptConsent: async () => {
+      consentAccepted = true;
+      writeConsentAccepted(consentPath);
+    },
+    startGateway,
     userData,
     stateDir,
     logsDir,
@@ -194,54 +263,36 @@ app.whenReady().then(async () => {
     stopGatewayChild,
   });
 
-  const port = await pickPort(DEFAULT_PORT);
-  const url = `http://127.0.0.1:${port}/`;
-  const configPath = path.join(stateDir, "openclaw.json");
-  const tokenFromConfig = readGatewayTokenFromConfig(configPath);
-  const token = tokenFromConfig ?? randomBytes(24).toString("base64url");
-  ensureGatewayConfigFile({ configPath, token });
-
-  const stderrTail = createTailBuffer(24_000);
-  gateway = spawnGateway({
-    port,
-    logsDir,
-    stateDir,
-    configPath,
-    token,
-    openclawDir,
-    nodeBin,
-    gogBin,
-    electronRunAsNode: nodeBin === process.execPath,
-    stderrTail,
-  });
-
-  const rendererIndex = resolveRendererIndex({ isPackaged: app.isPackaged, appPath: app.getAppPath(), mainDir: MAIN_DIR });
-  const preloadPath = resolvePreloadPath(MAIN_DIR);
-  preloadPathForWindow = preloadPath;
-  rendererIndexForWindow = rendererIndex;
-
-  const win = await ensureMainWindow();
-  broadcastGatewayState(win, { kind: "starting", port, logsDir, token });
-  ensureTray();
-
-  const ok = await waitForPortOpen("127.0.0.1", port, 30_000);
-  if (!ok) {
-    const details = [
-      `Gateway did not open the port within 30s.`,
-      "",
-      `openclawDir: ${openclawDir}`,
-      `nodeBin: ${nodeBin}`,
-      `stderr (tail):`,
-      stderrTail.read().trim() || "<empty>",
-      "",
-      `See logs in: ${logsDir}`,
-    ].join("\n");
-    broadcastGatewayState(win, { kind: "failed", port, logsDir, details, token });
-    return;
+  // If consent has already been accepted previously, start the gateway immediately.
+  if (consentAccepted) {
+    await startGateway();
   }
-
-  // Keep the Electron window on the React renderer. The legacy Control UI is embedded in an iframe
-  // and can be switched to/from the native pages without losing the top-level navigation.
-  broadcastGatewayState(win, { kind: "ready", port, logsDir, url, token });
 });
+
+function readConsentAccepted(consentPath: string): boolean {
+  try {
+    if (!fs.existsSync(consentPath)) {
+      return false;
+    }
+    const raw = fs.readFileSync(consentPath, "utf-8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") {
+      return false;
+    }
+    const obj = parsed as { accepted?: unknown };
+    return obj.accepted === true;
+  } catch {
+    return false;
+  }
+}
+
+function writeConsentAccepted(consentPath: string): void {
+  try {
+    fs.mkdirSync(path.dirname(consentPath), { recursive: true });
+    const payload = { accepted: true, acceptedAt: new Date().toISOString() };
+    fs.writeFileSync(consentPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
+  } catch {
+    // ignore
+  }
+}
 
