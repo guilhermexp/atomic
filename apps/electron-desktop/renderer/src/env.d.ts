@@ -19,6 +19,14 @@ type RemindctlExecResult = {
   resolvedPath: string | null;
 };
 
+type ObsidianCliExecResult = {
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  resolvedPath: string | null;
+};
+
 declare global {
   interface Window {
     openclawDesktop?: {
@@ -46,6 +54,10 @@ declare global {
       memoCheck: () => Promise<MemoExecResult>;
       remindctlAuthorize: () => Promise<RemindctlExecResult>;
       remindctlTodayJson: () => Promise<RemindctlExecResult>;
+      obsidianCliCheck: () => Promise<ObsidianCliExecResult>;
+      obsidianCliPrintDefaultPath: () => Promise<ObsidianCliExecResult>;
+      obsidianVaultsList: () => Promise<ObsidianCliExecResult>;
+      obsidianCliSetDefault: (params: { vaultName: string }) => Promise<ObsidianCliExecResult>;
       onGatewayState: (cb: (state: GatewayState) => void) => () => void;
     };
   }

@@ -13,6 +13,7 @@ import { useWelcomeConfig } from "./useWelcomeConfig";
 import { useWelcomeGog } from "./useWelcomeGog";
 import { useWelcomeModels } from "./useWelcomeModels";
 import { useWelcomeNotion } from "./useWelcomeNotion";
+import { useWelcomeObsidian } from "./useWelcomeObsidian";
 import { useWelcomeTrello } from "./useWelcomeTrello";
 import { useWelcomeTelegram } from "./useWelcomeTelegram";
 import { useWelcomeWebSearch, type WebSearchProvider } from "./useWelcomeWebSearch";
@@ -30,8 +31,15 @@ type SkillId =
   | "notion"
   | "trello"
   | "apple-notes"
-  | "apple-reminders";
+  | "apple-reminders"
+  | "obsidian";
 type SkillStatus = "connect" | "connected";
+
+type ObsidianVault = {
+  name: string;
+  path: string;
+  open: boolean;
+};
 
 export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const gw = useGatewayRpc();
@@ -49,6 +57,10 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const [mediaUnderstandingBusy, setMediaUnderstandingBusy] = React.useState(false);
   const [appleNotesBusy, setAppleNotesBusy] = React.useState(false);
   const [appleRemindersBusy, setAppleRemindersBusy] = React.useState(false);
+  const [obsidianBusy, setObsidianBusy] = React.useState(false);
+  const [obsidianVaultsLoading, setObsidianVaultsLoading] = React.useState(false);
+  const [obsidianVaults, setObsidianVaults] = React.useState<ObsidianVault[]>([]);
+  const [selectedObsidianVaultName, setSelectedObsidianVaultName] = React.useState("");
   const [hasOpenAiProvider, setHasOpenAiProvider] = React.useState(false);
   const [skills, setSkills] = React.useState<Record<SkillId, SkillStatus>>({
     "google-workspace": "connect",
@@ -58,6 +70,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     trello: "connect",
     "apple-notes": "connect",
     "apple-reminders": "connect",
+    obsidian: "connect",
   });
 
   const { configPath, ensureExtendedConfig, loadConfig } = useWelcomeConfig({
@@ -69,6 +82,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const { saveApiKey } = useWelcomeApiKey({ gw, loadConfig, setError, setStatus });
   const { enableAppleNotes } = useWelcomeAppleNotes({ gw, loadConfig, setError, setStatus });
   const { enableAppleReminders } = useWelcomeAppleReminders({ gw, loadConfig, setError, setStatus });
+  const { enableObsidian } = useWelcomeObsidian({ gw, loadConfig, setError, setStatus });
   const { saveNotionApiKey } = useWelcomeNotion({ gw, loadConfig, setError, setStatus });
   const { saveTrello } = useWelcomeTrello({ gw, loadConfig, setError, setStatus });
   const { saveWebSearch } = useWelcomeWebSearch({ gw, loadConfig, setError, setStatus });
@@ -130,6 +144,57 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const goProviderSelect = React.useCallback(() => navigate(`${routes.welcome}/provider-select`), [navigate]);
   const goAppleNotes = React.useCallback(() => navigate(`${routes.welcome}/apple-notes`), [navigate]);
   const goAppleReminders = React.useCallback(() => navigate(`${routes.welcome}/apple-reminders`), [navigate]);
+
+  const refreshObsidianVaults = React.useCallback(async (): Promise<void> => {
+    const api = window.openclawDesktop;
+    if (!api) {
+      throw new Error("Desktop API not available");
+    }
+    setObsidianVaultsLoading(true);
+    try {
+      const res = await api.obsidianVaultsList();
+      if (!res.ok) {
+        const stderr = res.stderr?.trim();
+        const stdout = res.stdout?.trim();
+        throw new Error(stderr || stdout || "failed to list Obsidian vaults");
+      }
+      const parsed = JSON.parse(res.stdout || "[]") as unknown;
+      const list: ObsidianVault[] = Array.isArray(parsed)
+        ? parsed
+            .map((v) => {
+              if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+              const o = v as { name?: unknown; path?: unknown; open?: unknown };
+              const name = typeof o.name === "string" ? o.name : "";
+              const vaultPath = typeof o.path === "string" ? o.path : "";
+              const open = o.open === true;
+              if (!name || !vaultPath) return null;
+              return { name, path: vaultPath, open };
+            })
+            .filter((v): v is ObsidianVault => Boolean(v))
+        : [];
+      setObsidianVaults(list);
+      // Prefer the currently-open vault (Obsidian app), otherwise keep user selection, otherwise pick the first.
+      const openVault = list.find((v) => v.open);
+      setSelectedObsidianVaultName((prev) => prev || openVault?.name || list[0]?.name || "");
+    } finally {
+      setObsidianVaultsLoading(false);
+    }
+  }, []);
+
+  const goObsidian = React.useCallback(() => {
+    setError(null);
+    setStatus("Loading Obsidian vaults…");
+    void (async () => {
+      try {
+        await refreshObsidianVaults();
+        setStatus(null);
+        navigate(`${routes.welcome}/obsidian`);
+      } catch (err) {
+        setError(String(err));
+        setStatus(null);
+      }
+    })();
+  }, [navigate, refreshObsidianVaults, setError, setStatus]);
 
   const markSkillConnected = React.useCallback((skillId: SkillId) => {
     setSkills((prev) => {
@@ -393,6 +458,94 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     }
   }, [enableAppleReminders, goSkills, markSkillConnected]);
 
+  const onObsidianRecheck = React.useCallback(async () => {
+    setObsidianBusy(true);
+    setError(null);
+    setStatus("Checking obsidian-cli…");
+    try {
+      const api = window.openclawDesktop;
+      if (!api) {
+        throw new Error("Desktop API not available");
+      }
+
+      const checkRes = await api.obsidianCliCheck();
+      if (!checkRes.ok) {
+        const stderr = checkRes.stderr?.trim();
+        const stdout = checkRes.stdout?.trim();
+        throw new Error(stderr || stdout || "obsidian-cli check failed");
+      }
+
+      // Enable skill + allowlist regardless of default vault state.
+      await enableObsidian({ obsidianCliResolvedPath: checkRes.resolvedPath });
+
+      setStatus("Checking default vault…");
+      const defaultRes = await api.obsidianCliPrintDefaultPath();
+      if (defaultRes.ok) {
+        markSkillConnected("obsidian");
+        goSkills();
+        return;
+      }
+
+      // Keep the skill enabled, but don't mark as connected until default vault is set.
+      setStatus('Obsidian enabled. Set a default vault, then click "Check & enable" again.');
+    } catch (err) {
+      setError(String(err));
+      setStatus(null);
+    } finally {
+      setObsidianBusy(false);
+    }
+  }, [enableObsidian, goSkills, markSkillConnected]);
+
+  const onObsidianSetDefaultAndEnable = React.useCallback(
+    async (vaultName: string) => {
+      setObsidianBusy(true);
+      setError(null);
+      setStatus("Checking obsidian-cli…");
+      try {
+        const api = window.openclawDesktop;
+        if (!api) {
+          throw new Error("Desktop API not available");
+        }
+
+        const checkRes = await api.obsidianCliCheck();
+        if (!checkRes.ok) {
+          const stderr = checkRes.stderr?.trim();
+          const stdout = checkRes.stdout?.trim();
+          throw new Error(stderr || stdout || "obsidian-cli check failed");
+        }
+
+        setStatus("Setting default vault…");
+        const setRes = await api.obsidianCliSetDefault({ vaultName });
+        if (!setRes.ok) {
+          const stderr = setRes.stderr?.trim();
+          const stdout = setRes.stdout?.trim();
+          throw new Error(stderr || stdout || "failed to set default vault");
+        }
+
+        // Enable skill + allowlist with the resolved path we actually run.
+        const resolvedPath = checkRes.resolvedPath ?? setRes.resolvedPath ?? null;
+        await enableObsidian({ obsidianCliResolvedPath: resolvedPath });
+
+        setStatus("Checking default vault…");
+        const defaultRes = await api.obsidianCliPrintDefaultPath();
+        if (!defaultRes.ok) {
+          const stderr = defaultRes.stderr?.trim();
+          const stdout = defaultRes.stdout?.trim();
+          throw new Error(stderr || stdout || "default vault check failed");
+        }
+
+        markSkillConnected("obsidian");
+        goSkills();
+      } catch (err) {
+        setError(String(err));
+        setStatus(null);
+      } finally {
+        setObsidianBusy(false);
+      }
+    },
+    [enableObsidian, goSkills, markSkillConnected],
+  );
+
   const onTelegramTokenNext = React.useCallback(async () => {
     setError(null);
     setStatus(null);
@@ -424,6 +577,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   return {
     appleNotesBusy,
     appleRemindersBusy,
+    obsidianBusy,
     apiKeyBusy,
     channelsProbe,
     configPath,
@@ -434,6 +588,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     goGogGoogleWorkspace,
     goAppleNotes,
     goAppleReminders,
+    goObsidian,
     goModelSelect,
     goMediaUnderstanding,
     goWebSearch,
@@ -463,6 +618,12 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     onTrelloSubmit,
     onAppleNotesCheckAndEnable,
     onAppleRemindersAuthorizeAndEnable,
+    obsidianVaultsLoading,
+    obsidianVaults,
+    selectedObsidianVaultName,
+    setSelectedObsidianVaultName,
+    onObsidianSetDefaultAndEnable,
+    onObsidianRecheck,
     onApiKeySubmit,
     onGogAuthAdd,
     onGogAuthList,

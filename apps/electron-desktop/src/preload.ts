@@ -19,6 +19,14 @@ type RemindctlExecResult = {
   resolvedPath: string | null;
 };
 
+type ObsidianCliExecResult = {
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  resolvedPath: string | null;
+};
+
 type OpenclawDesktopApi = {
   version: string;
   openLogs: () => Promise<void>;
@@ -37,6 +45,10 @@ type OpenclawDesktopApi = {
   memoCheck: () => Promise<MemoExecResult>;
   remindctlAuthorize: () => Promise<RemindctlExecResult>;
   remindctlTodayJson: () => Promise<RemindctlExecResult>;
+  obsidianCliCheck: () => Promise<ObsidianCliExecResult>;
+  obsidianCliPrintDefaultPath: () => Promise<ObsidianCliExecResult>;
+  obsidianVaultsList: () => Promise<ObsidianCliExecResult>;
+  obsidianCliSetDefault: (params: { vaultName: string }) => Promise<ObsidianCliExecResult>;
   onGatewayState: (cb: (state: GatewayState) => void) => () => void;
 };
 
@@ -62,6 +74,10 @@ const api: OpenclawDesktopApi = {
   memoCheck: async () => ipcRenderer.invoke("memo-check"),
   remindctlAuthorize: async () => ipcRenderer.invoke("remindctl-authorize"),
   remindctlTodayJson: async () => ipcRenderer.invoke("remindctl-today-json"),
+  obsidianCliCheck: async () => ipcRenderer.invoke("obsidian-cli-check"),
+  obsidianCliPrintDefaultPath: async () => ipcRenderer.invoke("obsidian-cli-print-default-path"),
+  obsidianVaultsList: async () => ipcRenderer.invoke("obsidian-vaults-list"),
+  obsidianCliSetDefault: async (params: { vaultName: string }) => ipcRenderer.invoke("obsidian-cli-set-default", params),
   onGatewayState: (cb: (state: GatewayState) => void) => {
     const handler = (_evt: unknown, state: GatewayState) => cb(state);
     ipcRenderer.on("gateway-state", handler);

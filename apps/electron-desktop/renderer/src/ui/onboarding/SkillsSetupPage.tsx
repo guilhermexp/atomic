@@ -10,7 +10,16 @@ type SkillEntry = {
   description: string;
   status: SkillStatus;
   iconText: string;
-  iconVariant: "google" | "notion" | "trello" | "gemini" | "nano-banana" | "sag" | "apple" | "reminders";
+  iconVariant:
+    | "google"
+    | "notion"
+    | "trello"
+    | "gemini"
+    | "nano-banana"
+    | "sag"
+    | "apple"
+    | "reminders"
+    | "obsidian";
 };
 
 const SKILLS: SkillEntry[] = [
@@ -69,6 +78,14 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "✓",
     iconVariant: "reminders",
+  },
+  {
+    id: "obsidian",
+    name: "Obsidian",
+    description: "Work with your Obsidian vaults from the terminal (search, create, move, delete)",
+    status: "connect",
+    iconText: "💎",
+    iconVariant: "obsidian",
   },
   {
     id: "gemini",
@@ -139,6 +156,8 @@ export function SkillsSetupPage(props: {
   onAppleNotesConnect: () => void;
   appleRemindersStatus: Exclude<SkillStatus, "coming-soon">;
   onAppleRemindersConnect: () => void;
+  obsidianStatus: Exclude<SkillStatus, "coming-soon">;
+  onObsidianConnect: () => void;
   onBack: () => void;
   onSkip: () => void;
   onContinue: () => void;
@@ -179,6 +198,8 @@ export function SkillsSetupPage(props: {
                       ? props.appleNotesStatus
                     : skill.id === "apple-reminders"
                       ? props.appleRemindersStatus
+                    : skill.id === "obsidian"
+                      ? props.obsidianStatus
                     : skill.status;
               const onConnect =
                 skill.id === "google-workspace"
@@ -195,6 +216,8 @@ export function SkillsSetupPage(props: {
                       ? props.onAppleNotesConnect
                     : skill.id === "apple-reminders"
                       ? props.onAppleRemindersConnect
+                    : skill.id === "obsidian"
+                      ? props.onObsidianConnect
                     : undefined;
               const effectiveStatus: SkillStatus =
                 onConnect || status === "connected" ? status : "coming-soon";

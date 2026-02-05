@@ -45,6 +45,12 @@ export function resolveBundledRemindctlBin(): string {
   return path.join(process.resourcesPath, "remindctl", `${platform}-${arch}`, "remindctl");
 }
 
+export function resolveBundledObsidianCliBin(): string {
+  const platform = process.platform;
+  const arch = process.arch;
+  return path.join(process.resourcesPath, "obsidian-cli", `${platform}-${arch}`, "obsidian-cli");
+}
+
 export function resolveDownloadedGogBin(mainDir: string): string {
   const platform = process.platform;
   const arch = process.arch;
@@ -79,6 +85,15 @@ export function resolveDownloadedRemindctlBin(mainDir: string): string {
   // We keep the downloaded remindctl runtime next to the Electron app sources.
   const appDir = path.resolve(mainDir, "..");
   return path.join(appDir, ".remindctl-runtime", `${platform}-${arch}`, "remindctl");
+}
+
+export function resolveDownloadedObsidianCliBin(mainDir: string): string {
+  const platform = process.platform;
+  const arch = process.arch;
+  // In dev, the entry file compiles to apps/electron-desktop/dist/main.js.
+  // We keep the downloaded obsidian-cli runtime next to the Electron app sources.
+  const appDir = path.resolve(mainDir, "..");
+  return path.join(appDir, ".obsidian-cli-runtime", `${platform}-${arch}`, "obsidian-cli");
 }
 
 export function resolveBundledGogCredentialsPath(): string {

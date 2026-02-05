@@ -12,6 +12,7 @@ import { GogPage } from "./onboarding/GogPage";
 import { MediaUnderstandingPage } from "./onboarding/MediaUnderstandingPage";
 import { ModelSelectPage } from "./onboarding/ModelSelectPage";
 import { NotionConnectPage } from "./onboarding/NotionConnectPage";
+import { ObsidianConnectPage } from "./onboarding/ObsidianConnectPage";
 import { ProviderSelectPage } from "./onboarding/ProviderSelectPage";
 import { SkillsSetupPage } from "./onboarding/SkillsSetupPage";
 import { TrelloConnectPage } from "./onboarding/TrelloConnectPage";
@@ -166,6 +167,8 @@ export function WelcomePage({ state }: { state: Extract<GatewayState, { kind: "r
             onAppleNotesConnect={welcome.goAppleNotes}
             appleRemindersStatus={welcome.skills["apple-reminders"]}
             onAppleRemindersConnect={welcome.goAppleReminders}
+            obsidianStatus={welcome.skills.obsidian}
+            onObsidianConnect={welcome.goObsidian}
             onBack={welcome.goModelSelect}
             onSkip={welcome.goTelegramToken}
             onContinue={welcome.goTelegramToken}
@@ -194,6 +197,24 @@ export function WelcomePage({ state }: { state: Extract<GatewayState, { kind: "r
             error={welcome.error}
             busy={welcome.appleRemindersBusy}
             onAuthorizeAndEnable={() => void welcome.onAppleRemindersAuthorizeAndEnable()}
+            onBack={welcome.goSkills}
+          />
+        }
+      />
+
+      <Route
+        path="obsidian"
+        element={
+          <ObsidianConnectPage
+            status={welcome.status}
+            error={welcome.error}
+            busy={welcome.obsidianBusy}
+            vaults={welcome.obsidianVaults}
+            selectedVaultName={welcome.selectedObsidianVaultName}
+            setSelectedVaultName={welcome.setSelectedObsidianVaultName}
+            vaultsLoading={welcome.obsidianVaultsLoading}
+            onSetDefaultAndEnable={(vaultName) => void welcome.onObsidianSetDefaultAndEnable(vaultName)}
+            onRecheck={() => void welcome.onObsidianRecheck()}
             onBack={welcome.goSkills}
           />
         }

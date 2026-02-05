@@ -13,7 +13,8 @@
     "prepare:jq:all": "npm run fetch:jq && npm run prepare:jq",
     "prepare:memo:all": "npm run fetch:memo && npm run build:memo && npm run prepare:memo",
     "prepare:remindctl:all": "npm run fetch:remindctl && npm run prepare:remindctl",
-    "prepare:runtimes": "npm run prepare:node && npm run prepare:gog:all && npm run prepare:jq:all && npm run prepare:memo:all && npm run prepare:remindctl:all",
+    "prepare:obsidian-cli:all": "npm run fetch:obsidian-cli && npm run prepare:obsidian-cli",
+    "prepare:runtimes": "npm run prepare:node && npm run prepare:gog:all && npm run prepare:jq:all && npm run prepare:memo:all && npm run prepare:remindctl:all && npm run prepare:obsidian-cli:all",
     "dev": "npm run build:all && npm run fetch:gog && npm run fetch:jq && npm run fetch:memo && npm run prepare:gog:credentials && cross-env ELECTRON_RUN_AS_NODE= electron .",
     "build": "tsc -p tsconfig.json",
     "build:renderer": "vite build --config renderer/vite.config.ts",
@@ -24,12 +25,14 @@
     "fetch:jq": "node scripts/fetch-jq-runtime.mjs",
     "fetch:memo": "node scripts/fetch-memo-runtime.mjs",
     "fetch:remindctl": "node scripts/fetch-remindctl-runtime.mjs",
+    "fetch:obsidian-cli": "node scripts/fetch-obsidian-cli-runtime.mjs",
     "build:memo": "node scripts/build-memo-runtime.mjs",
     "prepare:gog:credentials": "node --env-file=.env scripts/prepare-gog-credentials.mjs",
     "prepare:gog": "node scripts/prepare-gog-runtime.mjs",
     "prepare:jq": "node scripts/prepare-jq-runtime.mjs",
     "prepare:memo": "node scripts/prepare-memo-runtime.mjs",
     "prepare:remindctl": "node scripts/prepare-remindctl-runtime.mjs",
+    "prepare:obsidian-cli": "node scripts/prepare-obsidian-cli-runtime.mjs",
     "reset:local": "node scripts/reset-local-state.mjs",
     "reset:local:yes": "node scripts/reset-local-state.mjs --yes",
     "dist:local": "CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist -- --publish never",
@@ -115,6 +118,10 @@
       {
         "from": "vendor/remindctl",
         "to": "remindctl"
+      },
+      {
+        "from": "vendor/obsidian-cli",
+        "to": "obsidian-cli"
       },
       {
         "from": ".gog-runtime/credentials",
