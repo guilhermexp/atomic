@@ -1,7 +1,7 @@
 {
   "name": "atomicbot-desktop",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Atomic Bot makes things for you",
   "type": "commonjs",
   "main": "dist/main.js",
@@ -14,7 +14,8 @@
     "prepare:memo:all": "npm run fetch:memo && npm run build:memo && npm run prepare:memo",
     "prepare:remindctl:all": "npm run fetch:remindctl && npm run prepare:remindctl",
     "prepare:obsidian-cli:all": "npm run fetch:obsidian-cli && npm run prepare:obsidian-cli",
-    "prepare:runtimes": "npm run prepare:node && npm run prepare:gog:all && npm run prepare:jq:all && npm run prepare:memo:all && npm run prepare:remindctl:all && npm run prepare:obsidian-cli:all",
+    "prepare:gh:all": "npm run fetch:gh && npm run prepare:gh",
+    "prepare:runtimes": "npm run prepare:node && npm run prepare:gog:all && npm run prepare:jq:all && npm run prepare:memo:all && npm run prepare:remindctl:all && npm run prepare:obsidian-cli:all && npm run prepare:gh:all",
     "dev": "npm run build:all && npm run fetch:gog && npm run fetch:jq && npm run fetch:memo && npm run prepare:gog:credentials && cross-env ELECTRON_RUN_AS_NODE= electron .",
     "build": "tsc -p tsconfig.json",
     "build:renderer": "vite build --config renderer/vite.config.ts",
@@ -26,6 +27,7 @@
     "fetch:memo": "node scripts/fetch-memo-runtime.mjs",
     "fetch:remindctl": "node scripts/fetch-remindctl-runtime.mjs",
     "fetch:obsidian-cli": "node scripts/fetch-obsidian-cli-runtime.mjs",
+    "fetch:gh": "node scripts/fetch-gh-runtime.mjs",
     "build:memo": "node scripts/build-memo-runtime.mjs",
     "prepare:gog:credentials": "node --env-file=.env scripts/prepare-gog-credentials.mjs",
     "prepare:gog": "node scripts/prepare-gog-runtime.mjs",
@@ -33,6 +35,7 @@
     "prepare:memo": "node scripts/prepare-memo-runtime.mjs",
     "prepare:remindctl": "node scripts/prepare-remindctl-runtime.mjs",
     "prepare:obsidian-cli": "node scripts/prepare-obsidian-cli-runtime.mjs",
+    "prepare:gh": "node scripts/prepare-gh-runtime.mjs",
     "reset:local": "node scripts/reset-local-state.mjs",
     "reset:local:yes": "node scripts/reset-local-state.mjs --yes",
     "dist:local": "CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist -- --publish never",
@@ -124,6 +127,10 @@
         "to": "obsidian-cli"
       },
       {
+        "from": "vendor/gh",
+        "to": "gh"
+      },
+      {
         "from": ".gog-runtime/credentials",
         "to": "gog-credentials"
       }
@@ -131,6 +138,9 @@
     "mac": {
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.inherit.plist",
       "target": [
         "zip"
       ],

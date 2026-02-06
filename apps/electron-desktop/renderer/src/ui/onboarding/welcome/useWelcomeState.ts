@@ -14,6 +14,7 @@ import { useWelcomeGog } from "./useWelcomeGog";
 import { useWelcomeModels } from "./useWelcomeModels";
 import { useWelcomeNotion } from "./useWelcomeNotion";
 import { useWelcomeObsidian } from "./useWelcomeObsidian";
+import { useWelcomeGitHub } from "./useWelcomeGitHub";
 import { useWelcomeTrello } from "./useWelcomeTrello";
 import { useWelcomeTelegram } from "./useWelcomeTelegram";
 import { useWelcomeWebSearch, type WebSearchProvider } from "./useWelcomeWebSearch";
@@ -32,7 +33,8 @@ type SkillId =
   | "trello"
   | "apple-notes"
   | "apple-reminders"
-  | "obsidian";
+  | "obsidian"
+  | "github";
 type SkillStatus = "connect" | "connected";
 
 type ObsidianVault = {
@@ -58,6 +60,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const [appleNotesBusy, setAppleNotesBusy] = React.useState(false);
   const [appleRemindersBusy, setAppleRemindersBusy] = React.useState(false);
   const [obsidianBusy, setObsidianBusy] = React.useState(false);
+  const [githubBusy, setGitHubBusy] = React.useState(false);
   const [obsidianVaultsLoading, setObsidianVaultsLoading] = React.useState(false);
   const [obsidianVaults, setObsidianVaults] = React.useState<ObsidianVault[]>([]);
   const [selectedObsidianVaultName, setSelectedObsidianVaultName] = React.useState("");
@@ -71,6 +74,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     "apple-notes": "connect",
     "apple-reminders": "connect",
     obsidian: "connect",
+    github: "connect",
   });
 
   const { configPath, ensureExtendedConfig, loadConfig } = useWelcomeConfig({
@@ -83,6 +87,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const { enableAppleNotes } = useWelcomeAppleNotes({ gw, loadConfig, setError, setStatus });
   const { enableAppleReminders } = useWelcomeAppleReminders({ gw, loadConfig, setError, setStatus });
   const { enableObsidian } = useWelcomeObsidian({ gw, loadConfig, setError, setStatus });
+  const { enableGitHub } = useWelcomeGitHub({ gw, loadConfig, setError, setStatus });
   const { saveNotionApiKey } = useWelcomeNotion({ gw, loadConfig, setError, setStatus });
   const { saveTrello } = useWelcomeTrello({ gw, loadConfig, setError, setStatus });
   const { saveWebSearch } = useWelcomeWebSearch({ gw, loadConfig, setError, setStatus });
@@ -144,6 +149,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const goProviderSelect = React.useCallback(() => navigate(`${routes.welcome}/provider-select`), [navigate]);
   const goAppleNotes = React.useCallback(() => navigate(`${routes.welcome}/apple-notes`), [navigate]);
   const goAppleReminders = React.useCallback(() => navigate(`${routes.welcome}/apple-reminders`), [navigate]);
+  const goGitHub = React.useCallback(() => navigate(`${routes.welcome}/github`), [navigate]);
 
   const refreshObsidianVaults = React.useCallback(async (): Promise<void> => {
     const api = window.openclawDesktop;
@@ -546,6 +552,63 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     [enableObsidian, goSkills, markSkillConnected],
   );
 
+  const onGitHubConnect = React.useCallback(
+    async (pat: string) => {
+      setGitHubBusy(true);
+      setError(null);
+      setStatus("Checking gh…");
+      try {
+        const api = window.openclawDesktop;
+        if (!api) {
+          throw new Error("Desktop API not available");
+        }
+
+        const checkRes = await api.ghCheck();
+        if (!checkRes.ok) {
+          const stderr = checkRes.stderr?.trim();
+          const stdout = checkRes.stdout?.trim();
+          throw new Error(stderr || stdout || "gh check failed");
+        }
+
+        setStatus("Signing in to GitHub…");
+        const loginRes = await api.ghAuthLoginPat({ pat });
+        if (!loginRes.ok) {
+          const stderr = loginRes.stderr?.trim();
+          const stdout = loginRes.stdout?.trim();
+          throw new Error(stderr || stdout || "gh auth login failed");
+        }
+
+        setStatus("Verifying authentication…");
+        const statusRes = await api.ghAuthStatus();
+        if (!statusRes.ok) {
+          const stderr = statusRes.stderr?.trim();
+          const stdout = statusRes.stdout?.trim();
+          throw new Error(stderr || stdout || "gh auth status failed");
+        }
+
+        const userRes = await api.ghApiUser();
+        if (!userRes.ok) {
+          const stderr = userRes.stderr?.trim();
+          const stdout = userRes.stdout?.trim();
+          throw new Error(stderr || stdout || "gh api user failed");
+        }
+
+        const resolvedPath = checkRes.resolvedPath ?? loginRes.resolvedPath ?? null;
+        const ok = await enableGitHub({ ghResolvedPath: resolvedPath });
+        if (ok) {
+          markSkillConnected("github");
+          goSkills();
+        }
+      } catch (err) {
+        setError(String(err));
+        setStatus(null);
+      } finally {
+        setGitHubBusy(false);
+      }
+    },
+    [enableGitHub, goSkills, markSkillConnected],
+  );
+
   const onTelegramTokenNext = React.useCallback(async () => {
     setError(null);
     setStatus(null);
@@ -578,6 +641,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     appleNotesBusy,
     appleRemindersBusy,
     obsidianBusy,
+    githubBusy,
     apiKeyBusy,
     channelsProbe,
     configPath,
@@ -589,6 +653,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     goAppleNotes,
     goAppleReminders,
     goObsidian,
+    goGitHub,
     goModelSelect,
     goMediaUnderstanding,
     goWebSearch,
@@ -624,6 +689,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     setSelectedObsidianVaultName,
     onObsidianSetDefaultAndEnable,
     onObsidianRecheck,
+    onGitHubConnect,
     onApiKeySubmit,
     onGogAuthAdd,
     onGogAuthList,

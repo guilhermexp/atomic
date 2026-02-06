@@ -7,6 +7,7 @@ vendor/
 .memo-runtime/
 .remindctl-runtime/
 .obsidian-cli-runtime/
+.gh-runtime/
 .env
 .env.*
 .DS_Store

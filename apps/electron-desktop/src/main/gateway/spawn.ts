@@ -18,6 +18,7 @@ export function spawnGateway(params: {
   memoBin?: string;
   remindctlBin?: string;
   obsidianCliBin?: string;
+  ghBin?: string;
   electronRunAsNode?: boolean;
   stderrTail: TailBuffer;
 }): ChildProcess {
@@ -34,6 +35,7 @@ export function spawnGateway(params: {
     memoBin,
     remindctlBin,
     obsidianCliBin,
+    ghBin,
     electronRunAsNode,
     stderrTail,
   } = params;
@@ -53,7 +55,7 @@ export function spawnGateway(params: {
   const args = [script, "gateway", "--bind", "loopback", "--port", String(port), "--allow-unconfigured", "--verbose"];
 
   const envPath = typeof process.env.PATH === "string" ? process.env.PATH : "";
-  const extraBinDirs = [jqBin, gogBin, memoBin, remindctlBin, obsidianCliBin]
+  const extraBinDirs = [jqBin, gogBin, memoBin, remindctlBin, obsidianCliBin, ghBin]
     .map((bin) => (bin ? path.dirname(bin) : ""))
     .filter(Boolean);
   const uniqueExtraBinDirs = Array.from(new Set(extraBinDirs));
@@ -61,6 +63,9 @@ export function spawnGateway(params: {
     uniqueExtraBinDirs.length > 0
       ? `${uniqueExtraBinDirs.join(path.delimiter)}${path.delimiter}${envPath}`
       : envPath;
+
+  const ghConfigDir = path.join(stateDir, "gh");
+  ensureDir(ghConfigDir);
 
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -71,6 +76,8 @@ export function spawnGateway(params: {
     OPENCLAW_GATEWAY_TOKEN: token,
     // Ensure the embedded Gateway resolves bundled binaries via PATH (gog, jq, ...).
     PATH: mergedPath,
+    // Ensure `gh` uses the app's own config storage.
+    GH_CONFIG_DIR: ghConfigDir,
     // Reduce noise in embedded contexts.
     NO_COLOR: "1",
     FORCE_COLOR: "0",

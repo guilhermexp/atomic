@@ -27,6 +27,14 @@ type ObsidianCliExecResult = {
   resolvedPath: string | null;
 };
 
+type GhExecResult = {
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  resolvedPath: string | null;
+};
+
 type OpenclawDesktopApi = {
   version: string;
   openLogs: () => Promise<void>;
@@ -49,6 +57,10 @@ type OpenclawDesktopApi = {
   obsidianCliPrintDefaultPath: () => Promise<ObsidianCliExecResult>;
   obsidianVaultsList: () => Promise<ObsidianCliExecResult>;
   obsidianCliSetDefault: (params: { vaultName: string }) => Promise<ObsidianCliExecResult>;
+  ghCheck: () => Promise<GhExecResult>;
+  ghAuthLoginPat: (params: { pat: string }) => Promise<GhExecResult>;
+  ghAuthStatus: () => Promise<GhExecResult>;
+  ghApiUser: () => Promise<GhExecResult>;
   onGatewayState: (cb: (state: GatewayState) => void) => () => void;
 };
 
@@ -78,6 +90,10 @@ const api: OpenclawDesktopApi = {
   obsidianCliPrintDefaultPath: async () => ipcRenderer.invoke("obsidian-cli-print-default-path"),
   obsidianVaultsList: async () => ipcRenderer.invoke("obsidian-vaults-list"),
   obsidianCliSetDefault: async (params: { vaultName: string }) => ipcRenderer.invoke("obsidian-cli-set-default", params),
+  ghCheck: async () => ipcRenderer.invoke("gh-check"),
+  ghAuthLoginPat: async (params: { pat: string }) => ipcRenderer.invoke("gh-auth-login-pat", params),
+  ghAuthStatus: async () => ipcRenderer.invoke("gh-auth-status"),
+  ghApiUser: async () => ipcRenderer.invoke("gh-api-user"),
   onGatewayState: (cb: (state: GatewayState) => void) => {
     const handler = (_evt: unknown, state: GatewayState) => cb(state);
     ipcRenderer.on("gateway-state", handler);

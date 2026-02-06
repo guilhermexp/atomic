@@ -19,7 +19,8 @@ type SkillEntry = {
     | "sag"
     | "apple"
     | "reminders"
-    | "obsidian";
+    | "obsidian"
+    | "github";
 };
 
 const SKILLS: SkillEntry[] = [
@@ -86,6 +87,14 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "💎",
     iconVariant: "obsidian",
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    description: "Work with issues, pull requests, and workflows via the bundled gh CLI",
+    status: "connect",
+    iconText: "🐙",
+    iconVariant: "github",
   },
   {
     id: "gemini",
@@ -158,6 +167,8 @@ export function SkillsSetupPage(props: {
   onAppleRemindersConnect: () => void;
   obsidianStatus: Exclude<SkillStatus, "coming-soon">;
   onObsidianConnect: () => void;
+  githubStatus: Exclude<SkillStatus, "coming-soon">;
+  onGitHubConnect: () => void;
   onBack: () => void;
   onSkip: () => void;
   onContinue: () => void;
@@ -200,6 +211,8 @@ export function SkillsSetupPage(props: {
                       ? props.appleRemindersStatus
                     : skill.id === "obsidian"
                       ? props.obsidianStatus
+                    : skill.id === "github"
+                      ? props.githubStatus
                     : skill.status;
               const onConnect =
                 skill.id === "google-workspace"
@@ -218,6 +231,8 @@ export function SkillsSetupPage(props: {
                       ? props.onAppleRemindersConnect
                     : skill.id === "obsidian"
                       ? props.onObsidianConnect
+                    : skill.id === "github"
+                      ? props.onGitHubConnect
                     : undefined;
               const effectiveStatus: SkillStatus =
                 onConnect || status === "connected" ? status : "coming-soon";

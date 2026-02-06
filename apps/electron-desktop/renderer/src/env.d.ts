@@ -27,6 +27,14 @@ type ObsidianCliExecResult = {
   resolvedPath: string | null;
 };
 
+type GhExecResult = {
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  resolvedPath: string | null;
+};
+
 declare global {
   interface Window {
     openclawDesktop?: {
@@ -58,6 +66,10 @@ declare global {
       obsidianCliPrintDefaultPath: () => Promise<ObsidianCliExecResult>;
       obsidianVaultsList: () => Promise<ObsidianCliExecResult>;
       obsidianCliSetDefault: (params: { vaultName: string }) => Promise<ObsidianCliExecResult>;
+      ghCheck: () => Promise<GhExecResult>;
+      ghAuthLoginPat: (params: { pat: string }) => Promise<GhExecResult>;
+      ghAuthStatus: () => Promise<GhExecResult>;
+      ghApiUser: () => Promise<GhExecResult>;
       onGatewayState: (cb: (state: GatewayState) => void) => () => void;
     };
   }

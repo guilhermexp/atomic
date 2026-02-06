@@ -59,11 +59,13 @@ function runCommandWithTimeout(params: {
   bin: string;
   args: string[];
   cwd?: string;
+  env?: NodeJS.ProcessEnv;
   timeoutMs: number;
 }): Promise<ExecResult> {
   return new Promise((resolve) => {
     const child = spawn(params.bin, params.args, {
       cwd: params.cwd,
+      env: params.env,
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -76,6 +78,92 @@ function runCommandWithTimeout(params: {
     };
     child.stdout?.on("data", onStdout);
     child.stderr?.on("data", onStderr);
+
+    let settled = false;
+    const settle = (result: ExecResult) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      try {
+        child.stdout?.off("data", onStdout);
+        child.stderr?.off("data", onStderr);
+      } catch {
+        // ignore
+      }
+      resolve(result);
+    };
+
+    const timer = setTimeout(() => {
+      try {
+        child.kill("SIGKILL");
+      } catch {
+        // ignore
+      }
+      settle({
+        ok: false,
+        code: null,
+        stdout,
+        stderr: `${stderr}${stderr.trim() ? "\n" : ""}timeout after ${params.timeoutMs}ms`,
+        resolvedPath: params.bin,
+      });
+    }, params.timeoutMs);
+
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      settle({
+        ok: code === 0,
+        code: typeof code === "number" ? code : null,
+        stdout,
+        stderr,
+        resolvedPath: params.bin,
+      });
+    });
+    child.on("error", (err) => {
+      clearTimeout(timer);
+      settle({
+        ok: false,
+        code: null,
+        stdout,
+        stderr: `${stderr}${stderr.trim() ? "\n" : ""}${String(err)}`,
+        resolvedPath: params.bin,
+      });
+    });
+  });
+}
+
+function runCommandWithInputTimeout(params: {
+  bin: string;
+  args: string[];
+  input: string;
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+  timeoutMs: number;
+}): Promise<ExecResult> {
+  return new Promise((resolve) => {
+    const child = spawn(params.bin, params.args, {
+      cwd: params.cwd,
+      env: params.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    const onStdout = (chunk: Buffer | string) => {
+      stdout += String(chunk);
+    };
+    const onStderr = (chunk: Buffer | string) => {
+      stderr += String(chunk);
+    };
+    child.stdout?.on("data", onStdout);
+    child.stderr?.on("data", onStderr);
+
+    // Feed stdin and close to signal EOF.
+    try {
+      child.stdin?.write(params.input);
+      child.stdin?.end();
+    } catch {
+      // ignore
+    }
 
     let settled = false;
     const settle = (result: ExecResult) => {
@@ -145,6 +233,7 @@ export function registerIpcHandlers(params: {
   memoBin: string;
   remindctlBin: string;
   obsidianCliBin: string;
+  ghBin: string;
   stopGatewayChild: () => Promise<void>;
 }) {
   ipcMain.handle("open-logs", async () => {
@@ -437,6 +526,125 @@ export function registerIpcHandlers(params: {
       args: ["set-default", vaultName],
       cwd: params.openclawDir,
       timeoutMs: 10_000,
+    });
+  });
+
+  ipcMain.handle("gh-check", async () => {
+    const ghBin = params.ghBin;
+    if (!fs.existsSync(ghBin)) {
+      return {
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: `gh binary not found at: ${ghBin}\nRun: cd apps/electron-desktop && npm run prepare:gh:all`,
+        resolvedPath: null,
+      } satisfies ExecResult;
+    }
+    const res = spawnSync(ghBin, ["--version"], {
+      encoding: "utf-8",
+      cwd: params.openclawDir,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, GH_CONFIG_DIR: path.join(params.stateDir, "gh") },
+    });
+    const stdout = String(res.stdout || "");
+    const stderr = String(res.stderr || "");
+    const ok = res.status === 0;
+    return {
+      ok,
+      code: typeof res.status === "number" ? res.status : null,
+      stdout,
+      stderr,
+      resolvedPath: ghBin,
+    } satisfies ExecResult;
+  });
+
+  ipcMain.handle("gh-auth-login-pat", async (_evt, p: { pat?: unknown }) => {
+    const ghBin = params.ghBin;
+    const pat = typeof p?.pat === "string" ? p.pat : "";
+    if (!pat) {
+      return {
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: "PAT is required",
+        resolvedPath: ghBin,
+      } satisfies ExecResult;
+    }
+    if (!fs.existsSync(ghBin)) {
+      return {
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: `gh binary not found at: ${ghBin}\nRun: cd apps/electron-desktop && npm run prepare:gh:all`,
+        resolvedPath: null,
+      } satisfies ExecResult;
+    }
+    const ghConfigDir = path.join(params.stateDir, "gh");
+    try {
+      fs.mkdirSync(ghConfigDir, { recursive: true });
+    } catch {
+      // ignore
+    }
+    // Feed PAT via stdin. Ensure trailing newline so gh reads the token.
+    return await runCommandWithInputTimeout({
+      bin: ghBin,
+      args: ["auth", "login", "--hostname", "github.com", "--with-token"],
+      input: pat.endsWith("\n") ? pat : `${pat}\n`,
+      cwd: params.openclawDir,
+      env: { ...process.env, GH_CONFIG_DIR: ghConfigDir },
+      timeoutMs: 30_000,
+    });
+  });
+
+  ipcMain.handle("gh-auth-status", async () => {
+    const ghBin = params.ghBin;
+    if (!fs.existsSync(ghBin)) {
+      return {
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: `gh binary not found at: ${ghBin}\nRun: cd apps/electron-desktop && npm run prepare:gh:all`,
+        resolvedPath: null,
+      } satisfies ExecResult;
+    }
+    const ghConfigDir = path.join(params.stateDir, "gh");
+    try {
+      fs.mkdirSync(ghConfigDir, { recursive: true });
+    } catch {
+      // ignore
+    }
+    return await runCommandWithTimeout({
+      bin: ghBin,
+      args: ["auth", "status", "--hostname", "github.com"],
+      cwd: params.openclawDir,
+      env: { ...process.env, GH_CONFIG_DIR: ghConfigDir },
+      timeoutMs: 15_000,
+    });
+  });
+
+  ipcMain.handle("gh-api-user", async () => {
+    const ghBin = params.ghBin;
+    if (!fs.existsSync(ghBin)) {
+      return {
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: `gh binary not found at: ${ghBin}\nRun: cd apps/electron-desktop && npm run prepare:gh:all`,
+        resolvedPath: null,
+      } satisfies ExecResult;
+    }
+    const ghConfigDir = path.join(params.stateDir, "gh");
+    try {
+      fs.mkdirSync(ghConfigDir, { recursive: true });
+    } catch {
+      // ignore
+    }
+    return await runCommandWithTimeout({
+      bin: ghBin,
+      args: ["api", "user"],
+      cwd: params.openclawDir,
+      env: { ...process.env, GH_CONFIG_DIR: ghConfigDir },
+      timeoutMs: 15_000,
     });
   });
 

@@ -12,6 +12,7 @@ import {
   resolveBundledJqBin,
   resolveBundledMemoBin,
   resolveBundledObsidianCliBin,
+  resolveBundledGhBin,
   resolveBundledRemindctlBin,
   resolveBundledNodeBin,
   resolveBundledOpenClawDir,
@@ -19,6 +20,7 @@ import {
   resolveDownloadedJqBin,
   resolveDownloadedMemoBin,
   resolveDownloadedObsidianCliBin,
+  resolveDownloadedGhBin,
   resolveDownloadedRemindctlBin,
   resolvePreloadPath,
   resolveRendererIndex,
@@ -199,6 +201,7 @@ app.whenReady().then(async () => {
   const obsidianCliBin = app.isPackaged
     ? resolveBundledObsidianCliBin()
     : resolveDownloadedObsidianCliBin(MAIN_DIR);
+  const ghBin = app.isPackaged ? resolveBundledGhBin() : resolveDownloadedGhBin(MAIN_DIR);
 
   const port = await pickPort(DEFAULT_PORT);
   const url = `http://127.0.0.1:${port}/`;
@@ -240,6 +243,7 @@ app.whenReady().then(async () => {
       memoBin,
       remindctlBin,
       obsidianCliBin,
+      ghBin,
       electronRunAsNode: nodeBin === process.execPath,
       stderrTail,
     });
@@ -283,6 +287,7 @@ app.whenReady().then(async () => {
     memoBin,
     remindctlBin,
     obsidianCliBin,
+    ghBin,
     stopGatewayChild,
   });
 

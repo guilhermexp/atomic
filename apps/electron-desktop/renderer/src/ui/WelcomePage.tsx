@@ -13,6 +13,7 @@ import { MediaUnderstandingPage } from "./onboarding/MediaUnderstandingPage";
 import { ModelSelectPage } from "./onboarding/ModelSelectPage";
 import { NotionConnectPage } from "./onboarding/NotionConnectPage";
 import { ObsidianConnectPage } from "./onboarding/ObsidianConnectPage";
+import { GitHubConnectPage } from "./onboarding/GitHubConnectPage";
 import { ProviderSelectPage } from "./onboarding/ProviderSelectPage";
 import { SkillsSetupPage } from "./onboarding/SkillsSetupPage";
 import { TrelloConnectPage } from "./onboarding/TrelloConnectPage";
@@ -169,6 +170,8 @@ export function WelcomePage({ state }: { state: Extract<GatewayState, { kind: "r
             onAppleRemindersConnect={welcome.goAppleReminders}
             obsidianStatus={welcome.skills.obsidian}
             onObsidianConnect={welcome.goObsidian}
+            githubStatus={welcome.skills.github}
+            onGitHubConnect={welcome.goGitHub}
             onBack={welcome.goModelSelect}
             onSkip={welcome.goTelegramToken}
             onContinue={welcome.goTelegramToken}
@@ -215,6 +218,19 @@ export function WelcomePage({ state }: { state: Extract<GatewayState, { kind: "r
             vaultsLoading={welcome.obsidianVaultsLoading}
             onSetDefaultAndEnable={(vaultName) => void welcome.onObsidianSetDefaultAndEnable(vaultName)}
             onRecheck={() => void welcome.onObsidianRecheck()}
+            onBack={welcome.goSkills}
+          />
+        }
+      />
+
+      <Route
+        path="github"
+        element={
+          <GitHubConnectPage
+            status={welcome.status}
+            error={welcome.error}
+            busy={welcome.githubBusy}
+            onSubmit={(pat) => void welcome.onGitHubConnect(pat)}
             onBack={welcome.goSkills}
           />
         }

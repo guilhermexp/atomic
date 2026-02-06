@@ -112,6 +112,17 @@ module.exports = async function afterAllArtifactBuild(context) {
     },
   });
 
+  // Sign the DMG container itself (Gatekeeper evaluates the disk image as a standalone artifact).
+  // electron-builder signs the .app; our custom DMG rebuild step must sign the resulting .dmg explicitly.
+  const cscName = process.env.CSC_NAME && String(process.env.CSC_NAME).trim();
+  if (cscName) {
+    console.log(`[electron-desktop] afterAllArtifactBuild: signing DMG with CSC_NAME: ${cscName}`);
+    run("codesign", ["--force", "--sign", cscName, "--timestamp", dmgPath], { stdio: "inherit", env: process.env });
+    run("codesign", ["--verify", "--verbose=4", dmgPath], { stdio: "inherit", env: process.env });
+  } else {
+    console.log("[electron-desktop] afterAllArtifactBuild: CSC_NAME not set (skipping DMG signing)");
+  }
+
   // If electron-builder previously created a .blockmap for a now-nonexistent DMG, delete it.
   // We're not using electron-updater yet, so leaving a stale blockmap is more confusing than helpful.
   const blockmapPath = `${dmgPath}.blockmap`;

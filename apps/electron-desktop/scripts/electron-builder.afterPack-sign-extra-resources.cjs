@@ -120,13 +120,29 @@ function walkFiles(rootDir, onFile) {
   }
 }
 
-function codesignFile(filePath, identity) {
+function findEntitlementsInherit() {
+  // apps/electron-desktop/scripts -> apps/electron-desktop
+  const appRoot = path.resolve(__dirname, "..");
+  const entPath = path.join(appRoot, "entitlements.mac.inherit.plist");
+  if (fs.existsSync(entPath)) {
+    return entPath;
+  }
+  return null;
+}
+
+function codesignFile(filePath, identity, entitlements) {
   const args = ["--force", "--sign", identity];
 
   // Hardened runtime is recommended for distribution; it is harmless for nested binaries.
   if (identity !== "-") {
     args.push("--options", "runtime");
   }
+
+  // Apply inherited entitlements for child binaries (JIT, library validation, etc.)
+  if (entitlements) {
+    args.push("--entitlements", entitlements);
+  }
+
   if (shouldTimestamp(identity)) {
     args.push("--timestamp");
   } else {
@@ -168,7 +184,7 @@ module.exports = async function afterPack(context) {
   }
 
   const resourcesDir = path.join(appBundle, "Contents", "Resources");
-  const candidateRoots = ["node", "gog", "jq", "memo", "remindctl", "obsidian-cli", "openclaw"].map((name) =>
+  const candidateRoots = ["node", "gog", "jq", "memo", "remindctl", "obsidian-cli", "gh", "openclaw"].map((name) =>
     path.join(resourcesDir, name),
   );
   const roots = candidateRoots.filter((p) => fs.existsSync(p));
@@ -178,7 +194,11 @@ module.exports = async function afterPack(context) {
     return;
   }
 
+  const entitlements = findEntitlementsInherit();
   console.log(`[electron-desktop] afterPack: signing extraResources with identity: ${identity}`);
+  if (entitlements) {
+    console.log(`[electron-desktop] afterPack: using entitlements: ${path.basename(entitlements)}`);
+  }
   let signed = 0;
   let considered = 0;
 
@@ -202,7 +222,7 @@ module.exports = async function afterPack(context) {
         // Ignore failures from `file` on weird inputs.
         return;
       }
-      codesignFile(filePath, identity);
+      codesignFile(filePath, identity, entitlements);
       signed += 1;
     });
   }
