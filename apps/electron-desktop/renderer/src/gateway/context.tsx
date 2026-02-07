@@ -92,6 +92,8 @@ export function GatewayRpcProvider({
 
   const request = React.useCallback(
     async <T,>(method: string, params?: unknown): Promise<T> => {
+      // Nudge the client to reconnect immediately if it's sitting in a backoff pause.
+      client.nudge();
       // Wait a bit for auto-connect/reconnect so screens don't need manual "connect" flows.
       await waitForConnected(client, 6_000);
       return await client.request<T>(method, params);

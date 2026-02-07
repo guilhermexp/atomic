@@ -52,7 +52,7 @@ export type GatewayClientOptions = {
   reconnectMinDelayMs?: number;
   /**
    * Max reconnect delay in milliseconds.
-   * Default: 5000ms.
+   * Default: 1000ms.
    */
   reconnectMaxDelayMs?: number;
 };
@@ -84,6 +84,25 @@ export class GatewayClient {
 
   get connected() {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Nudge the client to reconnect immediately if it's currently waiting
+   * in a backoff pause. No-op when already connected or actively connecting.
+   */
+  nudge() {
+    if (this.closed || this.connected) {
+      return;
+    }
+    // If a WebSocket is already in CONNECTING state, don't interrupt it.
+    if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+    // Cancel any pending backoff timer and connect right away.
+    console.info("[GatewayClient] nudge: forcing immediate reconnect");
+    this.clearReconnectTimer();
+    this.reconnectDelayMs = this.resolveReconnectMinDelayMs();
+    this.connect();
   }
 
   async request<T = unknown>(method: string, params?: unknown): Promise<T> {
@@ -137,7 +156,7 @@ export class GatewayClient {
       typeof this.opts.reconnectMaxDelayMs === "number" &&
       Number.isFinite(this.opts.reconnectMaxDelayMs)
         ? Math.max(0, Math.floor(this.opts.reconnectMaxDelayMs))
-        : 5000;
+        : 1000;
     return value;
   }
 
