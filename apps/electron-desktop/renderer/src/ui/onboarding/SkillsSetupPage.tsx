@@ -1,12 +1,16 @@
 import React from "react";
 
 import { GlassCard, HeroPageLayout, PrimaryButton, SecondaryButton } from "../kit";
-import googleIcon from "../../../../assets/set-up-skills/Google.png";
-import notionIcon from "../../../../assets/set-up-skills/Notion.png";
-import trelloIcon from "../../../../assets/set-up-skills/Trello.png";
-import nanoBababonIcon from "../../../../assets/set-up-skills/banana-icon.png";
-import slackIcon from "../../../../assets/set-up-skills/Slack.png";
-import sagIcon from "../../../../assets/set-up-skills/Sag.png";
+import googleIcon from "../../../../assets/set-up-skills/Google.svg";
+import notionIcon from "../../../../assets/set-up-skills/Notion.svg";
+import trelloIcon from "../../../../assets/set-up-skills/Trello.svg";
+import nanoBananaIcon from "../../../../assets/set-up-skills/Nano-Banana.svg";
+import slackIcon from "../../../../assets/set-up-skills/Slack.svg";
+import sagIcon from "../../../../assets/set-up-skills/Slack.svg";
+import mediaIcon from "../../../../assets/set-up-skills/Media.svg";
+import webIcon from "../../../../assets/set-up-skills/Web-Search.svg";
+import obsidianIcon from "../../../../assets/set-up-skills/Obsidian.svg";
+import githubIcon from "../../../../assets/set-up-skills/GitHub.svg";
 
 type SkillStatus = "connect" | "connected" | "coming-soon";
 
@@ -48,6 +52,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "M",
     iconVariant: "nano-banana",
+    image: mediaIcon,
   },
   {
     id: "web-search",
@@ -56,6 +61,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "🌐",
     iconVariant: "gemini",
+    image: webIcon,
   },
   {
     id: "notion",
@@ -98,6 +104,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "💎",
     iconVariant: "obsidian",
+    image: obsidianIcon
   },
   {
     id: "github",
@@ -106,6 +113,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "🐙",
     iconVariant: "github",
+    image: githubIcon
   },
   {
     id: "slack",
@@ -131,7 +139,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "NB",
     iconVariant: "nano-banana",
-    image: nanoBababonIcon,
+    image: nanoBananaIcon,
   },
   {
     id: "sag",

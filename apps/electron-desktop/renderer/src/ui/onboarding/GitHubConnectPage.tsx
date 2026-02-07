@@ -69,6 +69,7 @@ export function GitHubConnectPage(props: {
             autoCorrect="off"
             spellCheck={false}
             disabled={props.busy}
+            isError={errorText}
           />
         </div>
 
@@ -83,7 +84,7 @@ export function GitHubConnectPage(props: {
           >
             Back
           </button>
-          <PrimaryButton size={"sm"} disabled={!pat.trim() || props.busy} onClick={handleSubmit}>
+          <PrimaryButton size={"sm"} disabled={props.busy} onClick={handleSubmit}>
             {props.busy ? "Connecting..." : "Connect"}
           </PrimaryButton>
         </div>
