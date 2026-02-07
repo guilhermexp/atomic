@@ -35,7 +35,7 @@ export function ModelSelectPage(props: {
   if (props.loading) {
     return (
       <HeroPageLayout variant="compact" align="center" aria-label="Model selection">
-        <GlassCard className="UiModelCard UiGlassCardOnbording">
+        <GlassCard className="UiModelCard UiGlassCardOnboarding">
           <div className="UiOnboardingDots" aria-label="Onboarding progress">
             {Array.from({ length: totalSteps }).map((_, idx) => (
               <span
@@ -58,7 +58,7 @@ export function ModelSelectPage(props: {
   if (props.error) {
     return (
       <HeroPageLayout variant="compact" align="center" aria-label="Model selection">
-        <GlassCard className="UiModelCard UiGlassCardOnbording">
+        <GlassCard className="UiModelCard UiGlassCardOnboarding">
           <div className="UiOnboardingDots" aria-label="Onboarding progress">
             {Array.from({ length: totalSteps }).map((_, idx) => (
               <span
@@ -85,7 +85,7 @@ export function ModelSelectPage(props: {
   if (filteredModels.length === 0) {
     return (
       <HeroPageLayout variant="compact" align="center" aria-label="Model selection">
-        <GlassCard className="UiModelCard UiGlassCardOnbording">
+        <GlassCard className="UiModelCard UiGlassCardOnboarding">
           <div className="UiOnboardingDots" aria-label="Onboarding progress">
             {Array.from({ length: totalSteps }).map((_, idx) => (
               <span
@@ -114,7 +114,7 @@ export function ModelSelectPage(props: {
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Model selection">
-      <GlassCard className="UiModelCard UiGlassCardOnbording">
+      <GlassCard className="UiModelCard UiGlassCardOnboarding">
         <div className="UiOnboardingDots" aria-label="Onboarding progress">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <span

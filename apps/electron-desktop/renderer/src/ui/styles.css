@@ -36,6 +36,8 @@ body {
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *::-webkit-scrollbar {
@@ -472,7 +474,7 @@ button:disabled {
 }
 
 .UiHero-align-center {
-  place-items: start center;
+  place-items: center;
   padding-top: 10vh;
 }
 
@@ -519,7 +521,7 @@ button:disabled {
   animation: gatewaySplashEnter 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
-.UiGlassCardOnbording {
+.UiGlassCardOnboarding {
   width: 566px;
   height: 472px;
   margin-top: -22px;

@@ -59,7 +59,7 @@ export function MediaUnderstandingPage(props: {
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Media understanding setup">
-      <GlassCard className="UiGoogleWorkspaceCard UiGlassCardOnbording">
+      <GlassCard className="UiGoogleWorkspaceCard UiGlassCardOnboarding">
         <div>
           <div className="UiOnboardingDots" aria-label="Onboarding progress">
             {Array.from({ length: totalSteps }).map((_, idx) => (

@@ -14,7 +14,7 @@ export function AppleNotesConnectPage(props: {
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Apple Notes setup">
-      <GlassCard className="UiApiKeyCard UiGlassCardOnbording">
+      <GlassCard className="UiApiKeyCard UiGlassCardOnboarding">
         <div className="UiOnboardingDots" aria-label="Onboarding progress">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <span

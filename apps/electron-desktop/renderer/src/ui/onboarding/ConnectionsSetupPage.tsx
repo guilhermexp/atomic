@@ -74,7 +74,7 @@ export function ConnectionsSetupPage(props: {
   const activeStep = 4;
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Connections setup">
-      <GlassCard className="UiSkillsCard UiGlassCardOnbording">
+      <GlassCard className="UiSkillsCard UiGlassCardOnboarding">
         <div className="UiOnboardingDots" aria-label="Onboarding progress">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <span

@@ -26,7 +26,7 @@ export function ApiKeyPage(props: {
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="API key setup">
-      <GlassCard className="UiApiKeyCard UiGlassCardOnbording">
+      <GlassCard className="UiApiKeyCard UiGlassCardOnboarding">
         <div className="UiOnboardingDots" aria-label="Onboarding progress">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <span

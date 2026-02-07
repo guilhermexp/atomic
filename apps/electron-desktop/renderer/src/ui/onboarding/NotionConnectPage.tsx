@@ -22,7 +22,7 @@ export function NotionConnectPage(props: {
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Notion setup">
-      <GlassCard className="UiApiKeyCard UiGlassCardOnbording">
+      <GlassCard className="UiApiKeyCard UiGlassCardOnboarding">
         <div>
           <div className="UiOnboardingDots" aria-label="Onboarding progress">
             {Array.from({ length: totalSteps }).map((_, idx) => (
