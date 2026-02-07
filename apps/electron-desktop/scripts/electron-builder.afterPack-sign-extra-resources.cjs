@@ -171,10 +171,12 @@ module.exports = async function afterPack(context) {
     return;
   }
 
-  // When CSC_IDENTITY_AUTO_DISCOVERY is explicitly disabled, skip signing entirely.
-  // This allows unsigned CI builds when no certificate secrets are configured.
-  const autoDiscoveryOff =
-    String(process.env.CSC_IDENTITY_AUTO_DISCOVERY || "").toLowerCase() === "false";
+  // Determine if signing was explicitly requested via env vars.
+  const hasExplicitSigningConfig =
+    Boolean(process.env.CSC_LINK && String(process.env.CSC_LINK).trim()) ||
+    Boolean(process.env.CSC_NAME && String(process.env.CSC_NAME).trim()) ||
+    Boolean(process.env.SIGN_IDENTITY && String(process.env.SIGN_IDENTITY).trim()) ||
+    Boolean(process.env.CODESIGN_IDENTITY && String(process.env.CODESIGN_IDENTITY).trim());
 
   let identity;
   try {
@@ -184,19 +186,20 @@ module.exports = async function afterPack(context) {
   }
 
   if (!identity) {
-    if (autoDiscoveryOff) {
-      console.log(
-        "[electron-desktop] afterPack: CSC_IDENTITY_AUTO_DISCOVERY=false and no identity found (skipping signing)"
+    // If signing was explicitly configured but no identity was found, that's an error.
+    if (hasExplicitSigningConfig) {
+      throw new Error(
+        [
+          "[electron-desktop] No codesign identity found, but signing was explicitly configured.",
+          "Check CSC_LINK / CSC_NAME / SIGN_IDENTITY.",
+        ].join("\n")
       );
-      return;
     }
-    throw new Error(
-      [
-        "[electron-desktop] No codesign identity found.",
-        "Set CSC_NAME (recommended) or SIGN_IDENTITY to: Developer ID Application: <Name> (<TEAMID>)",
-        "Or set CSC_IDENTITY_AUTO_DISCOVERY=false to skip signing.",
-      ].join("\n")
+    // Otherwise, skip signing silently (e.g. CI without certificates).
+    console.log(
+      "[electron-desktop] afterPack: no signing identity configured (skipping extraResources signing)"
     );
+    return;
   }
 
   const appOutDir = context.appOutDir;
