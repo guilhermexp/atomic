@@ -121,7 +121,7 @@ export function Sidebar() {
   }, [currentSessionKey, optimistic, loadSessionsWithTitles]);
 
   const handleNewSession = React.useCallback(() => {
-    void navigate(routes.chat, { replace: true });
+    void navigate(routes.chat, { replace: true, state: { focusComposer: true } });
   }, [navigate]);
 
   const handleSelectSession = React.useCallback(
