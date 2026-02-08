@@ -190,7 +190,6 @@ export function TelegramModalContent(props: {
 
   return (
     <div className="UiSkillModalContent">
-      <div className="UiSectionTitle">Telegram</div>
       <div className="UiSectionSubtitle">
         Connect your Telegram bot. Get a token from{" "}
         <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">
@@ -209,8 +208,8 @@ export function TelegramModalContent(props: {
             Token configured. Enter a new token to update.
           </div>
         )}
-        <div style={{ display: "flex", gap: 8 }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+          <div>
             <TextInput
               type="password"
               value={botToken}
@@ -277,8 +276,8 @@ export function TelegramModalContent(props: {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+          <div>
             <TextInput
               type="text"
               value={newId}

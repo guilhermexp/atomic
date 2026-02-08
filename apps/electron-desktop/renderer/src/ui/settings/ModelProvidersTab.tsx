@@ -3,18 +3,18 @@ import { NavLink } from "react-router-dom";
 
 import { ActionButton, InlineError, Modal, TextInput } from "../kit";
 import {
-  MODEL_PROVIDERS,
   MODEL_PROVIDER_BY_ID,
+  MODEL_PROVIDERS,
   type ModelProvider,
   type ModelProviderInfo,
   resolveProviderIconUrl,
 } from "../models/providers";
 import {
-  type ModelEntry,
-  TIER_INFO,
   formatModelMeta,
   getModelTier,
+  type ModelEntry,
   sortModelsByProviderTierName,
+  TIER_INFO,
 } from "../models/modelPresentation";
 
 type GatewayRpc = {
@@ -82,11 +82,10 @@ function ProviderTile(props: {
   const { provider, configured, onClick } = props;
   return (
     <div
-      className={`UiProviderTile${configured ? " UiProviderTile--configured" : ""}`}
+      className={`UiSkillCard`}
       role="button"
       tabIndex={0}
       aria-label={`${provider.name}${configured ? " (configured)" : ""}`}
-      onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -94,15 +93,46 @@ function ProviderTile(props: {
         }
       }}
     >
-      <div className="UiProviderTileTopRow">
-        <span className="UiProviderTileIcon" aria-hidden="true">
+      <div className="UiSkillTopRow">
+        <span className="UiSkillIcon" aria-hidden="true">
           <img src={resolveProviderIconUrl(provider.id)} alt="" />
+          {configured ? (
+            <span className="UiProviderTileCheck" aria-label="Key configured">
+              ✓
+            </span>
+          ) : null}
         </span>
         {configured ? (
-          <span className="UiProviderTileCheck" aria-label="Key configured">
-            ✓
-          </span>
-        ) : null}
+          <div className="UiSkillConnectButtonContainer">
+            <div className="UiSkillConnectButton UiSkillConnectButtonConfigure">Connected</div>
+            <button
+              type="button"
+              className="UiSkillConnectButton UiSkillConnectButtonConfigure UiSkillConnectButtonCircle"
+              aria-label="Connected — click to configure"
+              onClick={onClick}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={20}
+                height={20}
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="#fff"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.08"
+                  d="M10 10zM5 9.99zM15 10z"
+                />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <button onClick={onClick} className={`UiSkillConnectButton`}>
+            Connect
+          </button>
+        )}
       </div>
       <div className="UiProviderTileName">{provider.name}</div>
       <div className="UiProviderTileDesc">{provider.description}</div>
@@ -519,7 +549,7 @@ export function ModelProvidersTab(props: {
     [activeModelEntry]
   );
 
-  const title = view === "models" ? "AI Models" : "AI Providers";
+  const title = view === "models" ? "AI Models" : "Providers & API Keys";
 
   return (
     <div className="UiSettingsContentInner">
@@ -530,29 +560,29 @@ export function ModelProvidersTab(props: {
         <section className="UiSettingsSection">
           {/* Active model card */}
           {activeModelId ? (
-            <div className="UiActiveModelCard">
-              {activeProviderInfo ? (
-                <span className="UiActiveModelIcon" aria-hidden="true">
-                  <img src={resolveProviderIconUrl(activeProviderInfo.id)} alt="" />
-                </span>
-              ) : null}
-              <div className="UiActiveModelInfo">
-                <div className="UiActiveModelNameRow">
-                  <span className="UiActiveModelName">
-                    {activeModelEntry?.name ?? activeModelId}
-                  </span>
-                  {activeModelTier ? (
-                    <span
-                      className={`UiModelTierBadge UiModelTierBadge--${activeModelTier}`}
-                      title={TIER_INFO[activeModelTier].description}
-                    >
-                      {TIER_INFO[activeModelTier].label}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="UiActiveModelProvider">
-                  {activeProviderInfo?.name ?? activeProviderKey ?? "unknown"}
-                  {activeModelMeta ? ` · ${activeModelMeta}` : ""}
+            <div>
+              <div className="UiSettingsSubtitle">Live Model</div>
+              <div className="UiActiveModelCard">
+                <div className="UiActiveModelInfo">
+                  <div className="UiProviderContent">
+                    <div className="UiProviderHeader">
+                      <span className="UiProviderName">
+                        {activeModelEntry?.name ?? activeModelId}
+                      </span>
+                      {activeModelTier ? (
+                        <span
+                          className={`UiProviderBadge UiModelTierBadge--${activeModelTier}`}
+                          title={TIER_INFO[activeModelTier].description}
+                        >
+                          {TIER_INFO[activeModelTier].label}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="UiProviderDescription">
+                    {activeProviderInfo?.name ?? activeProviderKey ?? "unknown"}
+                    {activeModelMeta ? ` · ${activeModelMeta}` : ""}
+                  </div>
                 </div>
               </div>
             </div>
@@ -562,6 +592,7 @@ export function ModelProvidersTab(props: {
 
           {modelsError ? <InlineError>{modelsError}</InlineError> : null}
 
+          <div className="UiSettingsSubtitle">Change Model</div>
           <div className="UiInputRow">
             <TextInput
               type="text"
@@ -573,9 +604,6 @@ export function ModelProvidersTab(props: {
               spellCheck={false}
               disabled={modelsLoading || modelBusy}
             />
-            <ActionButton disabled={modelsLoading || modelBusy} onClick={() => void loadModels()}>
-              Refresh
-            </ActionButton>
           </div>
 
           {/* Provider filter chips + Add Provider link */}
@@ -621,7 +649,7 @@ export function ModelProvidersTab(props: {
           {strictConfiguredProviders.size === 0 ? (
             <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>
               No providers configured yet.{" "}
-              <NavLink to="/settings/ai-providers" className="UiLinkButton">
+              <NavLink to="/settings/ai-providers" className="UiLink">
                 Add an API key
               </NavLink>{" "}
               to unlock model choices.
@@ -672,7 +700,7 @@ export function ModelProvidersTab(props: {
                       return (
                         <label
                           key={modelKey}
-                          className={`UiModelOption ${selected ? "UiModelOption--selected" : ""}`}
+                          className={`UiProviderOption ${selected ? "UiProviderOption--selected" : ""}`}
                         >
                           <input
                             type="radio"
@@ -680,22 +708,22 @@ export function ModelProvidersTab(props: {
                             value={modelKey}
                             checked={selected}
                             onChange={() => void saveDefaultModel(modelKey)}
-                            className="UiModelRadio"
+                            className="UiProviderRadio"
                             disabled={modelBusy}
                           />
-                          <div className="UiModelContent">
-                            <div className="UiModelNameRow">
-                              <span className="UiModelName">{model.name || model.id}</span>
+                          <div className="UiProviderContent">
+                            <div className="UiProviderHeader">
+                              <span className="UiProviderName">{model.name || model.id}</span>
                               {tier ? (
                                 <span
-                                  className={`UiModelTierBadge UiModelTierBadge--${tier}`}
+                                  className={`UiProviderBadge UiModelTierBadge--${tier}`}
                                   title={TIER_INFO[tier].description}
                                 >
                                   {TIER_INFO[tier].label}
                                 </span>
                               ) : null}
                             </div>
-                            {meta ? <div className="UiModelMeta">{meta}</div> : null}
+                            {meta ? <div className="UiProviderDescription">{meta}</div> : null}
                           </div>
                         </label>
                       );
@@ -715,7 +743,6 @@ export function ModelProvidersTab(props: {
       ) : (
         /* ── Providers & API keys ────────────────────────── */
         <section className="UiSettingsSection">
-          <div className="UiSectionSubtitle">Click a provider to add or update its API key.</div>
 
           <div className="UiProviderTilesGrid">
             {MODEL_PROVIDERS.map((p) => (

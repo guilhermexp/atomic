@@ -164,7 +164,7 @@ export function TextInput(props: {
   return (
     <div>
       {props.label && <label className={"UiInputLabel"}>{props.label}</label>}
-      <div className={`UiInputWrap ${props.isError && "UiInputWrapError"}`}>
+      <div className={`UiInputWrap ${props.isError ? "UiInputWrapError" : ""}`}>
         <input
           ref={props.inputRef}
           className={className}
@@ -202,6 +202,36 @@ export function CheckboxRow(props: {
         onChange={(e) => props.onChange(e.target.checked)}
       />
       <span>{props.children}</span>
+    </label>
+  );
+}
+
+type Props = {
+  checked: boolean;
+  label: string;
+  onChange: (next: boolean) => void;
+};
+
+export function UiCheckbox({ checked, label, onChange }: Props) {
+  return (
+    <label className="UiCheckbox">
+      <input
+        type="checkbox"
+        className="UiCheckbox__input"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+
+      <span
+        className={"UiCheckbox__box" + (checked ? " UiCheckbox__box--checked" : "")}
+        aria-hidden
+      >
+        <svg className="UiCheckbox__check" viewBox="0 0 16 16" focusable="false">
+          <path d="M6.6 11.2 3.7 8.3l-1 1 3.9 3.9L13.4 6.4l-1-1z" />
+        </svg>
+      </span>
+
+      <span className="UiCheckbox__label">{label}</span>
     </label>
   );
 }
@@ -278,6 +308,7 @@ export function Modal(props: {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  header?: string;
   "aria-label"?: string;
 }) {
   // Close on Escape key
@@ -304,10 +335,25 @@ export function Modal(props: {
       }}
     >
       <div className="UiModalCard">
-        <button className="UiModalClose" type="button" aria-label="Close" onClick={props.onClose}>
-          &times;
-        </button>
-        {props.children}
+        <div className="UiModalHeader">
+          {props.header ? <div className="UiSectionTitle">{props.header}</div> : ""}
+          <button className="UiModalClose" type="button" aria-label="Close" onClick={props.onClose}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={12}
+              height={12}
+              fill="none"
+              viewBox="0 0 12 12"
+            >
+              <path
+                fill="#fff"
+                fill-opacity=".4"
+                d="M1.47.24a.86.86 0 0 0-1.2 1.21L4.8 6 .26 10.53a.86.86 0 1 0 1.21 1.2L6.01 7.2l4.54 4.54a.86.86 0 0 0 1.2-1.21L7.23 5.99l4.54-4.54a.86.86 0 0 0-1.21-1.2L6 4.77z"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className={`UiModalContent`}>{props.children}</div>
       </div>
     </div>
   );

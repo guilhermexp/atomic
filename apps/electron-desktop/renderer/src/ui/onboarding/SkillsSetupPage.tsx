@@ -11,6 +11,8 @@ import mediaIcon from "../../../../assets/set-up-skills/Media.svg";
 import webIcon from "../../../../assets/set-up-skills/Web-Search.svg";
 import obsidianIcon from "../../../../assets/set-up-skills/Obsidian.svg";
 import githubIcon from "../../../../assets/set-up-skills/GitHub.svg";
+import remindersIcon from "../../../../assets/set-up-skills/Reminders.svg";
+import notesIcon from "../../../../assets/set-up-skills/Notes.svg";
 
 type SkillStatus = "connect" | "connected" | "coming-soon";
 
@@ -88,6 +90,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "",
     iconVariant: "apple",
+    image: notesIcon,
   },
   {
     id: "apple-reminders",
@@ -96,6 +99,7 @@ const SKILLS: SkillEntry[] = [
     status: "connect",
     iconText: "✓",
     iconVariant: "reminders",
+    image: remindersIcon,
   },
   {
     id: "obsidian",

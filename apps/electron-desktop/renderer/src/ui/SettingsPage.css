@@ -251,12 +251,6 @@
   outline-offset: 2px;
 }
 
-.UiInputRow {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
 .UiInputRow .UiInput {
   flex: 1 1 auto;
 }

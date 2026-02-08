@@ -9,6 +9,16 @@ import {
 } from "./useConnectorsStatus";
 import { TelegramModalContent, SlackConnectorModalContent } from "./connector-modals";
 
+import telegramImage from "../../../../assets/messangers/Telegram.svg";
+import slackImage from "../../../../assets/set-up-skills/Slack.svg";
+import discordImage from "../../../../assets/messangers/Discord.svg";
+import signalImage from "../../../../assets/messangers/Signal.svg";
+import whatsappImage from "../../../../assets/messangers/WhatsApp.svg";
+import imessageImage from "../../../../assets/messangers/iMessage.svg";
+import matrixImage from "../../../../assets/messangers/Matrix.svg";
+import msteamsImage from "../../../../assets/messangers/Microsoft-Teams.svg";
+import Slack from "../../../../vendor/openclaw/extensions/slack";
+
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
 };
@@ -27,6 +37,7 @@ type ConnectorDefinition = {
   description: string;
   iconText: string;
   iconVariant: string;
+  image?: string;
 };
 
 const CONNECTORS: ConnectorDefinition[] = [
@@ -36,6 +47,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect a Telegram bot to receive and send messages",
     iconText: "✈",
     iconVariant: "telegram",
+    image: telegramImage,
   },
   {
     id: "slack",
@@ -43,6 +55,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect a Slack workspace via Socket Mode",
     iconText: "S",
     iconVariant: "slack",
+    image: slackImage,
   },
   {
     id: "discord",
@@ -50,6 +63,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect a Discord bot to interact with your server",
     iconText: "🎮",
     iconVariant: "discord",
+    image: discordImage,
   },
   {
     id: "whatsapp",
@@ -57,6 +71,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect WhatsApp Web via QR code pairing",
     iconText: "💬",
     iconVariant: "whatsapp",
+    image: whatsappImage,
   },
   {
     id: "signal",
@@ -64,6 +79,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect Signal via signal-cli for private messaging",
     iconText: "🔒",
     iconVariant: "signal",
+    image: signalImage,
   },
   {
     id: "imessage",
@@ -71,6 +87,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect iMessage on macOS for native messaging",
     iconText: "💭",
     iconVariant: "imessage",
+    image: imessageImage,
   },
   {
     id: "matrix",
@@ -78,6 +95,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect to a Matrix homeserver for decentralized messaging",
     iconText: "[m]",
     iconVariant: "matrix",
+    image: matrixImage,
   },
   {
     id: "msteams",
@@ -85,6 +103,7 @@ const CONNECTORS: ConnectorDefinition[] = [
     description: "Connect Microsoft Teams for enterprise messaging",
     iconText: "T",
     iconVariant: "msteams",
+    image: msteamsImage,
   },
 ];
 
@@ -101,14 +120,31 @@ function ConnectorCta({
 }) {
   if (status === "connected") {
     return (
-      <button
-        type="button"
-        className="UiSkillStatus UiSkillStatus--connected UiSkillStatus--clickable"
-        aria-label="Connected — click to configure"
-        onClick={onSettings}
-      >
-        ✓ Connected
-      </button>
+      <div className="UiSkillConnectButtonContainer">
+        <div className="UiSkillConnectButton UiSkillConnectButtonConfigure">Connected</div>
+        <button
+          type="button"
+          className="UiSkillConnectButton UiSkillConnectButtonConfigure UiSkillConnectButtonCircle"
+          aria-label="Connected — click to configure"
+          onClick={onSettings}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={20}
+            height={20}
+            fill="none"
+            viewBox="0 0 20 20"
+          >
+            <path
+              stroke="#fff"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.08"
+              d="M10 10zM5 9.99zM15 10z"
+            />
+          </svg>
+        </button>
+      </div>
     );
   }
   if (status === "disabled") {
@@ -192,7 +228,6 @@ export function ConnectorsTab(props: {
   );
 
   const tileClass = (status: ConnectorStatus) => {
-    if (status === "connected") return "UiSkillCard UiSkillCard--connected";
     if (status === "disabled") return "UiSkillCard UiSkillCard--disabled";
     return "UiSkillCard";
   };
@@ -214,11 +249,13 @@ export function ConnectorsTab(props: {
                 aria-label={connector.name}
               >
                 <div className="UiSkillTopRow">
-                  <span
-                    className={`UiSkillIcon UiSkillIcon--${connector.iconVariant}`}
-                    aria-hidden="true"
-                  >
-                    {connector.iconText}
+                  <span className={`UiSkillIcon`} aria-hidden="true">
+                    {connector.image ? <img src={connector.image} alt="" /> : connector.iconText}
+                    {status === "connected" ? (
+                      <span className="UiProviderTileCheck" aria-label="Key configured">
+                        ✓
+                      </span>
+                    ) : null}
                   </span>
                   <div className="UiSkillTopRight">
                     <ConnectorCta
@@ -237,7 +274,12 @@ export function ConnectorsTab(props: {
       </div>
 
       {/* ── Connector configuration modals (only TG + Slack are configurable) ── */}
-      <Modal open={activeModal === "telegram"} onClose={closeModal} aria-label="Telegram settings">
+      <Modal
+        open={activeModal === "telegram"}
+        header={"Telegram"}
+        onClose={closeModal}
+        aria-label="Telegram settings"
+      >
         <TelegramModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -247,7 +289,12 @@ export function ConnectorsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "slack"} onClose={closeModal} aria-label="Slack settings">
+      <Modal
+        open={activeModal === "slack"}
+        header={"Slack"}
+        onClose={closeModal}
+        aria-label="Slack settings"
+      >
         <SlackConnectorModalContent
           gw={props.gw}
           loadConfig={loadConfig}

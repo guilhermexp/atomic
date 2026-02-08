@@ -2,19 +2,32 @@ import React from "react";
 
 import { Modal } from "../kit";
 import type { GatewayState } from "../../../../src/main/types";
-import { useSkillsStatus, disableSkill, type SkillId, type SkillStatus } from "./useSkillsStatus";
+import { disableSkill, type SkillId, type SkillStatus, useSkillsStatus } from "./useSkillsStatus";
 import {
-  GoogleWorkspaceModalContent,
-  NotionModalContent,
-  TrelloModalContent,
-  GitHubModalContent,
-  WebSearchModalContent,
-  MediaUnderstandingModalContent,
-  SlackModalContent,
-  ObsidianModalContent,
   AppleNotesModalContent,
   AppleRemindersModalContent,
+  GitHubModalContent,
+  GoogleWorkspaceModalContent,
+  MediaUnderstandingModalContent,
+  NotionModalContent,
+  ObsidianModalContent,
+  SlackModalContent,
+  TrelloModalContent,
+  WebSearchModalContent,
 } from "./skill-modals";
+
+import googleImage from "../../../../assets/set-up-skills/Google.svg";
+import notionImage from "../../../../assets/set-up-skills/Notion.svg";
+import trelloImage from "../../../../assets/set-up-skills/Trello.svg";
+import geminiImage from "../../../../assets/ai-providers/gemini.svg";
+import nanoBananaImage from "../../../../assets/set-up-skills/Nano-Banana.svg";
+import sagImage from "../../../../assets/set-up-skills/Sag.svg";
+import remindersImage from "../../../../assets/set-up-skills/Reminders.svg";
+import obsidianImage from "../../../../assets/set-up-skills/Obsidian.svg";
+import githubImage from "../../../../assets/set-up-skills/GitHub.svg";
+import slackImage from "../../../../assets/set-up-skills/Slack.svg";
+import notesIcon from "../../../../assets/set-up-skills/Notes.svg";
+import mediaImage from "../../../../assets/set-up-skills/Media.svg";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -47,6 +60,7 @@ type SkillDefinition = {
   description: string;
   iconText: string;
   iconVariant: IconVariant;
+  image?: string;
 };
 
 const SKILLS: SkillDefinition[] = [
@@ -56,6 +70,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Clears your inbox, sends emails, and manages your calendar",
     iconText: "G",
     iconVariant: "google",
+    image: googleImage,
   },
   {
     id: "media-understanding",
@@ -63,6 +78,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Transcribe voice messages, describe images, and summarize videos you send",
     iconText: "M",
     iconVariant: "nano-banana",
+    image: mediaImage,
   },
   {
     id: "web-search",
@@ -70,6 +86,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Enable the web_search tool via Brave Search or Perplexity Sonar",
     iconText: "🌐",
     iconVariant: "gemini",
+    image: geminiImage,
   },
   {
     id: "notion",
@@ -77,6 +94,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Create, search, update and organize your notes, docs, and knowledge base",
     iconText: "N",
     iconVariant: "notion",
+    image: notionImage,
   },
   {
     id: "trello",
@@ -84,6 +102,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Track tasks, update boards and manage projects without opening Trello",
     iconText: "T",
     iconVariant: "trello",
+    image: trelloImage,
   },
   {
     id: "apple-notes",
@@ -91,6 +110,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Create, search and organize notes without leaving your keyboard",
     iconText: "",
     iconVariant: "apple",
+    image: notesIcon,
   },
   {
     id: "apple-reminders",
@@ -98,6 +118,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Add, list and complete reminders without opening the Reminders app",
     iconText: "✓",
     iconVariant: "reminders",
+    image: remindersImage,
   },
   {
     id: "obsidian",
@@ -105,6 +126,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Work with your Obsidian vaults from the terminal (search, create, move, delete)",
     iconText: "💎",
     iconVariant: "obsidian",
+    image: obsidianImage,
   },
   {
     id: "github",
@@ -112,6 +134,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Work with issues, pull requests, and workflows via the bundled gh CLI",
     iconText: "🐙",
     iconVariant: "github",
+    image: githubImage,
   },
   {
     id: "slack",
@@ -119,6 +142,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Send messages, react, and manage pins in your Slack workspace",
     iconText: "S",
     iconVariant: "slack",
+    image: slackImage,
   },
   {
     id: "gemini",
@@ -126,6 +150,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Interact with Google's Gemini models and experiment with powerful multimodal AI",
     iconText: "✦",
     iconVariant: "gemini",
+    image: geminiImage,
   },
   {
     id: "nano-banana",
@@ -133,6 +158,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Generate high-quality images with modern image models",
     iconText: "NB",
     iconVariant: "nano-banana",
+    image: nanoBananaImage,
   },
   {
     id: "sag",
@@ -140,6 +166,7 @@ const SKILLS: SkillDefinition[] = [
     description: "Elevate your text-to-speech tool",
     iconText: "Ⅱ",
     iconVariant: "sag",
+    image: sagImage,
   },
 ];
 
@@ -156,14 +183,31 @@ function SkillCta({
 }) {
   if (status === "connected") {
     return (
-      <button
-        type="button"
-        className="UiSkillStatus UiSkillStatus--connected UiSkillStatus--clickable"
-        aria-label="Connected — click to configure"
-        onClick={onSettings}
-      >
-        ✓ Connected
-      </button>
+      <div className="UiSkillConnectButtonContainer">
+        <div className="UiSkillConnectButton UiSkillConnectButtonConfigure">Connected</div>
+        <button
+          type="button"
+          className="UiSkillConnectButton UiSkillConnectButtonConfigure UiSkillConnectButtonCircle"
+          aria-label="Connected — click to configure"
+          onClick={onSettings}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={20}
+            height={20}
+            fill="none"
+            viewBox="0 0 20 20"
+          >
+            <path
+              stroke="#fff"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.08"
+              d="M10 10zM5 9.99zM15 10z"
+            />
+          </svg>
+        </button>
+      </div>
     );
   }
   if (status === "disabled") {
@@ -251,7 +295,6 @@ export function SkillsIntegrationsTab(props: {
 
   /** Tile card class based on status. */
   const tileClass = (status: SkillStatus) => {
-    if (status === "connected") return "UiSkillCard UiSkillCard--connected";
     if (status === "disabled") return "UiSkillCard UiSkillCard--disabled";
     return "UiSkillCard";
   };
@@ -273,11 +316,13 @@ export function SkillsIntegrationsTab(props: {
                 aria-label={skill.name}
               >
                 <div className="UiSkillTopRow">
-                  <span
-                    className={`UiSkillIcon UiSkillIcon--${skill.iconVariant}`}
-                    aria-hidden="true"
-                  >
-                    {skill.iconText}
+                  <span className={`UiSkillIcon`} aria-hidden="true">
+                    {skill.image ? <img src={skill.image} alt="" /> : skill.iconText}
+                    {status === "connected" ? (
+                      <span className="UiProviderTileCheck" aria-label="Key configured">
+                        ✓
+                      </span>
+                    ) : null}
                   </span>
                   <div className="UiSkillTopRight">
                     <SkillCta
@@ -300,6 +345,7 @@ export function SkillsIntegrationsTab(props: {
         open={activeModal === "google-workspace"}
         onClose={closeModal}
         aria-label="Google Workspace settings"
+        header={"Google Workspace"}
       >
         <GoogleWorkspaceModalContent
           isConnected={statuses["google-workspace"] === "connected"}
@@ -308,7 +354,12 @@ export function SkillsIntegrationsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "notion"} onClose={closeModal} aria-label="Notion settings">
+      <Modal
+        open={activeModal === "notion"}
+        header={"Notion"}
+        onClose={closeModal}
+        aria-label="Notion settings"
+      >
         <NotionModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -318,7 +369,12 @@ export function SkillsIntegrationsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "trello"} onClose={closeModal} aria-label="Trello settings">
+      <Modal
+        open={activeModal === "trello"}
+        header={"Trello"}
+        onClose={closeModal}
+        aria-label="Trello settings"
+      >
         <TrelloModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -328,7 +384,12 @@ export function SkillsIntegrationsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "github"} onClose={closeModal} aria-label="GitHub settings">
+      <Modal
+        open={activeModal === "github"}
+        header={"GitHub"}
+        onClose={closeModal}
+        aria-label="GitHub settings"
+      >
         <GitHubModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -342,6 +403,7 @@ export function SkillsIntegrationsTab(props: {
         open={activeModal === "web-search"}
         onClose={closeModal}
         aria-label="Web Search settings"
+        header={"Web Search"}
       >
         <WebSearchModalContent
           gw={props.gw}
@@ -356,6 +418,7 @@ export function SkillsIntegrationsTab(props: {
         open={activeModal === "media-understanding"}
         onClose={closeModal}
         aria-label="Media Understanding settings"
+        header={"Media Understanding"}
       >
         <MediaUnderstandingModalContent
           gw={props.gw}
@@ -366,7 +429,12 @@ export function SkillsIntegrationsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "slack"} onClose={closeModal} aria-label="Slack settings">
+      <Modal
+        open={activeModal === "slack"}
+        onClose={closeModal}
+        aria-label="Slack settings"
+        header={"Slack"}
+      >
         <SlackModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -376,7 +444,12 @@ export function SkillsIntegrationsTab(props: {
         />
       </Modal>
 
-      <Modal open={activeModal === "obsidian"} onClose={closeModal} aria-label="Obsidian settings">
+      <Modal
+        open={activeModal === "obsidian"}
+        header={"Obsidian"}
+        onClose={closeModal}
+        aria-label="Obsidian settings"
+      >
         <ObsidianModalContent
           gw={props.gw}
           loadConfig={loadConfig}
@@ -390,6 +463,7 @@ export function SkillsIntegrationsTab(props: {
         open={activeModal === "apple-notes"}
         onClose={closeModal}
         aria-label="Apple Notes settings"
+        header={"Apple Notes"}
       >
         <AppleNotesModalContent
           gw={props.gw}
@@ -404,6 +478,7 @@ export function SkillsIntegrationsTab(props: {
         open={activeModal === "apple-reminders"}
         onClose={closeModal}
         aria-label="Apple Reminders settings"
+        header={"Apple Reminders"}
       >
         <AppleRemindersModalContent
           gw={props.gw}

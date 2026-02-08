@@ -622,6 +622,69 @@ button:disabled {
   background-color: #ffdfdf !important;
 }
 
+.UiCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.UiCheckbox__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.UiCheckbox__box {
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  background: #414141;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.UiCheckbox__box--checked {
+  background: #0d6fff;
+}
+
+.UiCheckbox__check {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+  margin-top: -3px;
+}
+
+.UiCheckbox__box--checked .UiCheckbox__check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.UiCheckbox__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.UiCheckbox:hover .UiCheckbox__box {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.UiCheckbox__input:focus-visible + .UiCheckbox__box {
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.35);
+}
+
 .UiConsentStage {
   width: 100%;
   height: 100%;
@@ -750,39 +813,34 @@ button:disabled {
 
 .UiActionButton {
   appearance: none;
-  border: 1px solid rgba(230, 237, 243, 0.16);
-  background: rgba(0, 0, 0, 0.18);
-  color: rgba(230, 237, 243, 0.92);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 13px;
-  cursor: pointer;
+  gap: 8px;
+  padding: 8px 16px;
+  opacity: 1;
+  border-radius: 100px;
+  background: #ffffff0d;
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    transform 120ms ease;
+    background 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+  width: 100%;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 22px;
+  color: #ffffff;
+  border: none;
 }
 
 .UiActionButton:hover:enabled {
-  border-color: rgba(230, 237, 243, 0.22);
-  background: rgba(0, 0, 0, 0.26);
-  transform: translateY(-1px);
-}
-
-.UiActionButton:active:enabled {
-  transform: translateY(0);
+  opacity: 0.8;
 }
 
 .UiActionButton-primary {
-  border-color: rgba(194, 255, 64, 0.35);
-  background: rgba(194, 255, 64, 0.2);
-  color: rgba(0, 0, 0, 0.86);
-  font-weight: 800;
+  background: #c4ff47;
+  color: #121212;
 }
 
-.UiActionButton-primary:hover:enabled {
-  border-color: rgba(194, 255, 64, 0.5);
-  background: rgba(194, 255, 64, 0.28);
+.UiActionButton-primary:hover {
+  opacity: 0.8;
 }
 
 .UiActionButton:disabled {
@@ -804,6 +862,40 @@ button:disabled {
   line-height: 20px;
   color: #a0a0a0;
   margin-bottom: 24px;
+
+  ol,
+  ul {
+    margin: 12px 0;
+    padding: 0;
+  }
+
+  ol {
+    counter-reset: item;
+    margin: 12px 0;
+    padding: 0;
+  }
+
+  ol > li {
+    counter-increment: item;
+    display: flex;
+    column-gap: 8px;
+    margin: 6px 0;
+  }
+
+  ol > li::before {
+    content: counter(item) ".";
+    text-align: right;
+    opacity: 0.8;
+  }
+
+  li {
+    margin: 8px 0;
+    padding: 0;
+  }
+}
+
+.UiSectionSubtitleAccent {
+  color: #ffffff;
 }
 
 .UiMetaRow {
@@ -1271,6 +1363,7 @@ pre {
   scrollbar-width: thin;
   scrollbar-color: #ffffff26 transparent;
   margin-bottom: 10px;
+  padding-bottom: 4px;
 }
 
 .UiContentWrapper::-webkit-scrollbar {
@@ -1445,7 +1538,7 @@ pre {
 }
 
 .UiProviderRadio:checked {
-  background-color: #c3ff44;
+  background-color: #1c8af5;
 }
 
 .UiProviderRadio:checked::after {
@@ -1464,15 +1557,14 @@ pre {
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background: #343434;
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 
 .UiProviderIcon {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   display: block;
 }
 
@@ -1592,10 +1684,7 @@ pre {
 }
 
 .UiSkillIcon {
-  width: 26px;
-  height: 26px;
   border-radius: 6px;
-  background: #343434;
   display: grid;
   place-items: center;
   font-weight: 850;
@@ -1603,6 +1692,12 @@ pre {
   color: rgba(230, 237, 243, 0.92);
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  position: relative;
+}
+
+.UiSkillIcon > img {
+  width: 26px;
+  height: 26px;
 }
 
 .UiSkillIcon--google {
@@ -1691,25 +1786,66 @@ pre {
   color: #8e8e8e;
 }
 
+.UiSkillConnectButtonContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .UiSkillConnectButton {
   appearance: none;
   background: #ffffff;
   color: #292929;
   border-radius: 999px;
-  padding: 2px 6px;
+  padding: 4px 9px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
 
-.UiSkillConnectButton:disabled {
-  opacity: 0.55;
+.UiSkillConnectButton:hover {
+  opacity: 0.8;
+}
+
+.UiSkillConnectButtonConfigure {
+  color: #ffffff;
+  background:
+    linear-gradient(#353535, #353535) padding-box,
+    linear-gradient(
+        150deg,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0) 50%,
+        rgba(255, 255, 255, 0.24) 100%
+      )
+      border-box;
+
+  border: 1px solid transparent;
   cursor: default;
 }
 
-.UiSkillConnectButton:hover {
+.UiSkillConnectButtonConfigure:hover {
+  opacity: 1;
+}
+
+.UiSkillConnectButtonCircle {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+}
+
+.UiSkillConnectButtonCircle:hover {
   opacity: 0.8;
+}
+
+.UiSkillConnectButton:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .UiSkillStatus {
@@ -1765,6 +1901,16 @@ pre {
 
 .UiGoogleWorkspaceServices {
   margin-top: 6px;
+}
+
+.UiGoogleWorkspaceServicesCheckboxes {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  border: 1px solid #ffffff14;
+  border-radius: 18px;
+  margin-top: 8px;
 }
 
 .UiGoogleWorkspaceBottomRow {
@@ -1833,6 +1979,7 @@ pre {
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.5);
   padding: 0 4px;
+  margin-top: 16px;
 }
 
 .UiModelOption {
@@ -2282,13 +2429,24 @@ pre {
   width: 420px;
   max-width: 92vw;
   max-height: 85vh;
-  overflow-y: auto;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(22, 22, 26, 0.96);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
-  padding: 28px 24px 24px;
+  border-radius: 24px;
+  border: 1px solid #ffffff1a;
+  background: #1d1d1d;
+  padding: 16px 20px;
   animation: uiModalSlideUp 200ms ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.UiModalHeader {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.UiModalContent {
+  overflow-y: auto;
+  flex: 1;
 }
 
 @keyframes uiModalSlideUp {
@@ -2304,25 +2462,24 @@ pre {
 
 .UiModalClose {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  width: 24px;
+  height: 24px;
+  top: 1px;
+  right: 1px;
   appearance: none;
   border: none;
   background: transparent;
-  color: rgba(230, 237, 243, 0.55);
-  font-size: 22px;
-  line-height: 1;
   cursor: pointer;
-  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border-radius: 8px;
-  transition:
-    color 120ms ease,
-    background 120ms ease;
+  transition: opacity 0.2s ease;
 }
 
 .UiModalClose:hover {
-  color: rgba(230, 237, 243, 0.92);
-  background: rgba(230, 237, 243, 0.08);
+  opacity: 0.8;
 }
 
 /* ── Provider tiles (settings) ────────────────────────── */
@@ -2387,17 +2544,19 @@ pre {
 }
 
 .UiProviderTileCheck {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  background: rgba(34, 197, 94, 0.18);
-  color: rgba(208, 255, 224, 0.98);
+  background: #38bb58;
+  color: #ffffff;
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 700;
   flex-shrink: 0;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
 }
 
 .UiProviderTileName {
@@ -2454,9 +2613,6 @@ pre {
 }
 
 .UiModalInputRow {
-  display: flex;
-  gap: 8px;
-  align-items: center;
   margin-bottom: 16px;
 }
 
@@ -2476,47 +2632,42 @@ pre {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  margin: 16px 0 0;
 }
 
 .UiProviderFilterChip {
   appearance: none;
   display: inline-flex;
+  justify-content: center;
   align-items: center;
+  border: 1px solid transparent;
   gap: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  background: #ffffff0f;
   color: rgba(230, 237, 243, 0.7);
   border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 6px 6px 6px 8px;
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 400;
+  min-width: 41px;
   cursor: pointer;
   transition:
-    border-color 120ms ease,
-    background 120ms ease,
-    color 120ms ease;
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .UiProviderFilterChip:hover {
-  border-color: rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.07);
-  color: rgba(230, 237, 243, 0.92);
 }
 
 .UiProviderFilterChip--active {
-  border-color: var(--accent-color, #a3e635);
-  background: rgba(163, 230, 53, 0.1);
-  color: rgba(230, 237, 243, 0.95);
-}
-
-.UiProviderFilterChip--active:hover {
-  background: rgba(163, 230, 53, 0.16);
+  border-color: #1c8af5;
 }
 
 .UiProviderFilterChipIcon {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   display: block;
   flex-shrink: 0;
 }
@@ -2587,15 +2738,16 @@ pre {
 /* "Add Provider" chip variant */
 
 .UiProviderFilterChip--add {
-  border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(230, 237, 243, 0.6);
+  border-color: #ffffff0f;
+  background: transparent;
+  color: #ffffff;
 }
 
-.UiProviderFilterChip--add:hover {
-  border-color: var(--accent-color, #a3e635);
-  color: var(--accent-color, #a3e635);
-  background: rgba(163, 230, 53, 0.06);
+.UiSettingsSubtitle {
+  font-size: 13px;
+  line-height: 16px;
+  color: #ffffff80;
+  margin-bottom: 12px;
 }
 
 .UiActiveModelCard {
@@ -2603,9 +2755,18 @@ pre {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(163, 230, 53, 0.25);
   border-radius: 14px;
-  background: rgba(163, 230, 53, 0.04);
+  background:
+    linear-gradient(#2c2c2c, #2c2c2c) padding-box,
+    linear-gradient(
+        150deg,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0) 50%,
+        rgba(255, 255, 255, 0.24) 100%
+      )
+      border-box;
+
+  border: 1px solid transparent;
   margin-bottom: 14px;
 }
 
@@ -2660,7 +2821,7 @@ pre {
 .UiSkillModalContent {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .UiSkillModalField {
@@ -2716,8 +2877,9 @@ pre {
   border-radius: 10px;
   cursor: pointer;
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    border-color 0.2s ease,
+    background 0.2s ease;
+  box-sizing: border-box;
 }
 
 .UiSkillModalSelect:hover {
@@ -2739,47 +2901,33 @@ pre {
   flex: 1;
   padding: 8px 12px;
   font-size: 13px;
-  font-weight: 600;
-  color: rgba(230, 237, 243, 0.6);
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  font-weight: 400;
+  color: #ababab;
+  background: #ffffff0f;
+  border: 1px solid transparent;
+  border-radius: 100px;
   cursor: pointer;
   text-align: center;
   transition:
-    border-color 120ms ease,
-    background 120ms ease,
-    color 120ms ease;
+    opacity 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .UiSkillModalProviderOption:hover {
-  border-color: rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(230, 237, 243, 0.88);
+  opacity: 0.8;
 }
 
 .UiSkillModalProviderOption--active {
-  border-color: var(--accent-color, #a3e635);
-  background: rgba(163, 230, 53, 0.1);
-  color: rgba(230, 237, 243, 0.95);
-}
-
-.UiSkillModalProviderOption--active:hover {
-  background: rgba(163, 230, 53, 0.16);
+  border-color: #c4ff47;
+  color: #ffffff;
 }
 
 /* ── Disabled skill tile ─────────────────────────────── */
 
 .UiSkillCard--disabled {
   border-color: rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.12);
   opacity: 0.6;
-}
-
-.UiSkillCard--disabled:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background-color: rgba(255, 255, 255, 0.02);
-  opacity: 0.75;
 }
 
 /* ── Clickable status badges ─────────────────────────── */
@@ -2797,9 +2945,9 @@ pre {
 }
 
 .UiSkillStatus--disabled {
-  border-color: rgba(230, 237, 243, 0.12);
-  background: rgba(230, 237, 243, 0.06);
-  color: rgba(230, 237, 243, 0.5);
+  border-color: transparent;
+  background: rgba(230, 237, 243, 0.12);
+  color: rgba(230, 237, 243, 0.6);
 }
 
 /* ── Disable button (danger zone in modals) ──────────── */
@@ -2812,21 +2960,23 @@ pre {
 
 .UiSkillModalDisableButton {
   appearance: none;
-  border: 1px solid rgba(239, 68, 68, 0.25);
   background: rgba(239, 68, 68, 0.08);
-  color: rgba(248, 113, 113, 0.9);
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  color: #ff3333;
+  padding: 8px 16px;
+  opacity: 1;
+  border-radius: 100px;
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    background 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+  width: 100%;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 22px;
+  border: none;
 }
 
 .UiSkillModalDisableButton:hover {
-  border-color: rgba(239, 68, 68, 0.45);
   background: rgba(239, 68, 68, 0.14);
 }
 
@@ -2851,15 +3001,14 @@ pre {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .UiAllowlistId {
-  font-size: 12px;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
   color: rgba(230, 237, 243, 0.8);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2870,9 +3019,9 @@ pre {
   appearance: none;
   border: none;
   background: transparent;
-  color: rgba(239, 68, 68, 0.7);
-  font-size: 16px;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 500;
   line-height: 1;
   padding: 0 4px;
   cursor: pointer;
@@ -2884,8 +3033,7 @@ pre {
 }
 
 .UiAllowlistRemove:hover {
-  color: rgba(248, 113, 113, 0.95);
-  background: rgba(239, 68, 68, 0.1);
+  background: #414141;
 }
 
 .UiAllowlistRemove:disabled {
