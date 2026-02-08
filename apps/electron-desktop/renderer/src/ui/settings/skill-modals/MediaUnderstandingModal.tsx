@@ -32,6 +32,7 @@ export function MediaUnderstandingModalContent(props: {
 }) {
   const [image, setImage] = React.useState(true);
   const [audio, setAudio] = React.useState(true);
+  const [video, setVideo] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string | null>(null);
@@ -62,8 +63,10 @@ export function MediaUnderstandingModalContent(props: {
           const media = getObject(tools.media);
           const img = getObject(media.image);
           const aud = getObject(media.audio);
+          const vid = getObject(media.video);
           setImage(img.enabled === true);
           setAudio(aud.enabled === true);
+          setVideo(vid.enabled === true);
         }
       } catch {
         // Best-effort.
@@ -108,7 +111,7 @@ export function MediaUnderstandingModalContent(props: {
               media: {
                 image: { enabled: image },
                 audio: { enabled: audio },
-                video: { enabled: false },
+                video: { enabled: video },
               },
             },
           },
@@ -125,9 +128,9 @@ export function MediaUnderstandingModalContent(props: {
     } finally {
       setBusy(false);
     }
-  }, [audio, image, props]);
+  }, [audio, image, video, props]);
 
-  const canSave = image || audio;
+  const canSave = image || audio || video;
   const needsKey = canSave && !hasOpenAi;
 
   return (
@@ -146,6 +149,9 @@ export function MediaUnderstandingModalContent(props: {
         </CheckboxRow>
         <CheckboxRow checked={audio} onChange={setAudio}>
           Audio understanding (transcribe voice messages)
+        </CheckboxRow>
+        <CheckboxRow checked={video} onChange={setVideo}>
+          Video understanding (summarize and describe videos)
         </CheckboxRow>
       </div>
 

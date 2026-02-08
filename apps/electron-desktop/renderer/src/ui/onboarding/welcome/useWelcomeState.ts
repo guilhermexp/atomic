@@ -370,7 +370,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   );
 
   const onMediaUnderstandingSubmit = React.useCallback(
-    async (settings: { image: boolean; audio: boolean }) => {
+    async (settings: { image: boolean; audio: boolean; video: boolean }) => {
       setMediaUnderstandingBusy(true);
       setError(null);
       setStatus("Saving media understanding settings…");
@@ -389,6 +389,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
                 media: {
                   image: { enabled: settings.image },
                   audio: { enabled: settings.audio },
+                  video: { enabled: settings.video },
                 },
               },
             },

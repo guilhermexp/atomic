@@ -12,6 +12,7 @@ import {
 type MediaUnderstandingSettings = {
   image: boolean;
   audio: boolean;
+  video: boolean;
 };
 
 type Provider = "openai";
@@ -31,13 +32,14 @@ export function MediaUnderstandingPage(props: {
   const [settings, setSettings] = React.useState<MediaUnderstandingSettings>({
     image: true,
     audio: true,
+    video: true,
   });
   const [addKey, setAddKey] = React.useState("");
   const [actionBusy, setActionBusy] = React.useState(false);
   const [errorText, setErrorText] = React.useState("");
   const [validating, setValidating] = React.useState(false);
 
-  const canContinue = settings.image || settings.audio;
+  const canContinue = settings.image || settings.audio || settings.video;
   const needsKey = canContinue && !props.hasOpenAiProvider;
   const isBusy = props.busy || actionBusy;
 
@@ -130,6 +132,13 @@ export function MediaUnderstandingPage(props: {
               onChange={(checked) => setSettings((prev) => ({ ...prev, audio: checked }))}
             >
               <strong>Audio</strong> — transcribe voice messages into text
+            </CheckboxRow>
+            <CheckboxRow
+              checked={settings.video}
+              disabled={isBusy}
+              onChange={(checked) => setSettings((prev) => ({ ...prev, video: checked }))}
+            >
+              <strong>Video</strong> — summarize and describe video content
             </CheckboxRow>
           </div>
 
