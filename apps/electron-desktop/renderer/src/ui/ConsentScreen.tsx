@@ -34,7 +34,7 @@ export function ConsentScreen({ onAccepted }: { onAccepted: () => void }) {
       }
       onAccepted();
     } catch (err) {
-      addToastError(String(err));
+      addToastError(err);
     } finally {
       setBusy(false);
     }

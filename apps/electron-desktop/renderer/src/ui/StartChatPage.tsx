@@ -98,7 +98,7 @@ export function StartChatPage({
         },
       });
     } catch (err) {
-      addToastError(String(err));
+      addToastError(err);
     } finally {
       setSending(false);
     }

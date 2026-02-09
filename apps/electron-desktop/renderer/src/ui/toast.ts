@@ -10,8 +10,25 @@ export const toastStyles = {
   overflow: "hidden",
 };
 
+function errorToMessage(error: unknown): string {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return error.message || "Unknown error";
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
 /** Show an error toast. Use for API failures, gateway errors, etc. */
-export function addToastError(message: string): void {
+export function addToastError(message: unknown): void {
+  const stringMessage = errorToMessage(message);
   console.error(message);
-  toast.error(message, { duration: defaultDuration, style: toastStyles });
+  toast.error(stringMessage, { duration: defaultDuration, style: toastStyles });
 }

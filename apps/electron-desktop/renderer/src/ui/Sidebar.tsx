@@ -93,7 +93,7 @@ export function Sidebar() {
         setSessions(withTitles);
       } catch (err) {
         if (!background) {
-          addToastError(String(err));
+          addToastError(err);
           setSessions([]);
         }
       } finally {
@@ -151,7 +151,7 @@ export function Sidebar() {
           void navigate(routes.chat, { replace: true });
         }
       } catch (err) {
-        addToastError(String(err));
+        addToastError(err);
       }
     },
     [gw.request, loadSessionsWithTitles, currentSessionKey, navigate]
