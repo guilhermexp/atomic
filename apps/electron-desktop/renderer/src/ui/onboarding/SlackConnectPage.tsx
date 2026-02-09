@@ -187,19 +187,15 @@ export function SlackConnectPage(props: {
         <div className="UiContentWrapper">
           <div className="UiApiKeySubtitle">
             Configure Slack Socket Mode tokens and access policies. We'll store settings under{" "}
-        channels.slack.
+            channels.slack.
           </div>
 
           <div className="UiSectionSubtitle">
             Steps:
             <ol>
               <li>Slack API → Create App (From scratch).</li>
-              <li>
-                Enable Socket Mode and create an app token (starts with xapp-).
-              </li>
-              <li>
-                Install the app to your workspace to get a bot token (starts with xoxb-).
-              </li>
+              <li>Enable Socket Mode and create an app token (starts with xapp-).</li>
+              <li>Install the app to your workspace to get a bot token (starts with xoxb-).</li>
               <li>Invite the bot to channels you want it to read.</li>
             </ol>
             Docs:{" "}
@@ -234,14 +230,13 @@ export function SlackConnectPage(props: {
                   scope connections:write.
                 </li>
                 <li>
-                  Create the bot token (xoxb-...):{" "}
-                  <strong>OAuth &amp; Permissions</strong> → add bot scopes (use the Manifest below)
-                  → <strong>Install to Workspace</strong> → copy{" "}
+                  Create the bot token (xoxb-...): <strong>OAuth &amp; Permissions</strong> → add
+                  bot scopes (use the Manifest below) → <strong>Install to Workspace</strong> → copy{" "}
                   <strong>Bot User OAuth Token</strong>.
                 </li>
                 <li>
-                  Invite the bot to channels you want it to read (for example, in Slack:{" "}
-                  /invite @YourBot).
+                  Invite the bot to channels you want it to read (for example, in Slack: /invite
+                  @YourBot).
                 </li>
               </ol>
               Notes:
@@ -262,7 +257,6 @@ export function SlackConnectPage(props: {
           {/*{props.status ? <div className="UiSectionSubtitle">{props.status}</div> : null}*/}
 
           <div className="UiApiKeyInputRow">
-
             <TextInput
               value={botName}
               onChange={setBotName}
@@ -272,7 +266,7 @@ export function SlackConnectPage(props: {
               spellCheck={false}
               disabled={props.busy}
               isError={errors.dmAllowFrom}
-              label={'Bot display name (manifest)'}
+              label={"Bot display name (manifest)"}
             />
           </div>
 
@@ -288,7 +282,7 @@ export function SlackConnectPage(props: {
               disabled={props.busy}
               error={!props.busy && !botToken.trim()}
               isError={errors.botToken}
-              label={'Bot token xoxb-…'}
+              label={"Bot token xoxb-…"}
             />
           </div>
 
@@ -304,7 +298,7 @@ export function SlackConnectPage(props: {
               disabled={props.busy}
               error={!props.busy && !appToken.trim()}
               isError={errors.appToken}
-              label={'App token xapp-…'}
+              label={"App token xapp-…"}
             />
           </div>
 
@@ -390,7 +384,7 @@ export function SlackConnectPage(props: {
             ) : null}
           </div>
 
-          <div className='UiSectionSubtitle' style={{ marginTop: 12 }}>
+          <div className="UiSectionSubtitle" style={{ marginTop: 12 }}>
             <div style={{ marginBottom: 6 }}>Manifest (JSON)</div>
             <pre style={{ maxHeight: 240 }}>{manifest}</pre>
           </div>

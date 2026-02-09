@@ -89,11 +89,7 @@ export function MediaUnderstandingPage(props: {
     props.onSubmit(settings);
   };
 
-  const buttonLabel = validating
-    ? "Validating…"
-    : actionBusy
-      ? "Saving…"
-      : "Continue";
+  const buttonLabel = validating ? "Validating…" : actionBusy ? "Saving…" : "Continue";
 
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Media understanding setup">
@@ -158,7 +154,7 @@ export function MediaUnderstandingPage(props: {
                   spellCheck={false}
                   disabled={isBusy}
                   isError={errorText}
-                  label={'OpenAI API key'}
+                  label={"OpenAI API key"}
                 />
               </div>
             </div>
@@ -166,12 +162,7 @@ export function MediaUnderstandingPage(props: {
         </div>
 
         <div className="UiGoogleWorkspaceBottomRow">
-          <button
-            className="UiTextButton"
-            onClick={props.onBack}
-            type="button"
-            disabled={isBusy}
-          >
+          <button className="UiTextButton" onClick={props.onBack} type="button" disabled={isBusy}>
             Back
           </button>
           <div className="UiGoogleWorkspaceActions">

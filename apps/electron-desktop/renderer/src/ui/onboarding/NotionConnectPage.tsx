@@ -65,9 +65,7 @@ export function NotionConnectPage(props: {
             Steps:
             <ol>
               <li>Create an integration.</li>
-              <li>
-                Copy the API key (usually starts with ntn_ or secret_).
-              </li>
+              <li>Copy the API key (usually starts with ntn_ or secret_).</li>
               <li>Share the pages/databases you want to use with the integration.</li>
             </ol>
           </div>

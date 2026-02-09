@@ -50,8 +50,8 @@ export function ObsidianConnectPage(props: {
             <ol>
               <li>Select a vault below. We'll set it as the default for future commands.</li>
               <li>
-                Connected means obsidian-cli print-default --path-only returns a vault
-                path that exists.
+                Connected means obsidian-cli print-default --path-only returns a vault path that
+                exists.
               </li>
             </ol>
           </div>

@@ -27,9 +27,7 @@ export function AppleNotesConnectPage(props: {
         </div>
 
         <div className="UiApiKeyTitle">Connect Apple Notes</div>
-        <div className="UiApiKeySubtitle">
-          Enable Apple Notes access via the bundled memo CLI.
-        </div>
+        <div className="UiApiKeySubtitle">Enable Apple Notes access via the bundled memo CLI.</div>
 
         <div className="UiSectionSubtitle">
           Notes:

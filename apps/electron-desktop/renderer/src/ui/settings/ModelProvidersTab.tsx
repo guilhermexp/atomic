@@ -724,7 +724,6 @@ export function ModelProvidersTab(props: {
       ) : (
         /* ── Providers & API keys ────────────────────────── */
         <section className="UiSettingsSection">
-
           <div className="UiProviderTilesGrid">
             {MODEL_PROVIDERS.map((p) => (
               <ProviderTile

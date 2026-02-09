@@ -50,10 +50,7 @@ export function GitHubConnectPage(props: {
           Tips:
           <ol>
             <li>Prefer a fine-grained PAT if possible.</li>
-            <li>
-              Common scopes: repo, read:org, workflow (adjust
-              to your needs).
-            </li>
+            <li>Common scopes: repo, read:org, workflow (adjust to your needs).</li>
           </ol>
         </div>
 

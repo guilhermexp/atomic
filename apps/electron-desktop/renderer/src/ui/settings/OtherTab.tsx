@@ -33,7 +33,7 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
         onError(String(err));
       }
     },
-    [onError],
+    [onError]
   );
 
   const resetAndClose = React.useCallback(async () => {
