@@ -887,6 +887,10 @@ select.UiInput {
     padding: 0;
   }
 
+  ul > li {
+    margin-left: 16px;
+  }
+
   ol {
     counter-reset: item;
     margin: 12px 0;
