@@ -162,13 +162,13 @@ export function isHeartbeatMessage(role: string, text: string): boolean {
   if (role === "user" && trimmed.startsWith(HEARTBEAT_PROMPT_PREFIX)) {
     return true;
   }
-  // Assistant-side: pure HEARTBEAT_OK acknowledgment (possibly with light markup)
+  // Assistant-side: HEARTBEAT_OK acknowledgment (possibly with light markup or surrounding text)
   if (role === "assistant") {
     const stripped = trimmed
       .replace(/<[^>]*>/g, " ")
       .replace(/[*`~_]+/g, "")
       .trim();
-    if (stripped === HEARTBEAT_OK_TOKEN) {
+    if (stripped === HEARTBEAT_OK_TOKEN || stripped.includes(HEARTBEAT_OK_TOKEN)) {
       return true;
     }
   }
@@ -397,6 +397,10 @@ const chatSlice = createSlice({
     },
     streamDeltaReceived(state, action: PayloadAction<{ runId: string; text: string }>) {
       const runId = action.payload.runId;
+      // Suppress heartbeat deltas from appearing in the stream UI
+      if (isHeartbeatMessage("assistant", action.payload.text)) {
+        return;
+      }
       state.streamByRun[runId] = {
         id: `s-${runId}`,
         role: "assistant",

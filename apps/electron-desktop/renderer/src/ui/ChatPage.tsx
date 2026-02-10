@@ -364,7 +364,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
             </div>
           </div>
         ) : null}
-        {Object.values(streamByRun).map((m) => (
+        {Object.values(streamByRun).filter((m) => !isHeartbeatMessage(m.role, m.text)).map((m) => (
           <div key={m.id} className="UiChatRow UiChatRow-assistant">
             <div className="UiChatBubble UiChatBubble-assistant UiChatBubble-stream">
               <div className="UiChatBubbleMeta">
