@@ -22,8 +22,8 @@ const MODEL_TIERS: Record<string, Record<ModelTier, string>> = {
     fast: "gemini-3-flash-preview",
   },
   openai: {
-    ultra: "gpt-5.2-pro",
-    pro: "gpt-5.2",
+    ultra: "gpt-5.2",
+    pro: "gpt-5.1",
     fast: "gpt-5-mini",
   },
   openrouter: {
