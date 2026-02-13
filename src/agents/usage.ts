@@ -103,3 +103,40 @@ export function derivePromptTokens(usage?: {
   const sum = input + cacheRead + cacheWrite;
   return sum > 0 ? sum : undefined;
 }
+
+export function deriveSessionTotalTokens(params: {
+  usage?: {
+    input?: number;
+    total?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+  };
+  contextTokens?: number;
+  promptTokens?: number;
+}): number | undefined {
+  const promptOverride = params.promptTokens;
+  const hasPromptOverride =
+    typeof promptOverride === "number" && Number.isFinite(promptOverride) && promptOverride > 0;
+  const usage = params.usage;
+  if (!usage && !hasPromptOverride) {
+    return undefined;
+  }
+  const input = usage?.input ?? 0;
+  const promptTokens = hasPromptOverride
+    ? promptOverride
+    : derivePromptTokens({
+        input: usage?.input,
+        cacheRead: usage?.cacheRead,
+        cacheWrite: usage?.cacheWrite,
+      });
+  let total = promptTokens ?? usage?.total ?? input;
+  if (!(total > 0)) {
+    return undefined;
+  }
+
+  const contextTokens = params.contextTokens;
+  if (typeof contextTokens === "number" && Number.isFinite(contextTokens) && contextTokens > 0) {
+    total = Math.min(total, contextTokens);
+  }
+  return total;
+}
