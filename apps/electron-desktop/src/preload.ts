@@ -110,6 +110,17 @@ type OpenclawDesktopApi = {
   onUpdateDownloadProgress: (cb: (payload: UpdateDownloadProgressPayload) => void) => () => void;
   onUpdateDownloaded: (cb: (payload: UpdateDownloadedPayload) => void) => () => void;
   onUpdateError: (cb: (payload: UpdateErrorPayload) => void) => () => void;
+  // Custom skills
+  installCustomSkill: (data: string) => Promise<{
+    ok: boolean;
+    skill?: { name: string; description: string; emoji: string; dirName: string };
+    error?: string;
+  }>;
+  listCustomSkills: () => Promise<{
+    ok: boolean;
+    skills: Array<{ name: string; description: string; emoji: string; dirName: string }>;
+  }>;
+  removeCustomSkill: (dirName: string) => Promise<{ ok: boolean; error?: string }>;
   // Embedded terminal (PTY) — multi-session
   terminalCreate: () => Promise<{ id: string }>;
   terminalWrite: (id: string, data: string) => Promise<void>;
@@ -209,6 +220,11 @@ const api: OpenclawDesktopApi = {
       ipcRenderer.removeListener("updater-error", handler);
     };
   },
+  // Custom skills
+  installCustomSkill: async (data: string) => ipcRenderer.invoke("install-custom-skill", { data }),
+  listCustomSkills: async () => ipcRenderer.invoke("list-custom-skills"),
+  removeCustomSkill: async (dirName: string) =>
+    ipcRenderer.invoke("remove-custom-skill", { dirName }),
   // Embedded terminal (PTY) — multi-session
   terminalCreate: async () => ipcRenderer.invoke("terminal:create"),
   terminalWrite: async (id: string, data: string) =>

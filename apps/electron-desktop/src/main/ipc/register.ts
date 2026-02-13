@@ -1,9 +1,12 @@
 import { app, ipcMain, shell, type BrowserWindow } from "electron";
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { randomBytes } from "node:crypto";
 
+import JSZip from "jszip";
 import { upsertApiKeyProfile } from "../keys/apiKeys";
 import { readAuthProfilesStore, resolveAuthProfilesPath } from "../keys/authProfilesStore";
 import { registerGogIpcHandlers } from "../gog/ipc";
@@ -57,6 +60,139 @@ function parseObsidianVaultsFromJson(payload: unknown): ObsidianVaultEntry[] {
     return a.name.localeCompare(b.name);
   });
   return out;
+}
+
+// ── Custom skill types and helpers ────────────────────────────────────────────
+
+type CustomSkillMeta = {
+  name: string;
+  description: string;
+  emoji: string;
+  dirName: string;
+};
+
+/**
+ * Parse SKILL.md frontmatter to extract name, description, and emoji.
+ * Frontmatter is the YAML block between two `---` markers at the top of the file.
+ */
+function parseSkillFrontmatter(content: string): Omit<CustomSkillMeta, "dirName"> {
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!fmMatch) {
+    return { name: "", description: "", emoji: "🧩" };
+  }
+  const block = fmMatch[1] ?? "";
+
+  // Extract name: first YAML line starting with "name:"
+  const nameMatch = block.match(/^name:\s*(.+)$/m);
+  const name = nameMatch?.[1]?.trim() ?? "";
+
+  // Extract description: first YAML line starting with "description:"
+  const descMatch = block.match(/^description:\s*(.+)$/m);
+  const description = descMatch?.[1]?.trim() ?? "";
+
+  // Extract emoji from metadata JSON block: "emoji": "value"
+  let emoji = "🦞";
+  const emojiMatch = block.match(/"emoji"\s*:\s*"([^"]+)"/);
+  if (emojiMatch?.[1]) {
+    emoji = emojiMatch[1];
+  }
+
+  return { name, description, emoji };
+}
+
+/**
+ * Extract a zip buffer into destDir using JSZip.
+ * Validates that no entry escapes the destination directory.
+ */
+async function extractZipBuffer(buffer: Buffer, destDir: string): Promise<void> {
+  const zip = await JSZip.loadAsync(buffer);
+  const entries = Object.values(zip.files);
+
+  for (const entry of entries) {
+    const entryPath = entry.name.replaceAll("\\", "/");
+    if (!entryPath || entryPath.endsWith("/")) {
+      const dirPath = path.resolve(destDir, entryPath);
+      if (!dirPath.startsWith(destDir)) {
+        throw new Error(`zip entry escapes destination: ${entry.name}`);
+      }
+      await fsp.mkdir(dirPath, { recursive: true });
+      continue;
+    }
+
+    const outPath = path.resolve(destDir, entryPath);
+    if (!outPath.startsWith(destDir)) {
+      throw new Error(`zip entry escapes destination: ${entry.name}`);
+    }
+    await fsp.mkdir(path.dirname(outPath), { recursive: true });
+    const data = await entry.async("nodebuffer");
+    await fsp.writeFile(outPath, data);
+  }
+}
+
+/**
+ * After extraction, determine the skill root directory.
+ * If the zip contained a single top-level directory, that's the root.
+ * Otherwise the extraction directory itself is the root.
+ */
+async function resolveSkillRoot(extractDir: string): Promise<string> {
+  const entries = await fsp.readdir(extractDir, { withFileTypes: true });
+  const dirs = entries.filter((e) => e.isDirectory());
+
+  // Single top-level directory: check if SKILL.md is inside it
+  if (dirs.length === 1 && dirs[0]) {
+    const candidate = path.join(extractDir, dirs[0].name);
+    try {
+      await fsp.stat(path.join(candidate, "SKILL.md"));
+      return candidate;
+    } catch {
+      // SKILL.md not in subdirectory, fall through
+    }
+  }
+
+  // Check if SKILL.md is directly in extractDir
+  try {
+    await fsp.stat(path.join(extractDir, "SKILL.md"));
+    return extractDir;
+  } catch {
+    // Not found at root either
+  }
+
+  // Last resort: if single dir, return it even without SKILL.md
+  if (dirs.length === 1 && dirs[0]) {
+    return path.join(extractDir, dirs[0].name);
+  }
+  return extractDir;
+}
+
+/**
+ * Scan the workspace skills directory and return metadata for each custom skill.
+ */
+async function listCustomSkillsFromDir(skillsDir: string): Promise<CustomSkillMeta[]> {
+  try {
+    await fsp.stat(skillsDir);
+  } catch {
+    return [];
+  }
+  const entries = await fsp.readdir(skillsDir, { withFileTypes: true });
+  const skills: CustomSkillMeta[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {continue;}
+    const skillMdPath = path.join(skillsDir, entry.name, "SKILL.md");
+    try {
+      const content = await fsp.readFile(skillMdPath, "utf-8");
+      const meta = parseSkillFrontmatter(content);
+      skills.push({
+        name: meta.name || entry.name,
+        description: meta.description,
+        emoji: meta.emoji,
+        dirName: entry.name,
+      });
+    } catch {
+      // No SKILL.md or unreadable — skip
+    }
+  }
+  return skills;
 }
 
 function runCommandWithTimeout(params: {
@@ -800,6 +936,105 @@ export function registerIpcHandlers(params: {
   ipcMain.handle("updater-install", async () => {
     installUpdate();
     return { ok: true } as const;
+  });
+
+  // ── Custom skill installation ──────────────────────────────────────────────
+
+  const workspaceSkillsDir = path.join(params.stateDir, "workspace", "skills");
+
+  ipcMain.handle("install-custom-skill", async (_evt, p: { data?: unknown }) => {
+    const b64 = typeof p?.data === "string" ? p.data : "";
+    if (!b64) {
+      return { ok: false, error: "No data provided" };
+    }
+
+    const tmpDir = path.join(os.tmpdir(), `openclaw-skill-${randomBytes(8).toString("hex")}`);
+    try {
+      const buffer = Buffer.from(b64, "base64");
+      await fsp.mkdir(tmpDir, { recursive: true });
+      await extractZipBuffer(buffer, tmpDir);
+
+      const skillRoot = await resolveSkillRoot(tmpDir);
+
+      // Validate that SKILL.md exists
+      const skillMdPath = path.join(skillRoot, "SKILL.md");
+      try {
+        await fsp.stat(skillMdPath);
+      } catch {
+        return { ok: false, error: "SKILL.md not found in the archive" };
+      }
+
+      const content = await fsp.readFile(skillMdPath, "utf-8");
+      const meta = parseSkillFrontmatter(content);
+
+      // Determine the target directory name from frontmatter name or the source dir name
+      const dirName = (meta.name || path.basename(skillRoot)).replace(/[^a-zA-Z0-9._-]/g, "-");
+      if (!dirName) {
+        return { ok: false, error: "Could not determine skill name" };
+      }
+
+      const destDir = path.join(workspaceSkillsDir, dirName);
+      await fsp.mkdir(workspaceSkillsDir, { recursive: true });
+
+      // If skill already exists, remove it first (overwrite)
+      try {
+        await fsp.rm(destDir, { recursive: true, force: true });
+      } catch {
+        // ignore
+      }
+
+      // Copy skill files to workspace
+      await fsp.cp(skillRoot, destDir, { recursive: true });
+
+      return {
+        ok: true,
+        skill: {
+          name: meta.name || dirName,
+          description: meta.description,
+          emoji: meta.emoji,
+          dirName,
+        } satisfies CustomSkillMeta,
+      };
+    } catch (err) {
+      return { ok: false, error: `Failed to install skill: ${String(err)}` };
+    } finally {
+      // Clean up temp directory
+      try {
+        await fsp.rm(tmpDir, { recursive: true, force: true });
+      } catch {
+        // ignore
+      }
+    }
+  });
+
+  ipcMain.handle("list-custom-skills", async () => {
+    try {
+      const skills = await listCustomSkillsFromDir(workspaceSkillsDir);
+      return { ok: true, skills };
+    } catch (err) {
+      return { ok: true, skills: [] as CustomSkillMeta[] };
+    }
+  });
+
+  ipcMain.handle("remove-custom-skill", async (_evt, p: { dirName?: unknown }) => {
+    const dirName = typeof p?.dirName === "string" ? p.dirName.trim() : "";
+    if (!dirName) {
+      return { ok: false, error: "Skill directory name is required" };
+    }
+    // Prevent path traversal
+    if (dirName.includes("/") || dirName.includes("\\") || dirName === ".." || dirName === ".") {
+      return { ok: false, error: "Invalid skill name" };
+    }
+    const targetDir = path.join(workspaceSkillsDir, dirName);
+    if (!targetDir.startsWith(workspaceSkillsDir)) {
+      return { ok: false, error: "Invalid skill path" };
+    }
+    try {
+      await fsp.rm(targetDir, { recursive: true, force: true });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: `Failed to remove skill: ${String(err)}` };
+    }
   });
 
   registerGogIpcHandlers({

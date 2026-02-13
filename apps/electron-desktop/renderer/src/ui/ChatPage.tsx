@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Markdown from "react-markdown";
+import Markdown, { type Components } from "react-markdown";
 import { useSearchParams } from "react-router-dom";
 import { useGatewayRpc } from "../gateway/context";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -159,6 +159,27 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const gw = useGatewayRpc();
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const composerRef = React.useRef<ChatComposerRef | null>(null);
+
+  /** Override markdown links to open in the system browser instead of Electron. */
+  const markdownComponents: Components = React.useMemo(
+    () => ({
+      a: ({ href, children, ...rest }) => (
+        <a
+          {...rest}
+          href={href}
+          onClick={(e) => {
+            e.preventDefault();
+            if (href) {
+              window.openclawDesktop?.openExternal(href);
+            }
+          }}
+        >
+          {children}
+        </a>
+      ),
+    }),
+    [],
+  );
 
   /** First user message in history that matches optimistic text; used for seamless handoff. */
   const matchingFirstUserFromHistory = React.useMemo(() => {
@@ -343,7 +364,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
                   </div>
                 ) : null}
                 <div className="UiChatText UiMarkdown">
-                  <Markdown>{messageText}</Markdown>
+                  <Markdown components={markdownComponents}>{messageText}</Markdown>
                 </div>
                 {m.role === "assistant" && (
                   <div className="UiChatMessageActions">
@@ -383,7 +404,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
               </div>
               {m.text ? (
                 <div className="UiChatText UiMarkdown">
-                  <Markdown>{m.text}</Markdown>
+                  <Markdown components={markdownComponents}>{m.text}</Markdown>
                 </div>
               ) : null}
             </div>

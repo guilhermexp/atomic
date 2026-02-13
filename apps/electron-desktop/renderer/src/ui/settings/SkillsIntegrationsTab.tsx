@@ -1,6 +1,7 @@
 import React from "react";
+import toast from "react-hot-toast";
 
-import { Modal } from "../kit";
+import { Modal, TextInput } from "../kit";
 import type { GatewayState } from "../../../../src/main/types";
 import { disableSkill, type SkillId, type SkillStatus, useSkillsStatus } from "./useSkillsStatus";
 import {
@@ -15,6 +16,8 @@ import {
   TrelloModalContent,
   WebSearchModalContent,
 } from "./skill-modals";
+import { CustomSkillUploadModal } from "./CustomSkillUploadModal";
+import { toastStyles } from "../toast";
 
 import googleImage from "../../../../assets/set-up-skills/Google.svg";
 import notionImage from "../../../../assets/set-up-skills/Notion.svg";
@@ -163,6 +166,72 @@ const SKILLS: SkillDefinition[] = [
   },
 ];
 
+// ---------- Three-dot menu for custom skill cards ----------
+
+function CustomSkillMenu({ onRemove }: { onRemove: () => void }) {
+  const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const popoverRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open) {return;}
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        triggerRef.current &&
+        popoverRef.current &&
+        !triggerRef.current.contains(e.target as Node) &&
+        !popoverRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className="UiCustomSkillMenuWrap">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="UiCustomSkillMenuTrigger"
+        aria-label="Skill options"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <circle cx="3" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="13" cy="8" r="1.5" fill="currentColor" />
+        </svg>
+      </button>
+      {open ? (
+        <div ref={popoverRef} className="UiCustomSkillMenuPopover" role="menu">
+          <button
+            type="button"
+            className="UiCustomSkillMenuItem UiCustomSkillMenuItem--danger"
+            role="menuitem"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onRemove();
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M2 4h12M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M8 7v4M10 7v4M4 4l.5 8a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1L12 4" />
+            </svg>
+            Remove
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // ---------- SkillCta (connect button / connected badge / disabled badge / coming-soon) ----------
 
 function SkillCta({
@@ -220,6 +289,13 @@ function SkillCta({
   );
 }
 
+type CustomSkillMeta = {
+  name: string;
+  description: string;
+  emoji: string;
+  dirName: string;
+};
+
 // ---------- Main tab component ----------
 
 export function SkillsIntegrationsTab(props: {
@@ -236,6 +312,66 @@ export function SkillsIntegrationsTab(props: {
   });
 
   const [activeModal, setActiveModal] = React.useState<SkillId | null>(null);
+  const [showUploadModal, setShowUploadModal] = React.useState(false);
+  const [customSkills, setCustomSkills] = React.useState<CustomSkillMeta[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  // Load custom skills on mount
+  React.useEffect(() => {
+    const api = window.openclawDesktop;
+    if (!api?.listCustomSkills) {return;}
+    void api.listCustomSkills().then((res) => {
+      if (res.ok && res.skills) {
+        setCustomSkills(res.skills);
+      }
+    });
+  }, []);
+
+  const handleCustomSkillInstalled = React.useCallback((skill: CustomSkillMeta) => {
+    setCustomSkills((prev) => {
+      // Replace if already exists, otherwise append
+      const exists = prev.some((s) => s.dirName === skill.dirName);
+      if (exists) {
+        return prev.map((s) => (s.dirName === skill.dirName ? skill : s));
+      }
+      return [...prev, skill];
+    });
+    setShowUploadModal(false);
+    toast.success(
+      (t) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>Upload success!</div>
+          <div style={{ opacity: 0.8, fontSize: 13 }}>Your skill is connected</div>
+        </div>
+      ),
+      {
+        duration: 3000,
+        position: "bottom-right",
+        style: {
+          ...toastStyles,
+          background: "rgba(34, 120, 60, 0.95)",
+          color: "#fff",
+          border: "1px solid rgba(72, 187, 100, 0.4)",
+        },
+        iconTheme: { primary: "#48bb64", secondary: "#fff" },
+      },
+    );
+  }, []);
+
+  const handleRemoveCustomSkill = React.useCallback(async (dirName: string, name: string) => {
+    const confirmed = window.confirm(`Remove skill "${name}"?\n\nThis will delete the skill files.`);
+    if (!confirmed) {return;}
+
+    const api = window.openclawDesktop;
+    if (!api?.removeCustomSkill) {return;}
+
+    const res = await api.removeCustomSkill(dirName);
+    if (res.ok) {
+      setCustomSkills((prev) => prev.filter((s) => s.dirName !== dirName));
+    } else {
+      props.onError(res.error || "Failed to remove skill");
+    }
+  }, [props]);
 
   const openModal = React.useCallback((skillId: SkillId) => {
     setActiveModal(skillId);
@@ -273,17 +409,74 @@ export function SkillsIntegrationsTab(props: {
 
   /** Tile card class based on status. */
   const tileClass = (status: SkillStatus) => {
-    if (status === "disabled") return "UiSkillCard UiSkillCard--disabled";
+    if (status === "disabled") {return "UiSkillCard UiSkillCard--disabled";}
     return "UiSkillCard";
   };
 
   return (
     <div className="UiSettingsContentInner">
-      <div className="UiSettingsTabTitle">Skills and Integrations</div>
+      <div className="UiSkillsTabHeader">
+        <div className="UiSettingsTabTitle">Skills and Integrations</div>
+        <button
+          type="button"
+          className="UiAddCustomSkillLink"
+          onClick={() => setShowUploadModal(true)}
+        >
+          + Add custom skill
+        </button>
+      </div>
 
-      <div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
+      <div className="UiInputRow">
+        <TextInput
+          type="text"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search by skills…"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          isSearch={true}
+        />
+      </div>
+
+      {(() => {
+        const q = searchQuery.trim().toLowerCase();
+        const filteredCustom = q
+          ? customSkills.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+          : customSkills;
+        const filteredBuiltin = q
+          ? SKILLS.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+          : SKILLS;
+        const hasResults = filteredCustom.length > 0 || filteredBuiltin.length > 0;
+
+        if (!hasResults) {
+          return (
+            <div className="UiSkillsEmptyState">
+              <div className="UiSkillsEmptyStateText">No skills matching "{searchQuery.trim()}"</div>
+            </div>
+          );
+        }
+
+        return (<div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
         <div className="UiSkillsGrid">
-          {SKILLS.map((skill) => {
+          {/* Custom (user-installed) skill cards — shown first */}
+          {filteredCustom.map((skill) => (
+            <div key={`custom-${skill.dirName}`} className="UiSkillCard" role="group" aria-label={skill.name}>
+              <div className="UiSkillTopRow">
+                <span className="UiSkillIcon UiSkillIcon--custom" aria-hidden="true">
+                  {skill.emoji}
+                  <span className="UiProviderTileCheck" aria-label="Installed">✓</span>
+                </span>
+                <div className="UiSkillTopRight UiSkillTopRight--custom">
+                  <CustomSkillMenu onRemove={() => void handleRemoveCustomSkill(skill.dirName, skill.name)} />
+                </div>
+              </div>
+              <div className="UiSkillName">{skill.name}</div>
+              <div className="UiSkillDescription">{skill.description}</div>
+            </div>
+          ))}
+
+          {filteredBuiltin.map((skill) => {
             const status = statuses[skill.id];
             const isInteractive = status !== "coming-soon";
             return (
@@ -316,7 +509,8 @@ export function SkillsIntegrationsTab(props: {
             );
           })}
         </div>
-      </div>
+      </div>);
+      })()}
 
       {/* ── Skill configuration modals ────────────────────────── */}
       <Modal
@@ -466,6 +660,13 @@ export function SkillsIntegrationsTab(props: {
           onDisabled={() => void handleDisabled("apple-reminders")}
         />
       </Modal>
+
+      {/* ── Custom skill upload modal ────────────────────────── */}
+      <CustomSkillUploadModal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onInstalled={handleCustomSkillInstalled}
+      />
     </div>
   );
 }
