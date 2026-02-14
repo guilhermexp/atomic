@@ -7,7 +7,7 @@ import { Toaster } from "./ui/Toaster";
 import { UpdateBanner } from "./ui/UpdateBanner";
 import { WhatsNewModal } from "./ui/WhatsNewModal";
 import { store } from "./store/store";
-import "./ui/styles.css";
+import "./ui/styles/index.css";
 import "./ui/Sidebar.css";
 import "./ui/ChatTranscript.css";
 import "./ui/UserMessageBubble.css";
