@@ -11,7 +11,7 @@ import {
 } from "react-router-dom";
 import { ChatPage } from "./chat/ChatPage";
 import { StartChatPage } from "./chat/StartChatPage";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "./sidebar/Sidebar";
 import { SettingsIndexRedirect, SettingsPage, SettingsTab } from "./SettingsPage";
 import { TerminalPage } from "./TerminalPage";
 import { WelcomePage } from "./WelcomePage";

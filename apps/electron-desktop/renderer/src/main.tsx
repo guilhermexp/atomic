@@ -8,7 +8,7 @@ import { UpdateBanner } from "./ui/UpdateBanner";
 import { WhatsNewModal } from "./ui/WhatsNewModal";
 import { store } from "./store/store";
 import "./ui/styles/index.css";
-import "./ui/Sidebar.css";
+import "./ui/sidebar/Sidebar.css";
 import "./ui/chat/ChatTranscript.css";
 import "./ui/chat/UserMessageBubble.css";
 import "./ui/chat/AssistantMessage.css";

@@ -39,7 +39,7 @@ vi.mock("react-hot-toast", () => ({
 }));
 
 // Mock SessionSidebarItem used in Sidebar — avoids pulling its CSS import.
-vi.mock("../SessionSidebarItem", () => ({
+vi.mock("../sidebar/SessionSidebarItem", () => ({
   SessionSidebarItem: () => <div data-testid="mock-session-item" />,
 }));
 
@@ -70,7 +70,7 @@ vi.mock("../chat/ChatAttachmentCard", () => ({
 import { LoadingScreen } from "../LoadingScreen";
 import { ConsentScreen } from "../ConsentScreen";
 import { ChatComposer } from "../chat/ChatComposer";
-import { Sidebar } from "../Sidebar";
+import { Sidebar } from "../sidebar/Sidebar";
 import { SettingsPage } from "../SettingsPage";
 import { chatReducer } from "../../store/slices/chatSlice";
 import { configReducer } from "../../store/slices/configSlice";

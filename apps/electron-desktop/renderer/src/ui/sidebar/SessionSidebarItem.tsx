@@ -88,7 +88,7 @@ export function SessionSidebarItem({
   );
 
   React.useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen) {return;}
     const handleClickOutside = (e: MouseEvent) => {
       const trigger = menuTriggerRef.current;
       const popover = popoverRef.current;
