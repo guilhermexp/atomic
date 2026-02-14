@@ -129,7 +129,7 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
             <IconMoreHorizontal />
           </span>
           {menuOpen && (
-            <div ref={popoverRef} className="SessionSidebarItem__popover" role="menu">
+            <div ref={popoverRef} className="UiPopover" role="menu">
               <button
                 type="button"
                 className="SessionSidebarItem__popoverItem"

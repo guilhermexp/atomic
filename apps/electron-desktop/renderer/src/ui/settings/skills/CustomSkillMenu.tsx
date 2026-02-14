@@ -42,7 +42,7 @@ export function CustomSkillMenu({ onRemove }: { onRemove: () => void }) {
         </svg>
       </button>
       {open ? (
-        <div ref={popoverRef} className="UiCustomSkillMenuPopover" role="menu">
+        <div ref={popoverRef} className="UiPopover UiCustomSkillMenuPopover" role="menu">
           <button
             type="button"
             className="UiCustomSkillMenuItem UiCustomSkillMenuItem--danger"

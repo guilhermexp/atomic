@@ -211,12 +211,12 @@ function ExecApprovalCard({
 
   return (
     <div
-      className="ExecApprovalOverlay"
+      className="UiModalOverlay ExecApprovalOverlay"
       role="dialog"
       aria-modal="true"
       aria-label="Exec approval needed"
     >
-      <div className="ExecApprovalCard">
+      <div className="UiModalCard ExecApprovalCard">
         {/* Header */}
         <div className="ExecApprovalHeader">
           <div>

@@ -1,28 +1,15 @@
-/* ── Exec Approval Modal ─────────────────────────────────── */
+/* ── Exec Approval Modal (overrides on UiModalOverlay / UiModalCard) ── */
 
 .ExecApprovalOverlay {
-  position: fixed;
-  inset: 0;
   z-index: 950;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  animation: uiModalFadeIn 150ms ease;
 }
 
 .ExecApprovalCard {
   width: 460px;
-  max-width: 92vw;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: var(--bg-card);
   padding: 20px 24px;
-  animation: uiModalSlideUp 200ms ease;
-  display: flex;
-  flex-direction: column;
   gap: 16px;
 }
 

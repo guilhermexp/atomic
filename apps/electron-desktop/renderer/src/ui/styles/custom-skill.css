@@ -233,18 +233,10 @@
   color: rgba(255, 255, 255, 0.75);
 }
 
+/* Uses shared UiPopover base class; only override min-width */
 .UiCustomSkillMenuPopover {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
   min-width: 130px;
-  padding: 4px;
-  background: var(--bg-base);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  z-index: 100;
 }
 
 .UiCustomSkillMenuItem {
