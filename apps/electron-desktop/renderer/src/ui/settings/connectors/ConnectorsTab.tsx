@@ -1,4 +1,5 @@
 import React from "react";
+import { settingsStyles as ps } from "../SettingsPage";
 
 import { FeatureCta, Modal } from "../../shared/kit";
 import {
@@ -169,8 +170,8 @@ export function ConnectorsTab(props: {
   };
 
   return (
-    <div className="UiSettingsContentInner">
-      <div className="UiSettingsTabTitle">Messengers</div>
+    <div className={ps.UiSettingsContentInner}>
+      <div className={ps.UiSettingsTabTitle}>Messengers</div>
 
       <div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
         <div className="UiSkillsGrid">

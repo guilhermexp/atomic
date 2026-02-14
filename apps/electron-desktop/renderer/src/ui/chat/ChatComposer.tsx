@@ -2,6 +2,7 @@ import React from "react";
 import type { ChatAttachmentInput } from "../../store/slices/chatSlice";
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
 import { SendIcon } from "../shared/kit/icons";
+import s from "./ChatComposer.module.css";
 
 const MAX_ATTACHMENTS_DEFAULT = 5;
 /** Must match gateway CHAT_ATTACHMENT_MAX_BYTES (5MB). */
@@ -164,23 +165,23 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
 
     return (
       <div
-        className="UiChatComposer"
+        className={s.UiChatComposer}
         onDrop={onDrop}
         onDragOver={onDragOver}
         onDragEnter={onDragOver}
       >
-        <div className="UiChatComposerInner">
+        <div className={s.UiChatComposerInner}>
           {attachments.length > 0 && (
-            <div className="UiChatAttachments">
+            <div className={s.UiChatAttachments}>
               {attachments.map((att) => {
                 const isImage = att.mimeType.startsWith("image/");
                 if (isImage) {
                   return (
-                    <div key={att.id} className="UiChatAttachment">
-                      <img src={att.dataUrl} alt="" className="UiChatAttachmentImg" />
+                    <div key={att.id} className={s.UiChatAttachment}>
+                      <img src={att.dataUrl} alt="" className={s.UiChatAttachmentImg} />
                       <button
                         type="button"
-                        className="UiChatAttachmentRemove"
+                        className={s.UiChatAttachmentRemove}
                         onClick={() => removeAttachment(att.id)}
                         aria-label="Remove attachment"
                       >
@@ -206,14 +207,14 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
             type="file"
             accept="*"
             multiple
-            className="UiChatFileInput"
+            className={s.UiChatFileInput}
             aria-hidden
             onChange={onFileChange}
           />
 
           <textarea
             ref={textareaRef}
-            className="UiChatInput"
+            className={s.UiChatInput}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
@@ -226,10 +227,10 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
             }}
           />
 
-          <div className="UiChatComposerButtonBlock">
+          <div className={s.UiChatComposerButtonBlock}>
             <button
               type="button"
-              className="UiChatAttachButton"
+              className={s.UiChatAttachButton}
               onClick={() => fileInputRef.current?.click()}
               aria-label="Attach file"
               title="Attach file or image"
@@ -254,17 +255,17 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
             {streaming && onStop ? (
               <button
                 type="button"
-                className="UiChatSendButton UiChatStopButton"
+                className={`${s.UiChatSendButton} ${s.UiChatStopButton}`}
                 onClick={onStop}
                 aria-label={stopLabel}
                 title={stopLabel}
               >
-                <div className="UiChatStopButtonInner" />
+                <div className={s.UiChatStopButtonInner} />
               </button>
             ) : (
               <button
                 type="button"
-                className="UiChatSendButton"
+                className={s.UiChatSendButton}
                 onClick={onSend}
                 disabled={disabled || !canSend}
                 aria-label={disabled ? sendingLabel : sendLabel}

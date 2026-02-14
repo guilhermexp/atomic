@@ -6,6 +6,7 @@ import { dataUrlToBase64, type ChatAttachmentInput } from "../../store/slices/ch
 import { ChatComposer, type ChatComposerRef } from "./ChatComposer";
 import { addToastError } from "../shared/toast";
 import { routes } from "../app/routes";
+import ct from "./ChatTranscript.module.css";
 
 function newSessionKey(): string {
   return `agent:main:main:${crypto.randomUUID().slice(0, 8)}`;
@@ -105,12 +106,12 @@ export function StartChatPage({
   }, [gw.request, input, navigate, sending, attachments]);
 
   return (
-    <div className="UiChatShell">
-      <div className="UiChatTranscript">
-        <div className="UiChatEmpty">
-          <img className="UiChatEmptyLogo" src={logoUrl} alt="" aria-hidden="true" />
-          <div className="UiChatEmptyTitle">What can I help with?</div>
-          <div className="UiChatEmptySubtitle">Send a message to start a conversation</div>
+    <div className={ct.UiChatShell}>
+      <div className={ct.UiChatTranscript}>
+        <div className={ct.UiChatEmpty}>
+          <img className={ct.UiChatEmptyLogo} src={logoUrl} alt="" aria-hidden="true" />
+          <div className={ct.UiChatEmptyTitle}>What can I help with?</div>
+          <div className={ct.UiChatEmptySubtitle}>Send a message to start a conversation</div>
         </div>
       </div>
 

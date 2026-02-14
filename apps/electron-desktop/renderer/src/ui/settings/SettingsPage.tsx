@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { configActions, reloadConfig, type ConfigSnapshot } from "../../store/slices/configSlice";
 import type { GatewayState } from "../../../../src/main/types";
 import { HeroPageLayout } from "../shared/kit";
-import "./SettingsPage.css";
+import s from "./SettingsPage.module.css";
+export { s as settingsStyles };
 import { ConnectorsTab } from "./connectors/ConnectorsTab";
 import { ModelProvidersTab } from "./providers/ModelProvidersTab";
 import { OtherTab } from "./OtherTab";
@@ -35,7 +36,7 @@ function SettingsTabItem({ to, children }: { to: string; children: React.ReactNo
     <NavLink
       to={`/settings/${to}`}
       end={false}
-      className={({ isActive }) => `UiSettingsTab${isActive ? " UiSettingsTab--active" : ""}`}
+      className={({ isActive }) => `${s.UiSettingsTab}${isActive ? ` ${s["UiSettingsTab--active"]}` : ""}`}
     >
       {children}
     </NavLink>
@@ -129,10 +130,10 @@ export function SettingsPage({ state }: { state: Extract<GatewayState, { kind: "
 
   return (
     <HeroPageLayout aria-label="Settings page" hideTopbar color="secondary">
-      <div className="UiSettingsShellWrapper">
-        <div className="UiSettingsHeader">
-          <h1 className="UiSettingsTitle">Settings</h1>
-          <nav className="UiSettingsTabs" aria-label="Settings sections">
+      <div className={s.UiSettingsShellWrapper}>
+        <div className={s.UiSettingsHeader}>
+          <h1 className={s.UiSettingsTitle}>Settings</h1>
+          <nav className={s.UiSettingsTabs} aria-label="Settings sections">
             {SETTINGS_TABS.map(({ path, label }) => (
               <SettingsTabItem key={path} to={path}>
                 {label}
@@ -140,7 +141,7 @@ export function SettingsPage({ state }: { state: Extract<GatewayState, { kind: "
             ))}
           </nav>
         </div>
-        <div className="UiSettingsContent">
+        <div className={s.UiSettingsContent}>
           <Outlet context={outletContext} />
         </div>
       </div>

@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 
 import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { routes } from "../app/routes";
+import { settingsStyles as ps } from "./SettingsPage";
 import s from "./OtherTab.module.css";
 import pkg from "../../../../package.json";
 
@@ -87,7 +88,7 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
   const api = getDesktopApiOrNull();
 
   return (
-    <div className="UiSettingsContentInner">
+    <div className={ps.UiSettingsContentInner}>
       <h2 className={s.UiSettingsOtherTitle}>Other</h2>
 
       <section className={s.UiSettingsOtherSection}>

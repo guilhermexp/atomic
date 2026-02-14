@@ -20,6 +20,10 @@ import { useOptimisticSession } from "./optimisticSessionContext";
 import { addToastError } from "../shared/toast";
 import { parseUserMessageWithAttachments } from "./messageParser";
 import { CopyMessageButton } from "./CopyMessageButton";
+import ct from "./ChatTranscript.module.css";
+import ub from "./UserMessageBubble.module.css";
+import am from "./AssistantMessage.module.css";
+import cc from "./ChatComposer.module.css";
 
 type ChatEvent = {
   runId: string;
@@ -199,8 +203,8 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
       : m.id;
 
   return (
-    <div className="UiChatShell">
-      <div className="UiChatTranscript" ref={scrollRef}>
+    <div className={ct.UiChatShell}>
+      <div className={ct.UiChatTranscript} ref={scrollRef}>
         {displayMessages.map((m) => {
           const attachmentsToShow: UiMessageAttachment[] =
             m.id === "opt-first" && optimisticFirstAttachments?.length
@@ -216,21 +220,21 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
           const messageText = parsedUser ? parsedUser.displayText : m.text;
           const showAttachmentsBlock = attachmentsToShow.length > 0 || hasParsedFileAttachments;
           return (
-            <div key={getMessageKey(m)} className={`UiChatRow UiChatRow-${m.role}`}>
-              <div className={`UiChatBubble UiChatBubble-${m.role}`}>
+            <div key={getMessageKey(m)} className={`${ct.UiChatRow} ${m.role === "user" ? ub["UiChatRow-user"] : am["UiChatRow-assistant"]}`}>
+              <div className={m.role === "user" ? ub["UiChatBubble-user"] : am["UiChatBubble-assistant"]}>
                 {m.pending && (
                   <div className="UiChatBubbleMeta">
                     <span className="UiChatPending">sending…</span>
                   </div>
                 )}
                 {showAttachmentsBlock ? (
-                  <div className="UiChatMessageAttachments">
+                  <div className={cc.UiChatMessageAttachments}>
                     {attachmentsToShow.map((att: UiMessageAttachment, idx: number) => {
                       const isImage = att.dataUrl && (att.mimeType?.startsWith("image/") ?? false);
                       if (isImage && att.dataUrl) {
                         return (
-                          <div key={`${m.id}-att-${idx}`} className="UiChatMessageAttachment">
-                            <img src={att.dataUrl} alt="" className="UiChatMessageAttachmentImg" />
+                          <div key={`${m.id}-att-${idx}`} className={cc.UiChatMessageAttachment}>
+                            <img src={att.dataUrl} alt="" className={cc.UiChatMessageAttachmentImg} />
                           </div>
                         );
                       }
@@ -259,7 +263,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
                   <Markdown components={markdownComponents}>{messageText}</Markdown>
                 </div>
                 {m.role === "assistant" && (
-                  <div className="UiChatMessageActions">
+                  <div className={am.UiChatMessageActions}>
                     <CopyMessageButton text={m.text} />
                   </div>
                 )}
@@ -268,11 +272,11 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
           );
         })}
         {waitingForFirstResponse ? (
-          <div className="UiChatRow UiChatRow-assistant">
-            <div className="UiChatBubble UiChatBubble-assistant UiChatBubble-stream">
+          <div className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
+            <div className={`${am["UiChatBubble-assistant"]} ${am["UiChatBubble-stream"]}`}>
               <div className="UiChatBubbleMeta">
                 <span className="UiChatPending">
-                  <span className="UiChatTypingDots" aria-label="typing">
+                  <span className={am.UiChatTypingDots} aria-label="typing">
                     <span />
                     <span />
                     <span />
@@ -283,11 +287,11 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
           </div>
         ) : null}
         {Object.values(streamByRun).filter((m) => !isHeartbeatMessage(m.role, m.text)).map((m) => (
-          <div key={m.id} className="UiChatRow UiChatRow-assistant">
-            <div className="UiChatBubble UiChatBubble-assistant UiChatBubble-stream">
+          <div key={m.id} className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
+            <div className={`${am["UiChatBubble-assistant"]} ${am["UiChatBubble-stream"]}`}>
               <div className="UiChatBubbleMeta">
                 <span className="UiChatPending">
-                  <span className="UiChatTypingDots" aria-label="typing">
+                  <span className={am.UiChatTypingDots} aria-label="typing">
                     <span />
                     <span />
                     <span />

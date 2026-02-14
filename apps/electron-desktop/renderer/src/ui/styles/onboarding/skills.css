@@ -187,6 +187,7 @@
 
 .UiSkillConnectButton {
   appearance: none;
+  border: none;
   background: #ffffff;
   color: var(--surface-secondary);
   border-radius: var(--radius-full);

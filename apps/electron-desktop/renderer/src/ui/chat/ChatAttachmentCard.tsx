@@ -1,4 +1,5 @@
 import React from "react";
+import s from "./ChatComposer.module.css";
 
 /** Human-readable file type label from mimeType (exported for fallback display name). */
 export function getFileTypeLabel(mimeType: string): string {
@@ -26,10 +27,10 @@ export function ChatAttachmentCard({ fileName, mimeType, onRemove }: ChatAttachm
   const fileTypeLabel = getFileTypeLabel(mimeType);
 
   return (
-    <div className="UiChatAttachmentCard">
-      <div className="UiChatAttachmentCardIconBox" aria-hidden="true">
+    <div className={s.UiChatAttachmentCard}>
+      <div className={s.UiChatAttachmentCardIconBox} aria-hidden="true">
         <svg
-          className="UiChatAttachmentCardIcon"
+          className={s.UiChatAttachmentCardIcon}
           xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"
@@ -45,14 +46,14 @@ export function ChatAttachmentCard({ fileName, mimeType, onRemove }: ChatAttachm
           />
         </svg>
       </div>
-      <div className="UiChatAttachmentCardText">
-        <span className="UiChatAttachmentCardFileName">{fileName}</span>
-        <span className="UiChatAttachmentCardFileType">{fileTypeLabel}</span>
+      <div className={s.UiChatAttachmentCardText}>
+        <span className={s.UiChatAttachmentCardFileName}>{fileName}</span>
+        <span className={s.UiChatAttachmentCardFileType}>{fileTypeLabel}</span>
       </div>
       {onRemove != null && (
         <button
           type="button"
-          className="UiChatAttachmentCardRemove"
+          className={s.UiChatAttachmentCardRemove}
           onClick={onRemove}
           aria-label="Remove attachment"
         >

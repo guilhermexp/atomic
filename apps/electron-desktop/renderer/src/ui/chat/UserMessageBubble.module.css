@@ -11,13 +11,13 @@
   background: var(--surface-overlay);
 }
 
-.UiChatBubble-user .UiChatBubbleMeta {
+.UiChatBubble-user :global(.UiChatBubbleMeta) {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.UiChatBubble-user .UiChatRole {
+.UiChatBubble-user :global(.UiChatRole) {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -25,12 +25,12 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-.UiChatBubble-user .UiChatPending {
+.UiChatBubble-user :global(.UiChatPending) {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.5);
 }
 
-.UiChatBubble-user .UiChatText {
+.UiChatBubble-user :global(.UiChatText) {
   word-break: break-word;
   line-height: 1.6;
   font-size: 16px;

@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { settingsStyles as ps } from "../SettingsPage";
 
 import { Modal, TextInput } from "../../shared/kit";
 import {
@@ -42,8 +43,8 @@ export function ModelProvidersTab(props: {
   const title = view === "models" ? "AI Models" : "Providers & API Keys";
 
   return (
-    <div className="UiSettingsContentInner">
-      <div className="UiSettingsTabTitle">{title}</div>
+    <div className={ps.UiSettingsContentInner}>
+      <div className={ps.UiSettingsTabTitle}>{title}</div>
 
       {view === "models" ? (
         <ModelsView state={state} />
@@ -95,7 +96,7 @@ function ModelsView(props: { state: ReturnType<typeof useModelProvidersState> })
   } = props.state;
 
   return (
-    <section className="UiSettingsSection">
+    <section className={ps.UiSettingsSection}>
       {/* Active model card */}
       {activeModelId ? (
         <div>
@@ -347,7 +348,7 @@ function ProvidersView(props: { state: ReturnType<typeof useModelProvidersState>
   const { isProviderConfigured, setModalProvider } = props.state;
 
   return (
-    <section className="UiSettingsSection">
+    <section className={ps.UiSettingsSection}>
       <div className="UiProviderTilesGrid">
         {MODEL_PROVIDERS.map((p) => (
           <ProviderTile

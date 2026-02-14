@@ -11,14 +11,14 @@
   box-shadow: none;
 }
 
-.UiChatBubble-assistant .UiChatBubbleMeta {
+.UiChatBubble-assistant :global(.UiChatBubbleMeta) {
   display: flex;
   gap: 8px;
   align-items: center;
   margin-bottom: 6px;
 }
 
-.UiChatBubble-assistant .UiChatRole {
+.UiChatBubble-assistant :global(.UiChatRole) {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -26,12 +26,12 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-.UiChatBubble-assistant .UiChatPending {
+.UiChatBubble-assistant :global(.UiChatPending) {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.45);
 }
 
-.UiChatBubble-assistant .UiChatText {
+.UiChatBubble-assistant :global(.UiChatText) {
   word-break: break-word;
   line-height: 1.6;
   font-size: 16px;

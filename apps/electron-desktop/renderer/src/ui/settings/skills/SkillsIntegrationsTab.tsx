@@ -1,4 +1,5 @@
 import React from "react";
+import { settingsStyles as ps } from "../SettingsPage";
 
 import { FeatureCta, Modal, TextInput } from "../../shared/kit";
 import type { GatewayState } from "../../../../../src/main/types";
@@ -195,9 +196,9 @@ export function SkillsIntegrationsTab(props: {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   return (
-    <div className="UiSettingsContentInner">
+    <div className={ps.UiSettingsContentInner}>
       <div className="UiSkillsTabHeader">
-        <div className="UiSettingsTabTitle">Skills and Integrations</div>
+        <div className={ps.UiSettingsTabTitle}>Skills and Integrations</div>
         <button
           type="button"
           className="UiAddCustomSkillLink"
