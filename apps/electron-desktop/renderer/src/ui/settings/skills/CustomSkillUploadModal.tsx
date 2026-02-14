@@ -1,7 +1,7 @@
 import React from "react";
 
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
-import { Modal } from "../../shared/kit";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { Modal } from "@shared/kit";
 
 import cs from "./CustomSkillUpload.module.css";
 

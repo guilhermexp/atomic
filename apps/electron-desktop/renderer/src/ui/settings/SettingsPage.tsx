@@ -1,17 +1,17 @@
 import React from "react";
 import { Navigate, NavLink, Outlet, useOutletContext } from "react-router-dom";
-import { useGatewayRpc } from "../../gateway/context";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { configActions, reloadConfig, type ConfigSnapshot } from "../../store/slices/configSlice";
-import type { GatewayState } from "../../../../src/main/types";
-import { HeroPageLayout } from "../shared/kit";
+import { useGatewayRpc } from "@gateway/context";
+import { useAppDispatch, useAppSelector } from "@store/hooks";
+import { configActions, reloadConfig, type ConfigSnapshot } from "@store/slices/configSlice";
+import type { GatewayState } from "@main/types";
+import { HeroPageLayout } from "@shared/kit";
 import s from "./SettingsPage.module.css";
 export { s as settingsStyles };
 import { ConnectorsTab } from "./connectors/ConnectorsTab";
 import { ModelProvidersTab } from "./providers/ModelProvidersTab";
 import { OtherTab } from "./OtherTab";
 import { SkillsIntegrationsTab } from "./skills/SkillsIntegrationsTab";
-import { addToastError } from "../shared/toast";
+import { addToastError } from "@shared/toast";
 
 export type SettingsOutletContext = {
   state: Extract<GatewayState, { kind: "ready" }>;

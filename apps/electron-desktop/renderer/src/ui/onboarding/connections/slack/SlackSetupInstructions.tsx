@@ -1,7 +1,7 @@
 import React from "react";
 
 import gw from "../GoogleWorkspace.module.css";
-import { getDesktopApiOrNull } from "../../../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 
 /** Collapsible step-by-step instructions for Slack onboarding. */
 export function SlackSetupInstructions() {

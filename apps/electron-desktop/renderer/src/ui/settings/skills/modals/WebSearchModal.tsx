@@ -1,13 +1,13 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
-import { getObject } from "../../../shared/utils/configHelpers";
+import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import { getObject } from "@shared/utils/configHelpers";
 import {
   useWelcomeWebSearch,
   type WebSearchProvider,
-} from "../../../onboarding/hooks/useWelcomeWebSearch";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+} from "@ui/onboarding/hooks/useWelcomeWebSearch";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 export function WebSearchModalContent(props: {
   gw: GatewayRpcLike;

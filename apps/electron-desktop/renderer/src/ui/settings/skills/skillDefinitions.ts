@@ -1,18 +1,18 @@
 import type { SkillId } from "./useSkillsStatus";
 
-import googleImage from "../../../../../assets/set-up-skills/Google.svg";
-import notionImage from "../../../../../assets/set-up-skills/Notion.svg";
-import trelloImage from "../../../../../assets/set-up-skills/Trello.svg";
-import geminiImage from "../../../../../assets/ai-providers/gemini.svg";
-import nanoBananaImage from "../../../../../assets/set-up-skills/Nano-Banana.svg";
-import sagImage from "../../../../../assets/set-up-skills/Sag.svg";
-import remindersImage from "../../../../../assets/set-up-skills/Reminders.svg";
-import obsidianImage from "../../../../../assets/set-up-skills/Obsidian.svg";
-import githubImage from "../../../../../assets/set-up-skills/GitHub.svg";
-import slackImage from "../../../../../assets/set-up-skills/Slack.svg";
-import notesIcon from "../../../../../assets/set-up-skills/Notes.svg";
-import mediaImage from "../../../../../assets/set-up-skills/Media.svg";
-import webSearchImage from "../../../../../assets/set-up-skills/Web-Search.svg";
+import googleImage from "@assets/set-up-skills/Google.svg";
+import notionImage from "@assets/set-up-skills/Notion.svg";
+import trelloImage from "@assets/set-up-skills/Trello.svg";
+import geminiImage from "@assets/ai-providers/gemini.svg";
+import nanoBananaImage from "@assets/set-up-skills/Nano-Banana.svg";
+import sagImage from "@assets/set-up-skills/Sag.svg";
+import remindersImage from "@assets/set-up-skills/Reminders.svg";
+import obsidianImage from "@assets/set-up-skills/Obsidian.svg";
+import githubImage from "@assets/set-up-skills/GitHub.svg";
+import slackImage from "@assets/set-up-skills/Slack.svg";
+import notesIcon from "@assets/set-up-skills/Notes.svg";
+import mediaImage from "@assets/set-up-skills/Media.svg";
+import webSearchImage from "@assets/set-up-skills/Web-Search.svg";
 
 export type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;

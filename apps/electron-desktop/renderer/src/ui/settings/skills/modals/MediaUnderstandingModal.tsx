@@ -1,10 +1,10 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { ActionButton, CheckboxRow, InlineError, TextInput } from "../../../shared/kit";
-import { getObject } from "../../../shared/utils/configHelpers";
-import { useWelcomeApiKey } from "../../../onboarding/hooks/useWelcomeApiKey";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import { ActionButton, CheckboxRow, InlineError, TextInput } from "@shared/kit";
+import { getObject } from "@shared/utils/configHelpers";
+import { useWelcomeApiKey } from "@ui/onboarding/hooks/useWelcomeApiKey";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 /** Check if an OpenAI auth profile exists in the config. */
 function detectOpenAiProvider(config: unknown): boolean {

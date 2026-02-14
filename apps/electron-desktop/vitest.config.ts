@@ -12,7 +12,14 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@shared": path.resolve(__dirname, "src/shared"),
+      "@assets": path.resolve(__dirname, "assets"),
+      "@main": path.resolve(__dirname, "src/main"),
+      "@store": path.resolve(__dirname, "renderer/src/store"),
+      "@ipc": path.resolve(__dirname, "renderer/src/ipc"),
+      "@gateway": path.resolve(__dirname, "renderer/src/gateway"),
+      "@shared": path.resolve(__dirname, "renderer/src/ui/shared"),
+      "@styles": path.resolve(__dirname, "renderer/src/ui/styles"),
+      "@ui": path.resolve(__dirname, "renderer/src/ui"),
     },
   },
 });

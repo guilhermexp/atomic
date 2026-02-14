@@ -1,5 +1,5 @@
 import React from "react";
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import type { Provider } from "../providers/ProviderSelectPage";
 import type { ConfigSnapshot, GatewayRpcLike } from "./types";
 

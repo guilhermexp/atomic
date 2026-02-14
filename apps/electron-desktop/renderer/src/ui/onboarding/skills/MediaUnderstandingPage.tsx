@@ -1,7 +1,7 @@
 import React from "react";
 
 import gw from "../connections/GoogleWorkspace.module.css";
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import {
   CheckboxRow,
   GlassCard,
@@ -9,7 +9,7 @@ import {
   InlineError,
   PrimaryButton,
   TextInput,
-} from "../../shared/kit";
+} from "@shared/kit";
 
 type MediaUnderstandingSettings = {
   image: boolean;

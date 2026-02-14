@@ -2,8 +2,8 @@ import React from "react";
 import { settingsStyles as ps } from "../SettingsPage";
 import sit from "./SkillsIntegrationsTab.module.css";
 
-import { TextInput } from "../../shared/kit";
-import type { GatewayState } from "../../../../../src/main/types";
+import { TextInput } from "@shared/kit";
+import type { GatewayState } from "@main/types";
 import { useSkillsStatus } from "./useSkillsStatus";
 import { useCustomSkills } from "./useCustomSkills";
 import { useSkillModal } from "./useSkillModal";

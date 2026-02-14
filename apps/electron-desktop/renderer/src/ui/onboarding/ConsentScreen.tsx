@@ -1,9 +1,9 @@
 import React from "react";
 
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
-import { FooterText, HeroPageLayout, PrimaryButton, SplashLogo } from "../shared/kit";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { FooterText, HeroPageLayout, PrimaryButton, SplashLogo } from "@shared/kit";
 import { LoadingScreen } from "./LoadingScreen";
-import { addToastError } from "../shared/toast";
+import { addToastError } from "@shared/toast";
 import pkg from "../../../../package.json";
 import s from "./ConsentScreen.module.css";
 

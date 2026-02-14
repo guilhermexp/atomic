@@ -1,10 +1,10 @@
 import React from "react";
 
 import gw from "../connections/GoogleWorkspace.module.css";
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
-import { CheckboxRow, GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../../shared/kit";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { CheckboxRow, GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "@shared/kit";
 import { DEFAULT_GOG_SERVICES } from "../hooks/constants";
-import { UiCheckbox } from "../../shared/kit/forms";
+import { UiCheckbox } from "@shared/kit/forms";
 
 type ServiceOption = {
   id: string;

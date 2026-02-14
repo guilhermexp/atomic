@@ -1,9 +1,9 @@
 import React from "react";
-import type { AppDispatch } from "../../../store/store";
+import type { AppDispatch } from "@store/store";
 import {
   chatActions,
   extractText,
-} from "../../../store/slices/chatSlice";
+} from "@store/slices/chatSlice";
 
 type ChatEvent = {
   runId: string;

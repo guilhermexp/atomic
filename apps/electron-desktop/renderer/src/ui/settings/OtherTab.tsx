@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import { routes } from "../app/routes";
 import { settingsStyles as ps } from "./SettingsPage";
 import s from "./OtherTab.module.css";

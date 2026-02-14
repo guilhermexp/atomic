@@ -4,8 +4,8 @@
  */
 import React from "react";
 
-import type { ModelProviderInfo } from "../../shared/models/providers";
-import { resolveProviderIconUrl } from "../../shared/models/providers";
+import type { ModelProviderInfo } from "@shared/models/providers";
+import { resolveProviderIconUrl } from "@shared/models/providers";
 import mp from "./ModelProvidersTab.module.css";
 
 export const ProviderTile = React.memo(function ProviderTile(props: {

@@ -1,9 +1,9 @@
 import React from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { useAppSelector } from "../../store/hooks";
-import type { GatewayState } from "../../../../src/main/types";
+import { useAppSelector } from "@store/hooks";
+import type { GatewayState } from "@main/types";
 import { routes } from "../app/routes";
-import { GlassCard, HeroPageLayout, PrimaryButton } from "../shared/kit";
+import { GlassCard, HeroPageLayout, PrimaryButton } from "@shared/kit";
 import { LoadingScreen } from "./LoadingScreen";
 import { ApiKeyPage } from "./providers/ApiKeyPage";
 import { AppleNotesConnectPage } from "./connections/AppleNotesConnectPage";

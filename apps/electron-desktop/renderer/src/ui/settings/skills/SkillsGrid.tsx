@@ -1,7 +1,7 @@
 import React from "react";
 import sit from "./SkillsIntegrationsTab.module.css";
 
-import { FeatureCta } from "../../shared/kit";
+import { FeatureCta } from "@shared/kit";
 import type { SkillId, SkillStatus } from "./useSkillsStatus";
 import { CustomSkillMenu } from "./CustomSkillMenu";
 import type { CustomSkillMeta } from "./useCustomSkills";

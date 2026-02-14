@@ -1,6 +1,6 @@
 import React from "react";
 
-import { getObject } from "../../shared/utils/configHelpers";
+import { getObject } from "@shared/utils/configHelpers";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;

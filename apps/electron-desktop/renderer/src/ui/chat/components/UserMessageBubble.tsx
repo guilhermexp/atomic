@@ -1,7 +1,7 @@
 import React from "react";
 import Markdown, { type Components } from "react-markdown";
 
-import type { UiMessageAttachment } from "../../../store/slices/chatSlice";
+import type { UiMessageAttachment } from "@store/slices/chatSlice";
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
 import { parseUserMessageWithAttachments } from "../hooks/messageParser";
 import ub from "./UserMessageBubble.module.css";

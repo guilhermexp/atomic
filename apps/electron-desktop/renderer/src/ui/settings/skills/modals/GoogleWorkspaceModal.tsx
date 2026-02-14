@@ -1,8 +1,8 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { getDesktopApiOrNull } from "../../../../ipc/desktopApi";
-import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { ActionButton, InlineError, TextInput } from "@shared/kit";
 
 const DEFAULT_GOG_SERVICES = "gmail,calendar,drive,docs,sheets,contacts";
 

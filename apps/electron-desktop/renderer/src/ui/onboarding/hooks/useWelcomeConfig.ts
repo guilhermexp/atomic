@@ -1,5 +1,5 @@
 import React from "react";
-import type { GatewayState } from "../../../../../src/main/types";
+import type { GatewayState } from "@main/types";
 import type { ConfigSnapshot, GatewayRpcLike } from "./types";
 import { getObject, inferWorkspaceDirFromConfigPath } from "./utils";
 

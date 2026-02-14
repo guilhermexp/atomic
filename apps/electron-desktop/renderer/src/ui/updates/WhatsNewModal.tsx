@@ -1,7 +1,7 @@
 import React from "react";
 import Markdown from "react-markdown";
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
-import { Modal } from "../shared/kit/Modal";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { Modal } from "@shared/kit/Modal";
 import s from "./WhatsNewModal.module.css";
 
 const STORAGE_KEY = "whatsNew_lastVersion";

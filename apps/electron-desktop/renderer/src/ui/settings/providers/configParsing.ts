@@ -1,5 +1,5 @@
-import type { ModelProvider } from "../../shared/models/providers";
-import type { ConfigData } from "../../../store/slices/configSlice";
+import type { ModelProvider } from "@shared/models/providers";
+import type { ConfigData } from "@store/slices/configSlice";
 
 /** Extract the primary default model ID from config. */
 export function getDefaultModelPrimary(cfg: ConfigData | undefined): string | null {

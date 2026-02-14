@@ -1,7 +1,7 @@
 import React from "react";
 import { settingsStyles as ps } from "../SettingsPage";
 
-import { FeatureCta, Modal } from "../../shared/kit";
+import { FeatureCta, Modal } from "@shared/kit";
 import {
   useConnectorsStatus,
   disableConnector,
@@ -10,14 +10,14 @@ import {
 } from "./useConnectorsStatus";
 import { TelegramModalContent, SlackConnectorModalContent } from "./modals";
 
-import telegramImage from "../../../../../assets/messangers/Telegram.svg";
-import slackImage from "../../../../../assets/set-up-skills/Slack.svg";
-import discordImage from "../../../../../assets/messangers/Discord.svg";
-import signalImage from "../../../../../assets/messangers/Signal.svg";
-import whatsappImage from "../../../../../assets/messangers/WhatsApp.svg";
-import imessageImage from "../../../../../assets/messangers/iMessage.svg";
-import matrixImage from "../../../../../assets/messangers/Matrix.svg";
-import msteamsImage from "../../../../../assets/messangers/Microsoft-Teams.svg";
+import telegramImage from "@assets/messangers/Telegram.svg";
+import slackImage from "@assets/set-up-skills/Slack.svg";
+import discordImage from "@assets/messangers/Discord.svg";
+import signalImage from "@assets/messangers/Signal.svg";
+import whatsappImage from "@assets/messangers/WhatsApp.svg";
+import imessageImage from "@assets/messangers/iMessage.svg";
+import matrixImage from "@assets/messangers/Matrix.svg";
+import msteamsImage from "@assets/messangers/Microsoft-Teams.svg";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;

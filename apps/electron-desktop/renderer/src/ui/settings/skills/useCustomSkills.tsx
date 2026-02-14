@@ -1,8 +1,8 @@
 import React from "react";
 import toast from "react-hot-toast";
 
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
-import { toastStyles } from "../../shared/toast";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { toastStyles } from "@shared/toast";
 
 export type CustomSkillMeta = {
   name: string;

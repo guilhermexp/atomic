@@ -1,5 +1,5 @@
 import React from "react";
-import { getDesktopApi } from "../../../ipc/desktopApi";
+import { getDesktopApi } from "@ipc/desktopApi";
 import { DEFAULT_GOG_SERVICES } from "./constants";
 import type { ConfigSnapshot, GatewayRpcLike, GogExecResult } from "./types";
 import { getObject, getStringArray, unique } from "./utils";

@@ -1,9 +1,9 @@
 import React from "react";
 import Markdown, { type Components } from "react-markdown";
 
-import type { UiMessageAttachment } from "../../../store/slices/chatSlice";
-import { isHeartbeatMessage } from "../../../store/slices/chatSlice";
-import type { ChatAttachmentInput } from "../../../store/slices/chatSlice";
+import type { UiMessageAttachment } from "@store/slices/chatSlice";
+import { isHeartbeatMessage } from "@store/slices/chatSlice";
+import type { ChatAttachmentInput } from "@store/slices/chatSlice";
 import { CopyMessageButton } from "./CopyMessageButton";
 import { UserMessageBubble } from "./UserMessageBubble";
 import { AssistantStreamBubble, TypingIndicator } from "./AssistantStreamBubble";

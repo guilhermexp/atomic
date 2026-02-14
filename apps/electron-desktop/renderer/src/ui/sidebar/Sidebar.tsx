@@ -1,11 +1,11 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useGatewayRpc } from "../../gateway/context";
+import { useGatewayRpc } from "@gateway/context";
 import type { OptimisticSession } from "../chat/hooks/optimisticSessionContext";
 import { useOptimisticSession } from "../chat/hooks/optimisticSessionContext";
 import { routes } from "../app/routes";
-import { addToastError } from "../shared/toast";
-import { SplashLogo } from "../shared/kit";
+import { addToastError } from "@shared/toast";
+import { SplashLogo } from "@shared/kit";
 import { SessionSidebarItem } from "./SessionSidebarItem";
 import { cleanDerivedTitle } from "../chat/hooks/messageParser";
 import css from "./Sidebar.module.css";

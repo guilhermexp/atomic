@@ -1,11 +1,11 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { getDesktopApi } from "../../../../ipc/desktopApi";
-import { ActionButton, InlineError } from "../../../shared/kit";
-import { useWelcomeAppleNotes } from "../../../onboarding/hooks/useWelcomeAppleNotes";
-import { useWelcomeAppleReminders } from "../../../onboarding/hooks/useWelcomeAppleReminders";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import { getDesktopApi } from "@ipc/desktopApi";
+import { ActionButton, InlineError } from "@shared/kit";
+import { useWelcomeAppleNotes } from "@ui/onboarding/hooks/useWelcomeAppleNotes";
+import { useWelcomeAppleReminders } from "@ui/onboarding/hooks/useWelcomeAppleReminders";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 /** Apple Notes one-click enable modal content. */
 export function AppleNotesModalContent(props: {

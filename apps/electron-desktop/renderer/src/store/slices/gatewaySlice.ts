@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
-import type { GatewayState } from "../../../../src/main/types";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import type { GatewayState } from "@main/types";
 
 export type GatewaySliceState = {
   state: GatewayState | null;

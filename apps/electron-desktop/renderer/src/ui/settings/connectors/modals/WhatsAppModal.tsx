@@ -1,8 +1,8 @@
 import React from "react";
 
-import sm from "../../skills/modals/SkillModal.module.css";
-import { ActionButton, InlineError } from "../../../shared/kit";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import sm from "@ui/settings/skills/modals/SkillModal.module.css";
+import { ActionButton, InlineError } from "@shared/kit";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 export function WhatsAppModalContent(props: {
   gw: GatewayRpcLike;

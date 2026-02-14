@@ -1,10 +1,10 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
-import { getObject } from "../../../shared/utils/configHelpers";
-import { useWelcomeNotion } from "../../../onboarding/hooks/useWelcomeNotion";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import { getObject } from "@shared/utils/configHelpers";
+import { useWelcomeNotion } from "@ui/onboarding/hooks/useWelcomeNotion";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 export function NotionModalContent(props: {
   gw: GatewayRpcLike;

@@ -1,7 +1,7 @@
 import React from "react";
 
-import sm from "../../../skills/modals/SkillModal.module.css";
-import { ActionButton, TextInput } from "../../../../shared/kit";
+import sm from "@ui/settings/skills/modals/SkillModal.module.css";
+import { ActionButton, TextInput } from "@shared/kit";
 
 export function TelegramTokenStep(props: {
   botToken: string;

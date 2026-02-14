@@ -1,9 +1,9 @@
 import React from "react";
 import type { NavigateFunction } from "react-router-dom";
-import { useGatewayRpc } from "../../../gateway/context";
-import { useAppDispatch } from "../../../store/hooks";
-import { setOnboarded } from "../../../store/slices/onboardingSlice";
-import type { GatewayState } from "../../../../../src/main/types";
+import { useGatewayRpc } from "@gateway/context";
+import { useAppDispatch } from "@store/hooks";
+import { setOnboarded } from "@store/slices/onboardingSlice";
+import type { GatewayState } from "@main/types";
 import { routes } from "../../app/routes";
 import type { Provider } from "../providers/ProviderSelectPage";
 import { useWelcomeApiKey } from "./useWelcomeApiKey";
@@ -22,7 +22,7 @@ import { useWelcomeSlack } from "./useWelcomeSlack";
 import { useWelcomeTelegram } from "./useWelcomeTelegram";
 import { useWelcomeTrello } from "./useWelcomeTrello";
 import { useWelcomeWebSearch } from "./useWelcomeWebSearch";
-import { addToastError } from "../../shared/toast";
+import { addToastError } from "@shared/toast";
 
 type WelcomeStateInput = {
   state: Extract<GatewayState, { kind: "ready" }>;

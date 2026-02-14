@@ -1,7 +1,7 @@
 import React from "react";
 
-import { getObject, getStringArray } from "../../../../shared/utils/configHelpers";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../../onboarding/hooks/types";
+import { getObject, getStringArray } from "@shared/utils/configHelpers";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 /** Normalize a user-typed Telegram ID (strip tg:/telegram: prefix). */
 export function normalizeId(raw: string): string {

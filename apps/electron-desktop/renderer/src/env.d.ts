@@ -1,6 +1,6 @@
 import type { ExecResult } from "../../src/shared/types";
-import type { GogExecResult } from "../../src/main/gog/types";
-import type { GatewayState, ResetAndCloseResult } from "../../src/main/types";
+import type { GogExecResult } from "@main/gog/types";
+import type { GatewayState, ResetAndCloseResult } from "@main/types";
 
 type UpdateAvailablePayload = {
   version: string;

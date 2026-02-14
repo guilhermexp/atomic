@@ -1,6 +1,6 @@
 import React from "react";
 
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import s from "./UpdateBanner.module.css";
 
 type UpdatePhase =

@@ -1,10 +1,10 @@
 import React from "react";
 
 import sm from "./SkillModal.module.css";
-import { getDesktopApi, getDesktopApiOrNull } from "../../../../ipc/desktopApi";
-import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
-import { useWelcomeGitHub } from "../../../onboarding/hooks/useWelcomeGitHub";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import { getDesktopApi, getDesktopApiOrNull } from "@ipc/desktopApi";
+import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import { useWelcomeGitHub } from "@ui/onboarding/hooks/useWelcomeGitHub";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 export function GitHubModalContent(props: {
   gw: GatewayRpcLike;

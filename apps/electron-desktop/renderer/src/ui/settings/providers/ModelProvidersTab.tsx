@@ -2,21 +2,21 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { settingsStyles as ps } from "../SettingsPage";
 
-import { Modal, TextInput } from "../../shared/kit";
+import { Modal, TextInput } from "@shared/kit";
 import mp from "./ModelProvidersTab.module.css";
 import {
   MODEL_PROVIDER_BY_ID,
   MODEL_PROVIDERS,
   type ModelProvider,
   resolveProviderIconUrl,
-} from "../../shared/models/providers";
+} from "@shared/models/providers";
 import {
   formatModelMeta,
   getModelTier,
   type ModelEntry,
   TIER_INFO,
-} from "../../shared/models/modelPresentation";
-import type { ConfigData } from "../../../store/slices/configSlice";
+} from "@shared/models/modelPresentation";
+import type { ConfigData } from "@store/slices/configSlice";
 import { ProviderTile } from "./ProviderTile";
 import { ApiKeyModalContent } from "./ApiKeyModalContent";
 import { useModelProvidersState } from "./useModelProvidersState";

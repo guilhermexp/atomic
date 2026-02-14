@@ -1,18 +1,18 @@
 import React from "react";
 
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import {
   MODEL_PROVIDER_BY_ID,
   MODEL_PROVIDERS,
   type ModelProvider,
-} from "../../shared/models/providers";
+} from "@shared/models/providers";
 import {
   formatModelMeta,
   getModelTier,
   type ModelEntry,
   sortModelsByProviderTierName,
-} from "../../shared/models/modelPresentation";
-import type { ConfigData } from "../../../store/slices/configSlice";
+} from "@shared/models/modelPresentation";
+import type { ConfigData } from "@store/slices/configSlice";
 import { getDefaultModelPrimary, getConfiguredProviders } from "./configParsing";
 
 type GatewayRpc = {

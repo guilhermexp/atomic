@@ -1,9 +1,9 @@
 import React from "react";
 
-import sm from "../../skills/modals/SkillModal.module.css";
-import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
-import { getObject } from "../../../shared/utils/configHelpers";
-import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
+import sm from "@ui/settings/skills/modals/SkillModal.module.css";
+import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import { getObject } from "@shared/utils/configHelpers";
+import type { ConfigSnapshot, GatewayRpcLike } from "@ui/onboarding/hooks/types";
 
 export function SignalModalContent(props: {
   gw: GatewayRpcLike;

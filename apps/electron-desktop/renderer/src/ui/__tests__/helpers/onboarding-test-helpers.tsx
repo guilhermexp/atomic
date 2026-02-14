@@ -3,10 +3,10 @@ import { MemoryRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { expect } from "vitest";
-import { chatReducer } from "../../../store/slices/chatSlice";
-import { configReducer } from "../../../store/slices/configSlice";
-import { gatewayReducer } from "../../../store/slices/gatewaySlice";
-import { onboardingReducer } from "../../../store/slices/onboardingSlice";
+import { chatReducer } from "@store/slices/chatSlice";
+import { configReducer } from "@store/slices/configSlice";
+import { gatewayReducer } from "@store/slices/gatewaySlice";
+import { onboardingReducer } from "@store/slices/onboardingSlice";
 
 /** Create a fresh Redux store for onboarding tests. */
 export function createTestStore() {

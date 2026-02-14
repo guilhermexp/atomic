@@ -1,22 +1,22 @@
 import React from "react";
 import type { Components } from "react-markdown";
 import { useSearchParams } from "react-router-dom";
-import { getDesktopApiOrNull } from "../../ipc/desktopApi";
-import { useGatewayRpc } from "../../gateway/context";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { useGatewayRpc } from "@gateway/context";
+import { useAppDispatch, useAppSelector } from "@store/hooks";
 import {
   chatActions,
   isHeartbeatMessage,
   loadChatHistory,
   sendChatMessage,
   type ChatAttachmentInput,
-} from "../../store/slices/chatSlice";
-import type { GatewayState } from "../../../../src/main/types";
+} from "@store/slices/chatSlice";
+import type { GatewayState } from "@main/types";
 import { ChatComposer, type ChatComposerRef } from "./components/ChatComposer";
 import { ChatMessageList } from "./components/ChatMessageList";
 import { useOptimisticSession } from "./hooks/optimisticSessionContext";
 import { useChatStream } from "./hooks/useChatStream";
-import { addToastError } from "../shared/toast";
+import { addToastError } from "@shared/toast";
 import ct from "./ChatTranscript.module.css";
 
 export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kind: "ready" }> }) {

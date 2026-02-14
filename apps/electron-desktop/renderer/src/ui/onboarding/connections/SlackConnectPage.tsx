@@ -1,6 +1,6 @@
 import React from "react";
 
-import { GlassCard, HeroPageLayout, InlineError, PrimaryButton, TextInput } from "../../shared/kit";
+import { GlassCard, HeroPageLayout, InlineError, PrimaryButton, TextInput } from "@shared/kit";
 import { buildSlackManifest } from "./slack/slackManifest";
 import { parseList } from "./slack/slackUtils";
 import { SlackSetupInstructions } from "./slack/SlackSetupInstructions";

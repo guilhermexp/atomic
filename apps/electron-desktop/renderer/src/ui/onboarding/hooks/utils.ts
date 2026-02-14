@@ -12,7 +12,7 @@ export function inferWorkspaceDirFromConfigPath(configPath: string | undefined):
   return `${dir}${sep}workspace`;
 }
 
-export { getObject, getStringArray } from "../../shared/utils/configHelpers";
+export { getObject, getStringArray } from "@shared/utils/configHelpers";
 
 export function unique(list: string[]): string[] {
   return Array.from(new Set(list));

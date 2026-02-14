@@ -1,5 +1,5 @@
 import React from "react";
-import { useGatewayRpc } from "../../gateway/context";
+import { useGatewayRpc } from "@gateway/context";
 import s from "./ExecApprovalModal.module.css";
 
 // ── Types ──────────────────────────────────────────────────

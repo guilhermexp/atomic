@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 
-import { GlassCard, HeroPageLayout, PrimaryButton } from "../../shared/kit";
+import { GlassCard, HeroPageLayout, PrimaryButton } from "@shared/kit";
 import ob from "./OnboardingProviders.module.css";
 
-import { MODEL_PROVIDERS, type ModelProvider, resolveProviderIconUrl } from "../../shared/models/providers";
+import { MODEL_PROVIDERS, type ModelProvider, resolveProviderIconUrl } from "@shared/models/providers";
 
 export type Provider = ModelProvider;
 

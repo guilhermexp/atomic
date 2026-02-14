@@ -1,6 +1,6 @@
 import React from "react";
 
-import sm from "../../../skills/modals/SkillModal.module.css";
+import sm from "@ui/settings/skills/modals/SkillModal.module.css";
 import { TelegramTokenStep } from "./TelegramTokenStep";
 import { TelegramAllowlistStep } from "./TelegramAllowlistStep";
 

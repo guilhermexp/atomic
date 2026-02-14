@@ -1,8 +1,8 @@
 import React from "react";
 
 import tg from "../TelegramModal.module.css";
-import sm from "../../../skills/modals/SkillModal.module.css";
-import { ActionButton, TextInput } from "../../../../shared/kit";
+import sm from "@ui/settings/skills/modals/SkillModal.module.css";
+import { ActionButton, TextInput } from "@shared/kit";
 
 export function TelegramAllowlistStep(props: {
   allowList: string[];

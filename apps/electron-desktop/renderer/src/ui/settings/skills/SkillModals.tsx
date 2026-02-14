@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Modal } from "../../shared/kit";
+import { Modal } from "@shared/kit";
 import type { SkillId, SkillStatus } from "./useSkillsStatus";
 import {
   AppleNotesModalContent,
