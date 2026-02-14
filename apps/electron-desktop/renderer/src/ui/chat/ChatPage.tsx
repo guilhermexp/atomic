@@ -1,38 +1,23 @@
-import React, { useState } from "react";
-import Markdown, { type Components } from "react-markdown";
+import React from "react";
+import type { Components } from "react-markdown";
 import { useSearchParams } from "react-router-dom";
 import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { useGatewayRpc } from "../../gateway/context";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   chatActions,
-  extractText,
   isHeartbeatMessage,
   loadChatHistory,
   sendChatMessage,
   type ChatAttachmentInput,
-  type UiMessageAttachment,
 } from "../../store/slices/chatSlice";
 import type { GatewayState } from "../../../../src/main/types";
-import { ChatAttachmentCard, getFileTypeLabel } from "./components/ChatAttachmentCard";
 import { ChatComposer, type ChatComposerRef } from "./components/ChatComposer";
+import { ChatMessageList } from "./components/ChatMessageList";
 import { useOptimisticSession } from "./hooks/optimisticSessionContext";
+import { useChatStream } from "./hooks/useChatStream";
 import { addToastError } from "../shared/toast";
-import { parseUserMessageWithAttachments } from "./hooks/messageParser";
-import { CopyMessageButton } from "./components/CopyMessageButton";
 import ct from "./ChatTranscript.module.css";
-import ub from "./components/UserMessageBubble.module.css";
-import am from "./components/AssistantMessage.module.css";
-import cc from "./components/ChatComposer.module.css";
-
-type ChatEvent = {
-  runId: string;
-  sessionKey: string;
-  seq: number;
-  state: "delta" | "final" | "aborted" | "error";
-  message?: unknown;
-  errorMessage?: string;
-};
 
 export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
   const [searchParams] = useSearchParams();
@@ -103,48 +88,15 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     }
   }, [optimistic?.key, sessionKey, hasUserFromHistory, setOptimistic]);
 
-  React.useEffect(() => {
-    return gw.onEvent((evt) => {
-      if (evt.event !== "chat") {
-        return;
-      }
-      const payload = evt.payload as ChatEvent;
-      if (payload.sessionKey !== sessionKey) {
-        return;
-      }
-      if (payload.state === "delta") {
-        const text = extractText(payload.message);
-        dispatch(chatActions.streamDeltaReceived({ runId: payload.runId, text }));
-        return;
-      }
-      if (payload.state === "final") {
-        const text = extractText(payload.message);
-        dispatch(chatActions.streamFinalReceived({ runId: payload.runId, seq: payload.seq, text }));
-        return;
-      }
-      if (payload.state === "error") {
-        dispatch(
-          chatActions.streamErrorReceived({
-            runId: payload.runId,
-            errorMessage: payload.errorMessage,
-          })
-        );
-        return;
-      }
-      if (payload.state === "aborted") {
-        dispatch(chatActions.streamAborted({ runId: payload.runId }));
-      }
-    });
-  }, [dispatch, gw, sessionKey]);
+  // Subscribe to gateway chat stream events.
+  useChatStream(gw, dispatch, sessionKey);
 
   const refresh = React.useCallback(() => {
     void dispatch(loadChatHistory({ request: gw.request, sessionKey, limit: 200 }));
   }, [dispatch, gw.request, sessionKey]);
 
   // Clear transcript and reload history atomically when the session changes or
-  // the component remounts (e.g. navigating back from settings).  Combining both
-  // into a single effect eliminates the window where stale messages from the
-  // previous mount could coexist with freshly-loaded history.
+  // the component remounts (e.g. navigating back from settings).
   React.useEffect(() => {
     dispatch(chatActions.sessionCleared(sessionKey));
     refresh();
@@ -156,10 +108,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     return () => cancelAnimationFrame(id);
   }, [sessionKey]);
 
-  // Derived list and waiting state (needed for scroll deps).
-  // Only prepend the optimistic first message when history hasn't loaded user
-  // messages yet.  Once history arrives the real message takes over, preventing
-  // duplication even if the startsWith text match fails.
+  // Derived list and waiting state.
   const allMessages =
     matchingFirstUserFromHistory != null
       ? messages
@@ -173,7 +122,6 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
       !isHeartbeatMessage(m.role, m.text)
   );
 
-  // Hide loader as soon as the first stream delta arrives (streamByRun gets an entry).
   const waitingForFirstResponse =
     displayMessages.some((m) => m.role === "user") &&
     !displayMessages.some((m) => m.role === "assistant") &&
@@ -208,118 +156,18 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     );
   }, [dispatch, gw.request, input, sessionKey, attachments]);
 
-  /** Stable key for the first user message so React doesn't remount when switching from optimistic to history. */
-  const getMessageKey = (m: (typeof displayMessages)[number]) =>
-    (optimisticFirstMessage != null && m.id === "opt-first") ||
-    (matchingFirstUserFromHistory != null && m.id === matchingFirstUserFromHistory.id)
-      ? "first-user"
-      : m.id;
-
   return (
     <div className={ct.UiChatShell}>
-      <div className={ct.UiChatTranscript} ref={scrollRef}>
-        {displayMessages.map((m) => {
-          const attachmentsToShow: UiMessageAttachment[] =
-            m.id === "opt-first" && optimisticFirstAttachments?.length
-              ? optimisticFirstAttachments.map((att) => ({
-                  type: att.mimeType?.startsWith("image/") ? "image" : "file",
-                  mimeType: att.mimeType,
-                  dataUrl: att.dataUrl,
-                }))
-              : (m.attachments ?? []);
-          const parsedUser = m.role === "user" ? parseUserMessageWithAttachments(m.text) : null;
-          const hasParsedFileAttachments =
-            parsedUser != null && parsedUser.fileAttachments.length > 0;
-          const messageText = parsedUser ? parsedUser.displayText : m.text;
-          const showAttachmentsBlock = attachmentsToShow.length > 0 || hasParsedFileAttachments;
-          return (
-            <div key={getMessageKey(m)} className={`${ct.UiChatRow} ${m.role === "user" ? ub["UiChatRow-user"] : am["UiChatRow-assistant"]}`}>
-              <div className={m.role === "user" ? ub["UiChatBubble-user"] : am["UiChatBubble-assistant"]}>
-                {m.pending && (
-                  <div className="UiChatBubbleMeta">
-                    <span className="UiChatPending">sending…</span>
-                  </div>
-                )}
-                {showAttachmentsBlock ? (
-                  <div className={cc.UiChatMessageAttachments}>
-                    {attachmentsToShow.map((att: UiMessageAttachment, idx: number) => {
-                      const isImage = att.dataUrl && (att.mimeType?.startsWith("image/") ?? false);
-                      if (isImage && att.dataUrl) {
-                        return (
-                          <div key={`${m.id}-att-${idx}`} className={cc.UiChatMessageAttachment}>
-                            <img src={att.dataUrl} alt="" className={cc.UiChatMessageAttachmentImg} />
-                          </div>
-                        );
-                      }
-                      const mimeType = att.mimeType ?? "application/octet-stream";
-                      const skipFile = ["toolCall", "thinking"].includes(att.type);
-                      if (skipFile) {return null;}
-                      return (
-                        <ChatAttachmentCard
-                          key={`${m.id}-att-${idx}`}
-                          fileName={getFileTypeLabel(mimeType)}
-                          mimeType={mimeType}
-                        />
-                      );
-                    })}
-                    {hasParsedFileAttachments &&
-                      parsedUser.fileAttachments.map((att, idx) => (
-                        <ChatAttachmentCard
-                          key={`${m.id}-parsed-${idx}`}
-                          fileName={att.fileName}
-                          mimeType={att.mimeType}
-                        />
-                      ))}
-                  </div>
-                ) : null}
-                <div className="UiChatText UiMarkdown">
-                  <Markdown components={markdownComponents}>{messageText}</Markdown>
-                </div>
-                {m.role === "assistant" && (
-                  <div className={am.UiChatMessageActions}>
-                    <CopyMessageButton text={m.text} />
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {waitingForFirstResponse ? (
-          <div className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
-            <div className={`${am["UiChatBubble-assistant"]} ${am["UiChatBubble-stream"]}`}>
-              <div className="UiChatBubbleMeta">
-                <span className="UiChatPending">
-                  <span className={am.UiChatTypingDots} aria-label="typing">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : null}
-        {Object.values(streamByRun).filter((m) => !isHeartbeatMessage(m.role, m.text)).map((m) => (
-          <div key={m.id} className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
-            <div className={`${am["UiChatBubble-assistant"]} ${am["UiChatBubble-stream"]}`}>
-              <div className="UiChatBubbleMeta">
-                <span className="UiChatPending">
-                  <span className={am.UiChatTypingDots} aria-label="typing">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                </span>
-              </div>
-              {m.text ? (
-                <div className="UiChatText UiMarkdown">
-                  <Markdown components={markdownComponents}>{m.text}</Markdown>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        ))}
-      </div>
+      <ChatMessageList
+        displayMessages={displayMessages}
+        streamByRun={streamByRun}
+        optimisticFirstMessage={optimisticFirstMessage}
+        optimisticFirstAttachments={optimisticFirstAttachments}
+        matchingFirstUserFromHistory={matchingFirstUserFromHistory}
+        waitingForFirstResponse={waitingForFirstResponse}
+        markdownComponents={markdownComponents}
+        scrollRef={scrollRef}
+      />
 
       <ChatComposer
         ref={composerRef}

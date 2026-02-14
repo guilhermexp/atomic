@@ -144,7 +144,9 @@ describe("Smoke render tests", () => {
         <ConsentScreen onAccepted={onAccepted} />
       </TestShell>,
     );
-    expect(container.querySelector(".UiConsentStage")).toBeTruthy();
+    // Query by role/text instead of CSS module class name (CSS modules
+    // return undefined class names in vitest without extra config).
+    expect(screen.getByRole("dialog", { name: /user agreement/i })).toBeTruthy();
     expect(screen.getByText(/Welcome to Atomic Bot/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /start/i })).toBeTruthy();
   });

@@ -165,6 +165,24 @@
   background: var(--border-subtle);
 }
 
+/* ── Checkmark badge (connected state) ──────────────── */
+
+.UiProviderTileCheck {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--success);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+}
+
 .UiSkillName {
   font-weight: 500;
   font-size: 15px;
