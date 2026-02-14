@@ -1,0 +1,59 @@
+/**
+ * Single provider tile card used in the Providers & API Keys grid.
+ * Extracted from ModelProvidersTab.tsx.
+ */
+import React from "react";
+
+import type { ModelProviderInfo } from "../models/providers";
+import { resolveProviderIconUrl } from "../models/providers";
+
+export function ProviderTile(props: {
+  provider: ModelProviderInfo;
+  configured: boolean;
+  onClick: () => void;
+}) {
+  const { provider, configured, onClick } = props;
+  return (
+    <div
+      className="UiSkillCard"
+      role="button"
+      tabIndex={0}
+      aria-label={`${provider.name}${configured ? " (configured)" : ""}`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
+      <div className="UiSkillTopRow">
+        <span className="UiSkillIcon" aria-hidden="true">
+          <img src={resolveProviderIconUrl(provider.id)} alt="" />
+          {configured ? (
+            <span className="UiProviderTileCheck" aria-label="Key configured">
+              ✓
+            </span>
+          ) : null}
+        </span>
+        {configured ? (
+          <div className="UiSkillConnectButtonContainer">
+            <button
+              type="button"
+              onClick={onClick}
+              aria-label="Connected — click to configure"
+              className="UiSkillConnectButton UiSkillConnectButtonConfigure"
+            >
+              Edit
+            </button>
+          </div>
+        ) : (
+          <button onClick={onClick} className="UiSkillConnectButton">
+            Connect
+          </button>
+        )}
+      </div>
+      <div className="UiProviderTileName">{provider.name}</div>
+      <div className="UiProviderTileDesc">{provider.description}</div>
+    </div>
+  );
+}

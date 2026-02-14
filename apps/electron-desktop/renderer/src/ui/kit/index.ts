@@ -16,3 +16,6 @@ export {
   SplashLogo,
   TextInput,
 } from "./ui";
+
+export { FeatureCta, type FeatureStatus } from "./FeatureCta";
+export { CopyIcon, CheckIcon, SendIcon } from "./icons";

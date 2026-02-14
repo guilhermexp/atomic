@@ -1,5 +1,7 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../ipc/desktopApi";
+
 type UpdatePhase =
   | { kind: "idle" }
   | { kind: "available"; version: string }
@@ -70,7 +72,7 @@ export function UpdateBanner() {
   const [installing, setInstalling] = React.useState(false);
 
   React.useEffect(() => {
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api) {
       return;
     }
@@ -148,7 +150,7 @@ export function UpdateBanner() {
               disabled={startingDownload}
               onClick={() => {
                 setStartingDownload(true);
-                void window.openclawDesktop?.downloadUpdate();
+                void getDesktopApiOrNull()?.downloadUpdate();
               }}
             >
               {startingDownload ? <BtnSpinner /> : "Download"}
@@ -187,7 +189,7 @@ export function UpdateBanner() {
               disabled={installing}
               onClick={() => {
                 setInstalling(true);
-                void window.openclawDesktop?.installUpdate();
+                void getDesktopApiOrNull()?.installUpdate();
               }}
             >
               {installing ? <BtnSpinner /> : "Restart & Update"}

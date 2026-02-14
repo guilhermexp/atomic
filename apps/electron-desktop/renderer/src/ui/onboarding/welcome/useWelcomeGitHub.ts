@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import type { AsyncRunner, ConfigSnapshot, GatewayRpcLike, SkillId } from "./types";
 import { getObject, getStringArray, unique } from "./utils";
 
@@ -184,10 +185,7 @@ export function useWelcomeGitHub({
     async (pat: string) => {
       setStatus("Checking gh…");
       await run(async () => {
-        const api = window.openclawDesktop;
-        if (!api) {
-          throw new Error("Desktop API not available");
-        }
+        const api = getDesktopApi();
 
         const checkRes = await api.ghCheck();
         if (!checkRes.ok) {

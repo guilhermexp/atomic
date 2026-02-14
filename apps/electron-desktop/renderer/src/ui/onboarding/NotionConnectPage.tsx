@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../kit";
 
 export function NotionConnectPage(props: {
@@ -54,7 +55,7 @@ export function NotionConnectPage(props: {
               className="UiLink"
               onClick={(e) => {
                 e.preventDefault();
-                void window.openclawDesktop?.openExternal("https://notion.so/my-integrations");
+                void getDesktopApiOrNull()?.openExternal("https://notion.so/my-integrations");
               }}
             >
               Open integrations ↗

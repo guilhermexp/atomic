@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../ipc/desktopApi";
 import { FooterText, HeroPageLayout, PrimaryButton, SplashLogo } from "./kit";
 import { LoadingScreen } from "./LoadingScreen";
 import { addToastError } from "./toast";
@@ -12,7 +13,7 @@ export type ConsentDesktopApi = NonNullable<Window["openclawDesktop"]> & {
 };
 
 export function ConsentScreen({ onAccepted }: { onAccepted: () => void }) {
-  const api = window.openclawDesktop as ConsentDesktopApi | undefined;
+  const api = getDesktopApiOrNull() as ConsentDesktopApi | null;
   const [busy, setBusy] = React.useState(false);
   const termsUrl = "https://atomicbot.ai/terms-of-service";
   const appVersion = pkg.version || "0.0.0";
@@ -74,7 +75,7 @@ export function ConsentScreen({ onAccepted }: { onAccepted: () => void }) {
                   // Prevent toggling the checkbox when clicking the link.
                   e.preventDefault();
                   e.stopPropagation();
-                  const openExternal = window.openclawDesktop?.openExternal;
+                  const openExternal = getDesktopApiOrNull()?.openExternal;
                   if (typeof openExternal === "function") {
                     void openExternal(termsUrl);
                     return;

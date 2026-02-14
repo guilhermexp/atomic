@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import type { GatewayState } from "../../../../src/main/types";
 
 export type GatewaySliceState = {
@@ -26,13 +27,13 @@ export const initGatewayState = createAsyncThunk(
         if (thunkApi.signal.aborted) {
           return null;
         }
-        const api = window.openclawDesktop;
+        const api = getDesktopApiOrNull();
         if (api) {
           return api;
         }
         await new Promise((r) => setTimeout(r, 50));
       }
-      return window.openclawDesktop ?? null;
+      return getDesktopApiOrNull();
     };
 
     const api = await waitForApi(2_000);

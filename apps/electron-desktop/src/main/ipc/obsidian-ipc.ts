@@ -101,7 +101,8 @@ export function registerObsidianHandlers(params: RegisterParams) {
           resolvedPath: res.resolvedPath,
         } satisfies ExecResult;
       }
-    } catch {
+    } catch (err) {
+      console.warn("[ipc/obsidian] default vault path check failed:", err);
       return {
         ok: false,
         code: res.code,

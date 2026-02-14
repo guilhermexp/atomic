@@ -71,15 +71,15 @@ export async function resolveSkillRoot(extractDir: string): Promise<string> {
     try {
       await fsp.stat(path.join(candidate, "SKILL.md"));
       return candidate;
-    } catch {
-      // fall through
+    } catch (err) {
+      console.warn("[ipc/skills] resolveSkillRoot candidate stat failed:", err);
     }
   }
   try {
     await fsp.stat(path.join(extractDir, "SKILL.md"));
     return extractDir;
-  } catch {
-    // not found
+  } catch (err) {
+    console.warn("[ipc/skills] resolveSkillRoot extractDir SKILL.md not found:", err);
   }
   if (dirs.length === 1 && dirs[0]) {
     return path.join(extractDir, dirs[0].name);
@@ -93,7 +93,8 @@ export async function resolveSkillRoot(extractDir: string): Promise<string> {
 export async function listCustomSkillsFromDir(skillsDir: string): Promise<CustomSkillMeta[]> {
   try {
     await fsp.stat(skillsDir);
-  } catch {
+  } catch (err) {
+    console.warn("[ipc/skills] listCustomSkillsFromDir stat failed:", err);
     return [];
   }
   const entries = await fsp.readdir(skillsDir, { withFileTypes: true });
@@ -112,8 +113,8 @@ export async function listCustomSkillsFromDir(skillsDir: string): Promise<Custom
         emoji: meta.emoji,
         dirName: entry.name,
       });
-    } catch {
-      // skip
+    } catch (err) {
+      console.warn("[ipc/skills] listCustomSkillsFromDir read SKILL.md failed:", err);
     }
   }
   return skills;
@@ -139,7 +140,8 @@ export function registerSkillHandlers(params: RegisterParams) {
       const skillMdPath = path.join(skillRoot, "SKILL.md");
       try {
         await fsp.stat(skillMdPath);
-      } catch {
+      } catch (err) {
+        console.warn("[ipc/skills] install-custom-skill SKILL.md stat failed:", err);
         return { ok: false, error: "SKILL.md not found in the archive" };
       }
 
@@ -156,8 +158,8 @@ export function registerSkillHandlers(params: RegisterParams) {
 
       try {
         await fsp.rm(destDir, { recursive: true, force: true });
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("[ipc/skills] install-custom-skill rm destDir failed:", err);
       }
 
       await fsp.cp(skillRoot, destDir, { recursive: true });
@@ -176,8 +178,8 @@ export function registerSkillHandlers(params: RegisterParams) {
     } finally {
       try {
         await fsp.rm(tmpDir, { recursive: true, force: true });
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("[ipc/skills] install-custom-skill cleanup tmpDir failed:", err);
       }
     }
   });
@@ -186,7 +188,8 @@ export function registerSkillHandlers(params: RegisterParams) {
     try {
       const skills = await listCustomSkillsFromDir(workspaceSkillsDir);
       return { ok: true, skills };
-    } catch {
+    } catch (err) {
+      console.warn("[ipc/skills] list-custom-skills failed:", err);
       return { ok: true, skills: [] as CustomSkillMeta[] };
     }
   });

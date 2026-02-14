@@ -15,6 +15,7 @@ import { Sidebar } from "./Sidebar";
 import { SettingsIndexRedirect, SettingsPage, SettingsTab } from "./SettingsPage";
 import { TerminalPage } from "./TerminalPage";
 import { WelcomePage } from "./WelcomePage";
+import { getDesktopApiOrNull } from "../ipc/desktopApi";
 import { ConsentScreen, type ConsentDesktopApi } from "./ConsentScreen";
 import { LoadingScreen } from "./LoadingScreen";
 import { Brand } from "./kit";
@@ -153,7 +154,7 @@ export function App() {
   }, [dispatch]);
 
   React.useEffect(() => {
-    const api = window.openclawDesktop as ConsentDesktopApi | undefined;
+    const api = getDesktopApiOrNull() as ConsentDesktopApi | null;
     let alive = true;
     void (async () => {
       try {

@@ -168,9 +168,9 @@ function SkillCta({ status, onConnect }: { status: SkillStatus; onConnect?: () =
         >
           <path
             stroke="#aeaeae"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.17"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.17"
             d="M6.42 2.92v3.5l2.33 1.16m3.5-1.16a5.83 5.83 0 1 1-11.67 0 5.83 5.83 0 0 1 11.67 0"
           />
         </svg>

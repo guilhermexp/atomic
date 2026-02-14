@@ -1,5 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { routes } from "../routes";
 import "./OtherTab.css";
 import pkg from "../../../../package.json";
@@ -38,14 +40,14 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
 
   // Load the current launch-at-login state on mount.
   React.useEffect(() => {
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api?.getLaunchAtLogin) {return;}
     void api.getLaunchAtLogin().then((res) => setLaunchAtStartup(res.enabled));
   }, []);
 
   const toggleLaunchAtStartup = React.useCallback(
     async (enabled: boolean) => {
-      const api = window.openclawDesktop;
+      const api = getDesktopApiOrNull();
       if (!api?.setLaunchAtLogin) {
         onError("Desktop API not available");
         return;
@@ -63,7 +65,7 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
   );
 
   const resetAndClose = React.useCallback(async () => {
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api) {
       onError("Desktop API not available");
       return;
@@ -82,7 +84,7 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
     }
   }, [onError]);
 
-  const api = window.openclawDesktop;
+  const api = getDesktopApiOrNull();
 
   return (
     <div className="UiSettingsContentInner UiSettingsOther">

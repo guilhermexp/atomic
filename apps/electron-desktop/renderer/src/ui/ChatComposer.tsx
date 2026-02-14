@@ -1,20 +1,7 @@
 import React from "react";
 import type { ChatAttachmentInput } from "../store/slices/chatSlice";
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
-
-function SendIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M10 15.5017L10 4.83171M10 4.83171L5.42711 9.4046M10 4.83171L14.5729 9.4046"
-        stroke="currentColor"
-        stroke-width="1.5243"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-  );
-}
+import { SendIcon } from "./kit/icons";
 
 const MAX_ATTACHMENTS_DEFAULT = 5;
 /** Must match gateway CHAT_ATTACHMENT_MAX_BYTES (5MB). */
@@ -77,7 +64,7 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
 
     const adjustTextareaHeight = React.useCallback(() => {
       const el = textareaRef.current;
-      if (!el) return;
+      if (!el) {return;}
       el.style.height = "0";
       const next = Math.min(Math.max(el.scrollHeight, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT);
       el.style.height = `${next}px`;
@@ -90,7 +77,7 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
     const addFiles = React.useCallback(
       (files: FileList | File[]) => {
         const fileArray = Array.from(files);
-        if (!fileArray.length) return;
+        if (!fileArray.length) {return;}
         const currentCount = attachments.length;
         const totalNew = fileArray.length;
         if (currentCount + totalNew > maxAttachments) {
@@ -111,7 +98,7 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
           }
         };
         for (let i = 0; i < toProcess; i += 1) {
-          const file = fileArray[i]!;
+          const file = fileArray[i];
           if (file.size > MAX_FILE_SIZE_BYTES) {
             if (!oversizedShown) {
               oversizedShown = true;
@@ -257,9 +244,9 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
                 <path
                   d="M9.00012 3.1499V14.8499M14.8501 8.9999H3.15012"
                   stroke="white"
-                  stroke-width="1.503"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.503"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

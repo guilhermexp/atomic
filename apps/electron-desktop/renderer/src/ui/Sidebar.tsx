@@ -7,6 +7,7 @@ import { routes } from "./routes";
 import { addToastError } from "./toast";
 import { SplashLogo } from "./kit";
 import { SessionSidebarItem } from "./SessionSidebarItem";
+import { cleanDerivedTitle } from "./utils/messageParser";
 
 const TERMINAL_SIDEBAR_KEY = "terminal-sidebar-visible";
 
@@ -57,33 +58,7 @@ type SessionWithTitle = {
 const SESSIONS_LIST_LIMIT = 50;
 const TITLE_MAX_LEN = 48;
 
-/**
- * Sanitize raw derivedTitle: strip inbound-meta untrusted context blocks,
- * envelope date headers, attachment markers, media hints, file tags,
- * and message_id hints to recover the original user text for display.
- */
-export function cleanDerivedTitle(derivedTitle: string | undefined): string {
-  const raw = derivedTitle?.trim();
-  if (!raw) {
-    return "";
-  }
-  return raw
-    .replace(
-      /^(?:[^\n]*\(untrusted(?:\s+metadata|,\s+for context)\):\n```json\n[\s\S]*?\n```\s*)+(?:\[(?:[A-Za-z]{3}\s+)?\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}[^\]]*\]\s*)?/,
-      "",
-    )
-    .replace(/^\[(?:[A-Za-z]{3}\s+)?\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}[^\]]*\]\s*/, "")
-    .replace(/\[media attached(?:\s+\d+\/\d+)?:\s*[^\]]+\]/g, "")
-    .replace(/\[Attached:\s*[^\]]+\]/g, "")
-    .replace(
-      /To send an image back, prefer the message tool \(media\/path\/filePath\)\. If you must inline, use MEDIA:https:\/\/example\.com\/image\.jpg \(spaces ok, quote if needed\) or a safe relative path like MEDIA:\.\/image\.jpg\. Avoid absolute paths \(MEDIA:\/\.\.\.\) and ~ paths — they are blocked for security\. Keep caption in the text body\./g,
-      "",
-    )
-    .replace(/<file\b[^>]*>[\s\S]*?(<\/file>|$)/g, "")
-    .replace(/^\s*\[message_id:\s*[^\]]+\]\s*$/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// cleanDerivedTitle is now in ./utils/messageParser.ts
 
 function titleFromRow(row: SessionsListResult["sessions"][number]): string {
   const cleaned = cleanDerivedTitle(row.derivedTitle);

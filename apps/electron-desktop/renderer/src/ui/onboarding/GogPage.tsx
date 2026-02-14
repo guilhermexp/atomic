@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { CheckboxRow, GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../kit";
 import { DEFAULT_GOG_SERVICES } from "./welcome/constants";
 import { UiCheckbox } from "../kit/ui";
@@ -119,7 +120,7 @@ export function GogPage(props: {
                 className="UiLink"
                 onClick={(e) => {
                   e.preventDefault();
-                  void window.openclawDesktop?.openExternal("https://accounts.google.com/");
+                  void getDesktopApiOrNull()?.openExternal("https://accounts.google.com/");
                 }}
               >
                 Open Google ↗
@@ -142,9 +143,9 @@ export function GogPage(props: {
                 >
                   <path
                     stroke="#fff"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="m6 6 4.5 4.5M6 6H3L2 3l1-1 3 1zm13.26-3.26-2.63 2.63c-.4.4-.6.6-.67.82a1 1 0 0 0 0 .62c.08.23.28.43.67.82l.24.24c.4.4.6.6.82.67a1 1 0 0 0 .62 0c.23-.08.43-.28.82-.67L21.6 5.4A5.48 5.48 0 0 1 16.5 13q-.55 0-1.07-.1c-.49-.1-.73-.15-.88-.13a1 1 0 0 0-.37.11c-.13.07-.26.2-.52.46L6.5 20.5a2.12 2.12 0 0 1-3-3l7.16-7.16c.26-.26.39-.39.46-.52.07-.14.1-.22.11-.37.02-.15-.03-.4-.13-.88A5.53 5.53 0 0 1 16.5 2c1 0 1.95.27 2.76.74M12 15l5.5 5.5a2.12 2.12 0 0 0 3-3l-4.52-4.52a6 6 0 0 1-.94-.18c-.39-.1-.82-.02-1.1.26z"
                   />
                 </svg>

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApi, getDesktopApiOrNull } from "../../../ipc/desktopApi";
 import { ActionButton, InlineError } from "../../kit";
 import { useWelcomeObsidian } from "../../onboarding/welcome/useWelcomeObsidian";
 import type { ConfigSnapshot, GatewayRpcLike } from "../../onboarding/welcome/types";
@@ -35,12 +36,12 @@ export function ObsidianModalContent(props: {
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
-      const api = window.openclawDesktop;
-      if (!api) return;
+      const api = getDesktopApiOrNull();
+      if (!api) {return;}
       setVaultsLoading(true);
       try {
         const res = await api.obsidianVaultsList();
-        if (cancelled) return;
+        if (cancelled) {return;}
         if (!res.ok) {
           setError(res.stderr?.trim() || res.stdout?.trim() || "Failed to list Obsidian vaults");
           return;
@@ -49,12 +50,12 @@ export function ObsidianModalContent(props: {
         const list: ObsidianVault[] = Array.isArray(parsed)
           ? parsed
               .map((v) => {
-                if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+                if (!v || typeof v !== "object" || Array.isArray(v)) {return null;}
                 const o = v as { name?: unknown; path?: unknown; open?: unknown };
                 const name = typeof o.name === "string" ? o.name : "";
                 const vaultPath = typeof o.path === "string" ? o.path : "";
                 const open = o.open === true;
-                if (!name || !vaultPath) return null;
+                if (!name || !vaultPath) {return null;}
                 return { name, path: vaultPath, open };
               })
               .filter((v): v is ObsidianVault => Boolean(v))
@@ -63,9 +64,9 @@ export function ObsidianModalContent(props: {
         const openVault = list.find((v) => v.open);
         setSelectedVault(openVault?.name || list[0]?.name || "");
       } catch (err) {
-        if (!cancelled) setError(String(err));
+        if (!cancelled) {setError(String(err));}
       } finally {
-        if (!cancelled) setVaultsLoading(false);
+        if (!cancelled) {setVaultsLoading(false);}
       }
     })();
     return () => {
@@ -78,8 +79,7 @@ export function ObsidianModalContent(props: {
     setError(null);
     setStatus("Checking obsidian-cli…");
     try {
-      const api = window.openclawDesktop;
-      if (!api) throw new Error("Desktop API not available");
+      const api = getDesktopApi();
 
       const checkRes = await api.obsidianCliCheck();
       if (!checkRes.ok) {

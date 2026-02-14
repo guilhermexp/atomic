@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, PrimaryButton, SecondaryButton, TextInput } from "../kit";
 
 export type WebSearchProvider = "brave" | "perplexity";
@@ -120,7 +121,7 @@ export function WebSearchPage(props: {
                   if (!url) {
                     return;
                   }
-                  void window.openclawDesktop?.openExternal(url);
+                  void getDesktopApiOrNull()?.openExternal(url);
                 }}
               >
                 Learn more ↗

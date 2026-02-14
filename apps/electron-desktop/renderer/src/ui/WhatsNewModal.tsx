@@ -1,5 +1,6 @@
 import React from "react";
 import Markdown from "react-markdown";
+import { getDesktopApiOrNull } from "../ipc/desktopApi";
 import { Modal } from "./kit/ui";
 
 const STORAGE_KEY = "whatsNew_lastVersion";
@@ -25,13 +26,10 @@ export function WhatsNewModal() {
     let cancelled = false;
 
     async function check() {
-      const api = window.openclawDesktop;
+      const api = getDesktopApiOrNull();
       if (!api?.getAppVersion) {return;}
 
       let { version } = await api.getAppVersion();
-      // Skip placeholder version used in dev mode.
-      // if (!version || version === "0.0.0") return;
-      // version = "v1.0.1";
 
       const lastVersion = localStorage.getItem(STORAGE_KEY);
 
@@ -84,7 +82,7 @@ export function WhatsNewModal() {
 
   const handleOpenChangelog = () => {
     if (state.kind === "ready" && state.htmlUrl) {
-      void window.openclawDesktop?.openExternal(state.htmlUrl);
+      void getDesktopApiOrNull()?.openExternal(state.htmlUrl);
     }
   };
 

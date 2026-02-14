@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
 import { ActionButton, InlineError, TextInput } from "../../kit";
 
 const DEFAULT_GOG_SERVICES = "gmail,calendar,drive,docs,sheets,contacts";
@@ -24,14 +25,14 @@ export function GoogleWorkspaceModalContent(props: {
 
   // Auto-check connected accounts on mount when already connected.
   React.useEffect(() => {
-    if (!props.isConnected) return;
-    const api = window.openclawDesktop;
-    if (!api) return;
+    if (!props.isConnected) {return;}
+    const api = getDesktopApiOrNull();
+    if (!api) {return;}
     let cancelled = false;
     (async () => {
       try {
         const res = await api.gogAuthList();
-        if (cancelled) return;
+        if (cancelled) {return;}
         if (res.ok && res.stdout?.trim()) {
           setOutput(`Connected accounts:\n${res.stdout.trim()}`);
         }
@@ -72,7 +73,7 @@ export function GoogleWorkspaceModalContent(props: {
   }, []);
 
   const handleConnect = React.useCallback(async () => {
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api) {
       setError("Desktop API not available");
       return;
@@ -100,7 +101,7 @@ export function GoogleWorkspaceModalContent(props: {
       return;
     }
 
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api) {
       setError("Desktop API not available");
       return;

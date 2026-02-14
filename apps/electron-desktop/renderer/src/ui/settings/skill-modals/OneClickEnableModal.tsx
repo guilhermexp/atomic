@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import { ActionButton, InlineError } from "../../kit";
 import { useWelcomeAppleNotes } from "../../onboarding/welcome/useWelcomeAppleNotes";
 import { useWelcomeAppleReminders } from "../../onboarding/welcome/useWelcomeAppleReminders";
@@ -29,8 +30,7 @@ export function AppleNotesModalContent(props: {
     setError(null);
     setStatus("Checking memo…");
     try {
-      const api = window.openclawDesktop;
-      if (!api) throw new Error("Desktop API not available");
+      const api = getDesktopApi();
 
       const res = await api.memoCheck();
       if (!res.ok) {
@@ -103,8 +103,7 @@ export function AppleRemindersModalContent(props: {
     setError(null);
     setStatus("Authorizing remindctl…");
     try {
-      const api = window.openclawDesktop;
-      if (!api) throw new Error("Desktop API not available");
+      const api = getDesktopApi();
 
       const authorizeRes = await api.remindctlAuthorize();
       if (!authorizeRes.ok) {

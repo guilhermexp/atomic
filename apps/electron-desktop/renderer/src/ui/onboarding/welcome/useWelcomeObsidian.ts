@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import type { AsyncRunner, ConfigSnapshot, GatewayRpcLike, SkillId } from "./types";
 import { getObject, getStringArray, unique } from "./utils";
 
@@ -199,10 +200,7 @@ export function useWelcomeObsidian({
 
   /** Fetch the list of Obsidian vaults via the desktop API. */
   const refreshObsidianVaults = React.useCallback(async (): Promise<void> => {
-    const api = window.openclawDesktop;
-    if (!api) {
-      throw new Error("Desktop API not available");
-    }
+    const api = getDesktopApi();
     setObsidianVaultsLoading(true);
     try {
       const res = await api.obsidianVaultsList();
@@ -258,10 +256,7 @@ export function useWelcomeObsidian({
   const onObsidianRecheck = React.useCallback(async () => {
     setStatus("Checking obsidian-cli…");
     await run(async () => {
-      const api = window.openclawDesktop;
-      if (!api) {
-        throw new Error("Desktop API not available");
-      }
+      const api = getDesktopApi();
 
       const checkRes = await api.obsidianCliCheck();
       if (!checkRes.ok) {
@@ -291,10 +286,7 @@ export function useWelcomeObsidian({
     async (vaultName: string) => {
       setStatus("Checking obsidian-cli…");
       await run(async () => {
-        const api = window.openclawDesktop;
-        if (!api) {
-          throw new Error("Desktop API not available");
-        }
+        const api = getDesktopApi();
 
         const checkRes = await api.obsidianCliCheck();
         if (!checkRes.ok) {

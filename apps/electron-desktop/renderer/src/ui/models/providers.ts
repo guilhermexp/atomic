@@ -14,7 +14,7 @@ export type ModelProviderInfo = {
 export const PROVIDER_ICONS: Record<ModelProvider, string> = {
   anthropic: "anthropic.svg",
   // Note: filename kept as-is to match assets folder.
-  openai: "opeanai.svg",
+  openai: "openai.svg",
   google: "gemini.svg",
   minimax: "minimax.svg",
   zai: "zai.svg",

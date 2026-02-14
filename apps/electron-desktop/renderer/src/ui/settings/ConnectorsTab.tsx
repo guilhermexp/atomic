@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Modal } from "../kit";
+import { FeatureCta, Modal } from "../kit";
 import {
   useConnectorsStatus,
   disableConnector,
@@ -17,7 +17,6 @@ import whatsappImage from "../../../../assets/messangers/WhatsApp.svg";
 import imessageImage from "../../../../assets/messangers/iMessage.svg";
 import matrixImage from "../../../../assets/messangers/Matrix.svg";
 import msteamsImage from "../../../../assets/messangers/Microsoft-Teams.svg";
-import Slack from "../../../../vendor/openclaw/extensions/slack";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -107,63 +106,6 @@ const CONNECTORS: ConnectorDefinition[] = [
   },
 ];
 
-// ---------- ConnectorCta ----------
-
-function ConnectorCta({
-  status,
-  onConnect,
-  onSettings,
-}: {
-  status: ConnectorStatus;
-  onConnect?: () => void;
-  onSettings?: () => void;
-}) {
-  if (status === "connected") {
-    return (
-      <div className="UiSkillConnectButtonContainer">
-        <button
-          type="button"
-          onClick={onSettings}
-          aria-label="Connected — click to configure"
-          className="UiSkillConnectButton UiSkillConnectButtonConfigure"
-        >
-          Edit
-        </button>
-      </div>
-    );
-  }
-  if (status === "disabled") {
-    return (
-      <button
-        type="button"
-        className="UiSkillStatus UiSkillStatus--disabled UiSkillStatus--clickable"
-        aria-label="Disabled — click to configure"
-        onClick={onSettings}
-      >
-        Disabled
-      </button>
-    );
-  }
-  if (status === "coming-soon") {
-    return (
-      <span className="UiSkillStatus UiSkillStatus--soon" aria-label="Coming soon">
-        Coming Soon
-      </span>
-    );
-  }
-  return (
-    <button
-      className="UiSkillConnectButton"
-      type="button"
-      disabled={!onConnect}
-      title={onConnect ? "Connect" : "Not available yet"}
-      onClick={onConnect}
-    >
-      Connect
-    </button>
-  );
-}
-
 // ---------- Main tab component ----------
 
 export function ConnectorsTab(props: {
@@ -252,7 +194,7 @@ export function ConnectorsTab(props: {
                     ) : null}
                   </span>
                   <div className="UiSkillTopRight">
-                    <ConnectorCta
+                    <FeatureCta
                       status={status}
                       onConnect={isInteractive ? () => openModal(connector.id) : undefined}
                       onSettings={isInteractive ? () => openModal(connector.id) : undefined}

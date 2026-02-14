@@ -4,24 +4,15 @@
  * for the current platform/arch combination.
  */
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   resolveRepoRoot,
   resolveBundledOpenClawDir,
   resolveBundledNodeBin,
-  resolveBundledGogBin,
-  resolveBundledJqBin,
-  resolveBundledMemoBin,
-  resolveBundledRemindctlBin,
-  resolveBundledObsidianCliBin,
-  resolveBundledGhBin,
-  resolveDownloadedGogBin,
-  resolveDownloadedJqBin,
-  resolveDownloadedMemoBin,
-  resolveDownloadedRemindctlBin,
-  resolveDownloadedObsidianCliBin,
-  resolveDownloadedGhBin,
+  bundledBin,
+  downloadedBin,
+  resolveBin,
   resolveBundledGogCredentialsPath,
   resolveDownloadedGogCredentialsPath,
   resolveGogCredentialsPaths,
@@ -64,84 +55,74 @@ describe("resolveBundled* functions", () => {
     }
   });
 
-  it("resolveBundledGogBin returns correct path", () => {
-    expect(resolveBundledGogBin()).toBe(path.join(MOCK_RESOURCES, "gog", platArch, "gog"));
-  });
-
-  it("resolveBundledJqBin returns correct path", () => {
-    expect(resolveBundledJqBin()).toBe(path.join(MOCK_RESOURCES, "jq", platArch, "jq"));
-  });
-
-  it("resolveBundledMemoBin returns correct path", () => {
-    expect(resolveBundledMemoBin()).toBe(path.join(MOCK_RESOURCES, "memo", platArch, "memo"));
-  });
-
-  it("resolveBundledRemindctlBin returns correct path", () => {
-    expect(resolveBundledRemindctlBin()).toBe(
-      path.join(MOCK_RESOURCES, "remindctl", platArch, "remindctl")
-    );
-  });
-
-  it("resolveBundledObsidianCliBin returns correct path", () => {
-    expect(resolveBundledObsidianCliBin()).toBe(
-      path.join(MOCK_RESOURCES, "obsidian-cli", platArch, "obsidian-cli")
-    );
-  });
-
-  it("resolveBundledGhBin returns correct path", () => {
-    expect(resolveBundledGhBin()).toBe(path.join(MOCK_RESOURCES, "gh", platArch, "gh"));
-  });
-
   it("resolveBundledGogCredentialsPath returns correct path", () => {
     expect(resolveBundledGogCredentialsPath()).toBe(
-      path.join(MOCK_RESOURCES, "gog-credentials", "gog-client-secret.json")
+      path.join(MOCK_RESOURCES, "gog-credentials", "gog-client-secret.json"),
     );
   });
 });
 
-describe("resolveDownloaded* functions", () => {
+describe("bundledBin", () => {
+  it("returns resourcesPath/<tool>/<platArch>/<tool> for each tool", () => {
+    const tools = ["gog", "jq", "memo", "remindctl", "obsidian-cli", "gh"];
+    for (const tool of tools) {
+      expect(bundledBin(tool)).toBe(path.join(MOCK_RESOURCES, tool, platArch, tool));
+    }
+  });
+});
+
+describe("downloadedBin", () => {
   const mainDir = "/app/electron-desktop/dist";
   const appDir = path.resolve(mainDir, "..");
 
-  it("resolveDownloadedGogBin", () => {
-    expect(resolveDownloadedGogBin(mainDir)).toBe(
-      path.join(appDir, ".gog-runtime", platArch, "gog")
+  it("returns appDir/.<tool>-runtime/<platArch>/<tool> for each tool", () => {
+    const tools = ["gog", "jq", "memo", "remindctl", "obsidian-cli", "gh"];
+    for (const tool of tools) {
+      expect(downloadedBin(mainDir, tool)).toBe(
+        path.join(appDir, `.${tool}-runtime`, platArch, tool),
+      );
+    }
+  });
+});
+
+describe("resolveBin", () => {
+  const mainDir = "/app/electron-desktop/dist";
+  const appDir = path.resolve(mainDir, "..");
+
+  it("returns bundled path when isPackaged is true", () => {
+    expect(resolveBin("gog", { isPackaged: true, mainDir })).toBe(
+      path.join(MOCK_RESOURCES, "gog", platArch, "gog"),
     );
   });
 
-  it("resolveDownloadedJqBin", () => {
-    expect(resolveDownloadedJqBin(mainDir)).toBe(
-      path.join(appDir, ".jq-runtime", platArch, "jq")
+  it("returns downloaded path when isPackaged is false", () => {
+    expect(resolveBin("gog", { isPackaged: false, mainDir })).toBe(
+      path.join(appDir, ".gog-runtime", platArch, "gog"),
     );
   });
 
-  it("resolveDownloadedMemoBin", () => {
-    expect(resolveDownloadedMemoBin(mainDir)).toBe(
-      path.join(appDir, ".memo-runtime", platArch, "memo")
-    );
+  it("works for all known tools", () => {
+    const tools = ["gog", "jq", "memo", "remindctl", "obsidian-cli", "gh"];
+    for (const tool of tools) {
+      // Bundled
+      expect(resolveBin(tool, { isPackaged: true, mainDir })).toBe(
+        path.join(MOCK_RESOURCES, tool, platArch, tool),
+      );
+      // Downloaded
+      expect(resolveBin(tool, { isPackaged: false, mainDir })).toBe(
+        path.join(appDir, `.${tool}-runtime`, platArch, tool),
+      );
+    }
   });
+});
 
-  it("resolveDownloadedRemindctlBin", () => {
-    expect(resolveDownloadedRemindctlBin(mainDir)).toBe(
-      path.join(appDir, ".remindctl-runtime", platArch, "remindctl")
-    );
-  });
+describe("resolveDownloadedGogCredentialsPath", () => {
+  const mainDir = "/app/electron-desktop/dist";
+  const appDir = path.resolve(mainDir, "..");
 
-  it("resolveDownloadedObsidianCliBin", () => {
-    expect(resolveDownloadedObsidianCliBin(mainDir)).toBe(
-      path.join(appDir, ".obsidian-cli-runtime", platArch, "obsidian-cli")
-    );
-  });
-
-  it("resolveDownloadedGhBin", () => {
-    expect(resolveDownloadedGhBin(mainDir)).toBe(
-      path.join(appDir, ".gh-runtime", platArch, "gh")
-    );
-  });
-
-  it("resolveDownloadedGogCredentialsPath", () => {
+  it("returns correct path", () => {
     expect(resolveDownloadedGogCredentialsPath(mainDir)).toBe(
-      path.join(appDir, ".gog-runtime", "credentials", "gog-client-secret.json")
+      path.join(appDir, ".gog-runtime", "credentials", "gog-client-secret.json"),
     );
   });
 });
@@ -177,7 +158,7 @@ describe("resolveRendererIndex", () => {
       path.resolve("/app/electron-desktop/dist", ".."),
       "renderer",
       "dist",
-      "index.html"
+      "index.html",
     );
     expect(result).toBe(expected);
   });

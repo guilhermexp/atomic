@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../kit";
 
 export function TelegramUserPage(props: {
@@ -55,7 +56,7 @@ export function TelegramUserPage(props: {
               className="UiLink"
               onClick={(e) => {
                 e.preventDefault();
-                void window.openclawDesktop?.openExternal("https://t.me/BotFather");
+                void getDesktopApiOrNull()?.openExternal("https://t.me/BotFather");
               }}
             >
               Open BotFather ↗

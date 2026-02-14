@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { Modal } from "../kit";
 
 type CustomSkillResult = {
@@ -47,7 +48,7 @@ export function CustomSkillUploadModal(props: {
           new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ""),
         );
 
-        const api = window.openclawDesktop;
+        const api = getDesktopApiOrNull();
         if (!api?.installCustomSkill) {
           throw new Error("API not available");
         }
@@ -171,7 +172,7 @@ export function CustomSkillUploadModal(props: {
             className="UiCustomSkillInfoLink"
             onClick={(e) => {
               e.preventDefault();
-              void window.openclawDesktop?.openExternal("https://clawhub.com");
+              void getDesktopApiOrNull()?.openExternal("https://clawhub.com");
             }}
           >
             ClawHub

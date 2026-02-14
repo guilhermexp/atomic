@@ -101,8 +101,8 @@ export function runCommand(params: {
       try {
         child.stdin?.write(params.input);
         child.stdin?.end();
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("[ipc/exec] stdin write failed:", err);
       }
     }
 
@@ -115,8 +115,8 @@ export function runCommand(params: {
       try {
         child.stdout?.off("data", onStdout);
         child.stderr?.off("data", onStderr);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("[ipc/exec] stdout/stderr off failed:", err);
       }
       resolve(result);
     };
@@ -124,8 +124,8 @@ export function runCommand(params: {
     const timer = setTimeout(() => {
       try {
         child.kill("SIGKILL");
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("[ipc/exec] timeout kill failed:", err);
       }
       settle({
         ok: false,

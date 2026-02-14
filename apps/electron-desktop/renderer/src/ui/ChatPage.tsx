@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Markdown, { type Components } from "react-markdown";
 import { useSearchParams } from "react-router-dom";
+import { getDesktopApiOrNull } from "../ipc/desktopApi";
 import { useGatewayRpc } from "../gateway/context";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -17,117 +18,8 @@ import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
 import { ChatComposer, type ChatComposerRef } from "./ChatComposer";
 import { useOptimisticSession } from "./optimisticSessionContext";
 import { addToastError } from "./toast";
-
-/** Parsed file attachment from user message text. */
-type ParsedFileAttachment = { fileName: string; mimeType: string };
-
-/**
- * Parse user message text that may contain media attachment markers.
- * Supports both core format: [media attached: path (mime)]
- * and legacy format: [Attached: name (mime)]
- * Returns display text (before first marker) and parsed file attachments.
- */
-export function parseUserMessageWithAttachments(text: string): {
-  displayText: string;
-  fileAttachments: ParsedFileAttachment[];
-} {
-  const fileAttachments: ParsedFileAttachment[] = [];
-  // Match both: [media attached: path (mime)] and [media attached N/M: path (mime)]
-  // Also match the count-only line: [media attached: N files]
-  const markerRe = /\[(?:media attached(?:\s+\d+\/\d+)?|Attached):\s*([^\]]+)\]/g;
-  let match: RegExpExecArray | null;
-  while ((match = markerRe.exec(text)) !== null) {
-    const part = match[1].trim();
-    // Skip count-only markers like "[media attached: 2 files]"
-    if (/^\d+\s+files?$/.test(part)) {
-      continue;
-    }
-    const lastParen = part.lastIndexOf("(");
-    if (lastParen > 0 && part.endsWith(")")) {
-      const rawName = part.slice(0, lastParen).trim();
-      const mimeType = part.slice(lastParen + 1, -1).trim();
-      // Extract just the filename from path (may be full or relative path)
-      const fileName = rawName.includes("/") ? rawName.split("/").pop()! : rawName;
-      if (fileName && mimeType) {
-        fileAttachments.push({ fileName, mimeType });
-      }
-    }
-  }
-
-  // Strip all attachment markers, <file> tags, the media-reply hint injected
-  // by the gateway, and inbound-meta untrusted context blocks (conversation info,
-  // sender, thread starter, replied message, forwarded context, chat history)
-  // to recover the original user text regardless of marker position.
-  let displayText = text
-    .replace(/^(?:[^\n]*\(untrusted(?:\s+metadata|,\s+for context)\):\n```json\n[\s\S]*?\n```\s*)+(?:\[(?:[A-Za-z]{3}\s+)?\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}[^\]]*\]\s*)?/, "")
-    .replace(/^\[(?:[A-Za-z]{3}\s+)?\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}[^\]]*\]\s*/, "")
-    .replace(/\[media attached(?:\s+\d+\/\d+)?:\s*[^\]]+\]/g, "")
-    .replace(/\[Attached:\s*[^\]]+\]/g, "")
-    .replace(
-      /To send an image back, prefer the message tool \(media\/path\/filePath\)\. If you must inline, use MEDIA:https:\/\/example\.com\/image\.jpg \(spaces ok, quote if needed\) or a safe relative path like MEDIA:\.\/image\.jpg\. Avoid absolute paths \(MEDIA:\/\.\.\.\) and ~ paths — they are blocked for security\. Keep caption in the text body\./g,
-      ""
-    )
-    .replace(/<file\b[^>]*>[\s\S]*?(<\/file>|$)/g, "")
-    .replace(/^\s*\[message_id:\s*[^\]]+\]\s*$/gm, "")
-    .trim();
-
-  return { displayText, fileAttachments };
-}
-
-function CopyIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path
-        d="M12 9.675V12.825C12 15.45 10.95 16.5 8.325 16.5H5.175C2.55 16.5 1.5 15.45 1.5 12.825V9.675C1.5 7.05 2.55 6 5.175 6H8.325C10.95 6 12 7.05 12 9.675Z"
-        stroke="#8B8B8B"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-      <path
-        d="M16.5 5.175V8.325C16.5 10.95 15.45 12 12.825 12H12V9.675C12 7.05 10.95 6 8.325 6H6V5.175C6 2.55 7.05 1.5 9.675 1.5H12.825C15.45 1.5 16.5 2.55 16.5 5.175Z"
-        stroke="#8B8B8B"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M19.1333 7L8.59292 17.6L5 13.9867"
-        stroke="#8B8B8B"
-        stroke-opacity="1"
-        stroke-width="2.06111"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-  );
-}
-
-/** Copy button with local state so only this message's icon toggles on copy. */
-function CopyMessageButton({ text }: { text: string }) {
-  const [isCopied, setIsCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      className="UiChatMessageActionBtn"
-      onClick={() => {
-        void navigator.clipboard.writeText(text);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 1500);
-      }}
-      aria-label={isCopied ? "Copied" : "Copy"}
-    >
-      {isCopied ? <CheckIcon /> : <CopyIcon />}
-    </button>
-  );
-}
+import { parseUserMessageWithAttachments } from "./utils/messageParser";
+import { CopyMessageButton } from "./CopyMessageButton";
 
 type ChatEvent = {
   runId: string;
@@ -170,7 +62,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
           onClick={(e) => {
             e.preventDefault();
             if (href) {
-              window.openclawDesktop?.openExternal(href);
+              getDesktopApiOrNull()?.openExternal(href);
             }
           }}
         >

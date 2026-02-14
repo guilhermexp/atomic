@@ -43,8 +43,8 @@ export function registerGhHandlers(params: RegisterParams) {
     const ghConfigDir = path.join(params.stateDir, "gh");
     try {
       fs.mkdirSync(ghConfigDir, { recursive: true });
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("[ipc/gh] mkdir ghConfigDir failed:", err);
     }
     return await runCommand({
       bin: ghBin,
@@ -64,8 +64,8 @@ export function registerGhHandlers(params: RegisterParams) {
     const ghConfigDir = path.join(params.stateDir, "gh");
     try {
       fs.mkdirSync(ghConfigDir, { recursive: true });
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("[ipc/gh] mkdir ghConfigDir failed:", err);
     }
     return await runCommand({
       bin: ghBin,
@@ -84,8 +84,8 @@ export function registerGhHandlers(params: RegisterParams) {
     const ghConfigDir = path.join(params.stateDir, "gh");
     try {
       fs.mkdirSync(ghConfigDir, { recursive: true });
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("[ipc/gh] mkdir ghConfigDir failed:", err);
     }
     return await runCommand({
       bin: ghBin,

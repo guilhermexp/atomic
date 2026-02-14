@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
 import type { Provider } from "../ProviderSelectPage";
 import type { ConfigSnapshot, GatewayRpcLike } from "./types";
 
@@ -27,7 +28,7 @@ export function useWelcomeApiKey({
       }
       setError(null);
       setStatus(`Saving ${provider} API key…`);
-      await window.openclawDesktop?.setApiKey(provider, apiKey.trim());
+      await getDesktopApiOrNull()?.setApiKey(provider, apiKey.trim());
 
       // Update config with auth profile
       const snap = await loadConfig();

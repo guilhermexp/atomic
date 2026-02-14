@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import { DEFAULT_GOG_SERVICES } from "./constants";
 import type { ConfigSnapshot, GatewayRpcLike, GogExecResult } from "./types";
 import { getObject, getStringArray, unique } from "./utils";
@@ -84,10 +85,7 @@ export function useWelcomeGog({ gw }: UseWelcomeGogInput) {
       const servicesCsv =
         typeof services === "string" && services.trim() ? services.trim() : DEFAULT_GOG_SERVICES;
       return await runGog(async () => {
-        const api = window.openclawDesktop;
-        if (!api) {
-          throw new Error("Desktop API not available");
-        }
+        const api = getDesktopApi();
         const res = await api.gogAuthAdd({
           account: gogAccount.trim(),
           services: servicesCsv,
@@ -103,10 +101,7 @@ export function useWelcomeGog({ gw }: UseWelcomeGogInput) {
 
   const onGogAuthList = React.useCallback(async () => {
     return await runGog(async () => {
-      const api = window.openclawDesktop;
-      if (!api) {
-        throw new Error("Desktop API not available");
-      }
+      const api = getDesktopApi();
       return await api.gogAuthList();
     });
   }, [runGog]);

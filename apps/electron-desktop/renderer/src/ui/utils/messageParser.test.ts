@@ -1,12 +1,11 @@
 /**
- * Tests for parseUserMessageWithAttachments (ChatPage) and cleanDerivedTitle (Sidebar).
+ * Tests for parseUserMessageWithAttachments and cleanDerivedTitle.
  * These functions sanitize user messages by stripping attachment markers, inbound-meta
  * blocks, file tags, and other gateway-injected metadata.
  */
 import { describe, expect, it } from "vitest";
 
-import { parseUserMessageWithAttachments } from "./ChatPage";
-import { cleanDerivedTitle } from "./Sidebar";
+import { parseUserMessageWithAttachments, cleanDerivedTitle } from "./messageParser";
 
 // ── parseUserMessageWithAttachments ────────────────────────────────────────────
 

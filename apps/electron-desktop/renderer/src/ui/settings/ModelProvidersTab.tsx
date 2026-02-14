@@ -1,12 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-import { ActionButton, InlineError, Modal, TextInput } from "../kit";
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
+import { Modal, TextInput } from "../kit";
 import {
   MODEL_PROVIDER_BY_ID,
   MODEL_PROVIDERS,
   type ModelProvider,
-  type ModelProviderInfo,
   resolveProviderIconUrl,
 } from "../models/providers";
 import {
@@ -16,6 +16,9 @@ import {
   sortModelsByProviderTierName,
   TIER_INFO,
 } from "../models/modelPresentation";
+import type { ConfigData } from "../../store/slices/configSlice";
+import { ProviderTile } from "./ProviderTile";
+import { ApiKeyModalContent } from "./ApiKeyModalContent";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -23,34 +26,28 @@ type GatewayRpc = {
 
 type ConfigSnapshotLike = {
   hash?: string;
-  config?: unknown;
+  config?: ConfigData;
 };
 
-function getDefaultModelPrimary(cfg: unknown): string | null {
+function getDefaultModelPrimary(cfg: ConfigData | undefined): string | null {
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     return null;
   }
-  const obj = cfg as {
-    agents?: { defaults?: { model?: { primary?: unknown } } };
-  };
-  const primary = obj.agents?.defaults?.model?.primary;
+  const primary = cfg.agents?.defaults?.model?.primary;
   const raw = typeof primary === "string" ? primary.trim() : "";
   return raw ? raw : null;
 }
 
-function getConfiguredProviders(cfg: unknown): Set<ModelProvider> {
+function getConfiguredProviders(cfg: ConfigData | undefined): Set<ModelProvider> {
   const out = new Set<ModelProvider>();
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     return out;
   }
-  const obj = cfg as {
-    auth?: { order?: unknown };
-  };
-  const order = obj.auth?.order;
+  const order = cfg.auth?.order;
   if (!order || typeof order !== "object" || Array.isArray(order)) {
     return out;
   }
-  for (const [provider, ids] of Object.entries(order as Record<string, unknown>)) {
+  for (const [provider, ids] of Object.entries(order)) {
     if (!Array.isArray(ids)) {
       continue;
     }
@@ -71,164 +68,6 @@ function getConfiguredProviders(cfg: unknown): Set<ModelProvider> {
     }
   }
   return out;
-}
-
-// ── Provider tile card ───────────────────────────────────────────────
-function ProviderTile(props: {
-  provider: ModelProviderInfo;
-  configured: boolean;
-  onClick: () => void;
-}) {
-  const { provider, configured, onClick } = props;
-  return (
-    <div
-      className={`UiSkillCard`}
-      role="button"
-      tabIndex={0}
-      aria-label={`${provider.name}${configured ? " (configured)" : ""}`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-    >
-      <div className="UiSkillTopRow">
-        <span className="UiSkillIcon" aria-hidden="true">
-          <img src={resolveProviderIconUrl(provider.id)} alt="" />
-          {configured ? (
-            <span className="UiProviderTileCheck" aria-label="Key configured">
-              ✓
-            </span>
-          ) : null}
-        </span>
-        {configured ? (
-          <div className="UiSkillConnectButtonContainer">
-            <button
-              type="button"
-              onClick={onClick}
-              aria-label="Connected — click to configure"
-              className="UiSkillConnectButton UiSkillConnectButtonConfigure"
-            >
-              Edit
-            </button>
-          </div>
-        ) : (
-          <button onClick={onClick} className={`UiSkillConnectButton`}>
-            Connect
-          </button>
-        )}
-      </div>
-      <div className="UiProviderTileName">{provider.name}</div>
-      <div className="UiProviderTileDesc">{provider.description}</div>
-    </div>
-  );
-}
-
-// ── API-key modal content ────────────────────────────────────────────
-function ApiKeyModalContent(props: {
-  provider: ModelProviderInfo;
-  busy: boolean;
-  onSave: (key: string) => void;
-  onPaste: () => Promise<string>;
-  onClose: () => void;
-}) {
-  const { provider, busy } = props;
-  const [draftKey, setDraftKey] = React.useState("");
-  const [validating, setValidating] = React.useState(false);
-  const [validationError, setValidationError] = React.useState("");
-
-  const handlePaste = React.useCallback(async () => {
-    const text = await props.onPaste();
-    if (text) {
-      setDraftKey(text);
-      setValidationError("");
-    }
-  }, [props]);
-
-  const handleSave = React.useCallback(async () => {
-    const trimmed = draftKey.trim();
-    if (!trimmed) return;
-
-    setValidationError("");
-    setValidating(true);
-    try {
-      const result = await window.openclawDesktop?.validateApiKey(provider.id, trimmed);
-      if (result && !result.valid) {
-        setValidationError(result.error ?? "Invalid API key.");
-        return;
-      }
-    } catch {
-      // If validation IPC is unavailable, allow saving anyway
-    } finally {
-      setValidating(false);
-    }
-
-    props.onSave(trimmed);
-  }, [draftKey, provider.id, props]);
-
-  const isBusy = busy || validating;
-
-  return (
-    <>
-      <div className="UiModalProviderHeader">
-        <span className="UiModalProviderIcon" aria-hidden="true">
-          <img src={resolveProviderIconUrl(provider.id)} alt="" />
-        </span>
-        <span className="UiModalProviderName">{provider.name}</span>
-      </div>
-
-      <div className="UiModalHelpText">
-        {provider.helpText}{" "}
-        {provider.helpUrl ? (
-          <a
-            href={provider.helpUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="UiLink"
-            onClick={(e) => {
-              e.preventDefault();
-              if (!provider.helpUrl) return;
-              void window.openclawDesktop?.openExternal(provider.helpUrl);
-            }}
-          >
-            Get API key ↗
-          </a>
-        ) : null}
-      </div>
-
-      <div className="UiModalInputRow">
-        <TextInput
-          type="password"
-          value={draftKey}
-          onChange={(v) => {
-            setDraftKey(v);
-            if (validationError) setValidationError("");
-          }}
-          placeholder={provider.placeholder}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          disabled={isBusy}
-          isError={validationError}
-        />
-      </div>
-
-      <div className="UiModalActions">
-        <ActionButton disabled={isBusy} onClick={() => void handlePaste()}>
-          Paste
-        </ActionButton>
-        <ActionButton
-          variant="primary"
-          disabled={isBusy || !draftKey.trim()}
-          loading={validating}
-          onClick={() => void handleSave()}
-        >
-          {validating ? "Validating…" : busy ? "Saving…" : "Save"}
-        </ActionButton>
-      </div>
-    </>
-  );
 }
 
 // ── Main tab component ───────────────────────────────────────────────
@@ -276,7 +115,7 @@ export function ModelProvidersTab(props: {
 
   // Check which providers have a physically stored key
   const refreshKeyConfiguredProviders = React.useCallback(async () => {
-    const api = window.openclawDesktop;
+    const api = getDesktopApiOrNull();
     if (!api?.authHasApiKey) {
       setKeyConfiguredProviders(null);
       return;
@@ -285,7 +124,7 @@ export function ModelProvidersTab(props: {
     const next = new Set<ModelProvider>();
     for (let i = 0; i < MODEL_PROVIDERS.length; i += 1) {
       const provider = MODEL_PROVIDERS[i]?.id;
-      const configured = results[i]?.configured === true;
+      const configured =  results[i]?.configured;
       if (provider && configured) {
         next.add(provider);
       }
@@ -324,8 +163,7 @@ export function ModelProvidersTab(props: {
   React.useEffect(() => {
     void loadModels();
     void refreshKeyConfiguredProviders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadModels, refreshKeyConfiguredProviders]);
 
   // Determine if a provider is fully configured (config + stored key)
   const isProviderConfigured = React.useCallback(
@@ -369,7 +207,7 @@ export function ModelProvidersTab(props: {
       setBusyProvider(provider);
       try {
         const baseHash = await loadFreshBaseHash();
-        await window.openclawDesktop?.setApiKey(provider, key);
+        await getDesktopApiOrNull()?.setApiKey(provider, key);
         const profileId = `${provider}:default`;
         await props.gw.request("config.patch", {
           baseHash,
@@ -472,7 +310,7 @@ export function ModelProvidersTab(props: {
 
   // The effective set of providers shown in the model list
   const visibleProviders = React.useMemo(() => {
-    if (providerFilter === null) return strictConfiguredProviders;
+    if (providerFilter === null) {return strictConfiguredProviders;}
 
     if (strictConfiguredProviders.has(providerFilter)) {
       return new Set<ModelProvider>([providerFilter]);
@@ -500,7 +338,7 @@ export function ModelProvidersTab(props: {
   );
 
   const activeModelEntry = React.useMemo(() => {
-    if (!activeModelId) return null;
+    if (!activeModelId) {return null;}
     return models.find((m) => `${m.provider}/${m.id}` === activeModelId) ?? null;
   }, [models, activeModelId]);
 
@@ -645,7 +483,7 @@ export function ModelProvidersTab(props: {
                   {} as Record<string, ModelEntry[]>
                 );
 
-                const groups = Object.entries(grouped) as Array<[string, ModelEntry[]]>;
+                const groups = Object.entries(grouped);
                 if (groups.length === 0) {
                   return (
                     <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>

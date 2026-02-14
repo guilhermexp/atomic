@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import type { AsyncRunner, ConfigSnapshot, GatewayRpcLike, SkillId } from "./types";
 import { getObject, getStringArray, unique } from "./utils";
 
@@ -183,10 +184,7 @@ export function useWelcomeAppleReminders({
   const onAppleRemindersAuthorizeAndEnable = React.useCallback(async () => {
     setStatus("Authorizing remindctl…");
     await run(async () => {
-      const api = window.openclawDesktop;
-      if (!api) {
-        throw new Error("Desktop API not available");
-      }
+      const api = getDesktopApi();
       const authorizeRes = await api.remindctlAuthorize();
       if (!authorizeRes.ok) {
         const stderr = authorizeRes.stderr?.trim();

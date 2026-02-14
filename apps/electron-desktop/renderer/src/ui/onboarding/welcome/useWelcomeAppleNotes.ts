@@ -1,4 +1,5 @@
 import React from "react";
+import { getDesktopApi } from "../../../ipc/desktopApi";
 import type { AsyncRunner, ConfigSnapshot, GatewayRpcLike, SkillId } from "./types";
 import { getObject, getStringArray, unique } from "./utils";
 
@@ -180,10 +181,7 @@ export function useWelcomeAppleNotes({
   const onAppleNotesCheckAndEnable = React.useCallback(async () => {
     setStatus("Checking memo…");
     await run(async () => {
-      const api = window.openclawDesktop;
-      if (!api) {
-        throw new Error("Desktop API not available");
-      }
+      const api = getDesktopApi();
       const res = await api.memoCheck();
       if (!res.ok) {
         const stderr = res.stderr?.trim();

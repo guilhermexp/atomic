@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "../store";
 
 export type UiMessageAttachment = {
   type: string;
@@ -161,7 +162,7 @@ const HEARTBEAT_OK_TOKEN = "HEARTBEAT_OK";
 /** Detect heartbeat-related messages that should be hidden from the chat UI. */
 export function isHeartbeatMessage(role: string, text: string): boolean {
   const trimmed = text.trim();
-  if (!trimmed) return false;
+  if (!trimmed) {return false;}
   // User-side: the heartbeat prompt injected by the gateway
   if (role === "user" && trimmed.startsWith(HEARTBEAT_PROMPT_PREFIX)) {
     return true;
@@ -230,9 +231,9 @@ export const loadChatHistory = createAsyncThunk(
     thunkApi.dispatch(chatActions.setError(null));
     // Capture epoch before the async fetch so we can discard stale results
     // (e.g. when the user navigated away and back, triggering sessionCleared).
-    const epochBefore = (thunkApi.getState() as { chat: ChatSliceState }).chat.epoch;
+    const epochBefore = (thunkApi.getState() as RootState).chat.epoch;
     const res = await request<ChatHistoryResult>("chat.history", { sessionKey, limit });
-    const epochAfter = (thunkApi.getState() as { chat: ChatSliceState }).chat.epoch;
+    const epochAfter = (thunkApi.getState() as RootState).chat.epoch;
     if (epochAfter !== epochBefore) {
       // Session was cleared while we were fetching — discard stale history.
       return;
@@ -369,7 +370,7 @@ const chatSlice = createSlice({
       }
       state.messages =
         liveOnly.length > 0
-          ? [...fromHistory, ...liveOnly.sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))]
+          ? [...fromHistory, ...liveOnly.toSorted((a, b) => (a.ts ?? 0) - (b.ts ?? 0))]
           : fromHistory;
       state.streamByRun = {};
     },

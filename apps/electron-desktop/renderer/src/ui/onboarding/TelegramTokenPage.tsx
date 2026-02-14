@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../kit";
 
 export function TelegramTokenPage(props: {
@@ -53,7 +54,7 @@ export function TelegramTokenPage(props: {
               className="UiLink"
               onClick={(e) => {
                 e.preventDefault();
-                void window.openclawDesktop?.openExternal("https://t.me/BotFather");
+                void getDesktopApiOrNull()?.openExternal("https://t.me/BotFather");
               }}
             >
               Get bot token ↗

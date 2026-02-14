@@ -47,7 +47,8 @@ export function registerConfigHandlers(params: RegisterParams) {
     const content = typeof p?.content === "string" ? p.content : "";
     try {
       JSON.parse(content);
-    } catch {
+    } catch (err) {
+      console.warn("[ipc/config] config-write JSON parse failed:", err);
       return { ok: false, error: "Invalid JSON" };
     }
     try {

@@ -26,7 +26,8 @@ export function registerUpdaterIpcHandlers() {
         }
         const data = (await res.json()) as { body?: string; html_url?: string };
         return { ok: true, body: data.body ?? "", htmlUrl: data.html_url ?? "" };
-      } catch {
+      } catch (err) {
+        console.warn("[ipc/updater] fetch-release-notes failed:", err);
         return { ok: false, body: "", htmlUrl: "" };
       }
     }

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import {
   CheckboxRow,
   GlassCard,
@@ -57,7 +58,7 @@ export function MediaUnderstandingPage(props: {
       // Validate key against the provider API
       setValidating(true);
       try {
-        const result = await window.openclawDesktop?.validateApiKey("openai", trimmed);
+        const result = await getDesktopApiOrNull()?.validateApiKey("openai", trimmed);
         if (result && !result.valid) {
           setErrorText(result.error ?? "Invalid API key.");
           return;
@@ -145,7 +146,7 @@ export function MediaUnderstandingPage(props: {
                   value={addKey}
                   onChange={(value) => {
                     setAddKey(value);
-                    if (errorText) setErrorText("");
+                    if (errorText) {setErrorText("");}
                   }}
                   placeholder="sk-..."
                   autoCapitalize="none"

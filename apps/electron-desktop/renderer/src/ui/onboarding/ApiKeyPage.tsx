@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, PrimaryButton, TextInput } from "../kit";
 import type { Provider } from "./ProviderSelectPage";
 import { MODEL_PROVIDER_BY_ID } from "../models/providers";
@@ -32,7 +33,7 @@ export function ApiKeyPage(props: {
     // Validate the key against the provider API before saving
     setValidating(true);
     try {
-      const result = await window.openclawDesktop?.validateApiKey(props.provider, trimmed);
+      const result = await getDesktopApiOrNull()?.validateApiKey(props.provider, trimmed);
       if (result && !result.valid) {
         setErrorText(result.error ?? "Invalid API key.");
         return;
@@ -77,7 +78,7 @@ export function ApiKeyPage(props: {
                 if (!url) {
                   return;
                 }
-                void window.openclawDesktop?.openExternal(url);
+                void getDesktopApiOrNull()?.openExternal(url);
               }}
             >
               Get API key ↗

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { getDesktopApiOrNull } from "../../ipc/desktopApi";
 import { GlassCard, HeroPageLayout, InlineError, PrimaryButton, TextInput } from "../kit";
 
 type GroupPolicy = "open" | "allowlist" | "disabled";
@@ -206,7 +207,7 @@ export function SlackConnectPage(props: {
               className="UiLink"
               onClick={(e) => {
                 e.preventDefault();
-                void window.openclawDesktop?.openExternal("https://docs.openclaw.ai/slack");
+                void getDesktopApiOrNull()?.openExternal("https://docs.openclaw.ai/slack");
               }}
             >
               Slack setup ↗
