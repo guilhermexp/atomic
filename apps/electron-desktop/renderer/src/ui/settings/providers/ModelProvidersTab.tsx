@@ -349,8 +349,8 @@ function ProvidersView(props: { state: ReturnType<typeof useModelProvidersState>
   const { isProviderConfigured, setModalProvider } = props.state;
 
   return (
-    <section className={ps.UiSettingsSection}>
-      <div className={mp.UiProviderTilesGrid}>
+    <div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
+      <div className="UiSkillsGrid">
         {MODEL_PROVIDERS.map((p) => (
           <ProviderTile
             key={p.id}
@@ -360,6 +360,6 @@ function ProvidersView(props: { state: ReturnType<typeof useModelProvidersState>
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
