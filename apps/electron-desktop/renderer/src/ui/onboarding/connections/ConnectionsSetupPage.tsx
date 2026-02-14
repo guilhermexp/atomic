@@ -90,7 +90,7 @@ export function ConnectionsSetupPage(props: {
           Connect chat apps so you can talk to OpenClaw from anywhere
         </div>
 
-        <div className="UiProviderList UiListWithScroll">
+        <div className="UiProviderList UiListWithScroll scrollable">
           <div className="UiSkillsGrid">
             {CONNECTIONS.map((conn) => {
               const status = conn.id === "telegram" ? props.telegramStatus : props.slackStatus;

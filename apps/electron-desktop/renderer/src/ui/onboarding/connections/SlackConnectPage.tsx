@@ -185,7 +185,7 @@ export function SlackConnectPage(props: {
 
         <div className="UiApiKeyTitle">Connect Slack</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Configure Slack Socket Mode tokens and access policies. We'll store settings under{" "}
             channels.slack.

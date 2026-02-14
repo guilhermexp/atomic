@@ -27,7 +27,7 @@
   height: 18px;
   display: inline-grid;
   place-items: center;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: rgba(194, 255, 64, 0.18);
   color: var(--lime);
   font-weight: 800;
@@ -117,7 +117,7 @@
   margin-left: auto;
   margin-right: auto;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--lime);
   color: rgba(0, 0, 0, 0.86);
   font-weight: 800;
@@ -179,7 +179,7 @@
 .UiConsentAgreement a.UiLink {
   color: #ffffff;
   text-decoration: underline;
-  transition: color 0.2s ease;
+  transition: color var(--transition-base);
 }
 
 .UiConsentAgreement a.UiLink:hover {

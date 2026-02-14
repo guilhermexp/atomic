@@ -9,7 +9,7 @@
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background:
     linear-gradient(#1d1d1d, #1d1d1d) padding-box,
     linear-gradient(
@@ -96,7 +96,7 @@
 .UpdateBanner-btn {
   appearance: none;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 6px 16px;
   font-size: 12px;
   font-weight: 600;
@@ -110,7 +110,7 @@
 
 .UpdateBanner-btn--primary {
   background: var(--lime);
-  color: #121212;
+  color: var(--surface-primary);
   font-weight: 650;
 }
 
@@ -129,7 +129,7 @@
   font-weight: 700;
   line-height: 1;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .UpdateBanner-btn--dismiss:hover {
@@ -172,7 +172,7 @@
   width: 14px;
   height: 14px;
   border: 2px solid rgba(18, 18, 18, 0.25);
-  border-top-color: #121212;
+  border-top-color: var(--surface-primary);
   border-radius: 50%;
   animation: updateSpinnerRotate 600ms linear infinite;
   vertical-align: middle;
@@ -185,8 +185,8 @@
 }
 
 .UiBanner {
-  background: #292929;
-  border-radius: 12px;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-lg);
   padding: 12px;
   display: flex;
   gap: 8px;

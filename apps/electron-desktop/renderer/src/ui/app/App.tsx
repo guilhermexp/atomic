@@ -91,15 +91,15 @@ function Topbar() {
 
 function ErrorScreen({ state }: { state: Extract<GatewayState, { kind: "failed" }> }) {
   return (
-    <div className="Centered">
-      <div className="Card">
-        <div className="CardTitle">OpenClaw Gateway failed to start</div>
-        <div className="CardSubtitle">
+    <div className="UiCentered">
+      <div className="UiCard">
+        <div className="UiCardTitle">OpenClaw Gateway failed to start</div>
+        <div className="UiCardSubtitle">
           The Gateway process did not become available. Open the logs to see the root cause.
         </div>
-        <div className="Meta">
-          <div className="Pill">port: {state.port}</div>
-          <div className="Pill">logs: {state.logsDir}</div>
+        <div className="UiMeta">
+          <div className="UiPill">port: {state.port}</div>
+          <div className="UiPill">logs: {state.logsDir}</div>
         </div>
         <pre>{state.details || "No details."}</pre>
       </div>

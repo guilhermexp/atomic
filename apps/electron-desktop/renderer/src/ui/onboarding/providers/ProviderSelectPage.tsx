@@ -42,7 +42,7 @@ export function ProviderSelectPage(props: {
           Pick the AI provider you want to start with. You can switch or add more providers later.
         </div>
 
-        <div className="UiProviderList UiListWithScroll">
+        <div className="UiProviderList UiListWithScroll scrollable">
           {MODEL_PROVIDERS.map((provider) => (
             <label
               key={provider.id}

@@ -40,7 +40,7 @@ export function ObsidianConnectPage(props: {
 
         <div className="UiApiKeyTitle">Connect Obsidian</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Enable Obsidian vault automation via the bundled obsidian-cli.
           </div>
@@ -57,7 +57,7 @@ export function ObsidianConnectPage(props: {
           </div>
 
           <div className="UiApiKeyInputRow">
-            <div className="UiSectionSubtitle" style={{ marginBottom: 8 }}>
+            <div className="UiSectionSubtitle mb-sm">
               Vault
             </div>
             <select
@@ -84,7 +84,7 @@ export function ObsidianConnectPage(props: {
               )}
             </select>
             {selected ? (
-              <div className="UiSectionSubtitle" style={{ marginTop: 8 }}>
+              <div className="UiSectionSubtitle mt-sm">
                 Selected: {selected}
               </div>
             ) : null}
@@ -104,7 +104,7 @@ export function ObsidianConnectPage(props: {
           >
             Back
           </button>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="flex-row-center">
             <SecondaryButton
               size={"sm"}
               disabled={props.busy || props.vaultsLoading || !selected}

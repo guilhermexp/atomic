@@ -76,13 +76,13 @@ export function WebSearchPage(props: {
 
         <div className="UiApiKeyTitle">Enable Web Search</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Enables the bot to access up-to-date information from the web using external search
             providers like Brave or Perplexity.
           </div>
 
-          <div className="UiProviderList" style={{ marginTop: 12 }}>
+          <div className="UiProviderList mt-md">
             {PROVIDERS.map((p) => (
               <label
                 key={p.id}
@@ -107,7 +107,7 @@ export function WebSearchPage(props: {
             ))}
           </div>
 
-          <div className="UiApiKeySubtitle" style={{ marginTop: 12 }}>
+          <div className="UiApiKeySubtitle mt-md">
             {meta.helpText}{" "}
             {meta.helpUrl ? (
               <a
@@ -158,7 +158,7 @@ export function WebSearchPage(props: {
           >
             Back
           </button>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="flex-row-center">
             <PrimaryButton size={"sm"} disabled={props.busy} onClick={handleSubmit}>
               {props.busy ? "Saving..." : "Continue"}
             </PrimaryButton>

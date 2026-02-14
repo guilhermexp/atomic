@@ -109,7 +109,7 @@ export function GogPage(props: {
     <HeroPageLayout variant="compact" align="center" aria-label="Google Workspace setup">
       <GlassCard className="UiGoogleWorkspaceCard UiGlassCardOnboarding">
         <div className="UiSectionTitle">Google Workspace</div>
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div>
             <div className="UiSectionSubtitle">
               Get your email address from the Google{" "}

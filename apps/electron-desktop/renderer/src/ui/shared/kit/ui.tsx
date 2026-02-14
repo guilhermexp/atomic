@@ -362,7 +362,7 @@ export function Modal(props: {
             </svg>
           </button>
         </div>
-        <div className={`UiModalContent`}>{props.children}</div>
+        <div className="UiModalContent scrollable">{props.children}</div>
       </div>
     </div>
   );

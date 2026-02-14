@@ -107,7 +107,7 @@ export function MediaUnderstandingPage(props: {
         </div>
         <div className="UiSectionTitle">Media Understanding</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiSectionSubtitle">
             Enables the bot to analyze images, audio and videos that come from external sources.
           </div>
@@ -139,8 +139,8 @@ export function MediaUnderstandingPage(props: {
           </div>
 
           {needsKey ? (
-            <div style={{ marginTop: 12 }}>
-              <div className="UiApiKeyInputRow" style={{ marginTop: 8 }}>
+            <div className="mt-md">
+              <div className="UiApiKeyInputRow mt-sm">
                 <TextInput
                   type="password"
                   value={addKey}

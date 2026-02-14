@@ -1,13 +1,9 @@
 import React from "react";
 
 import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
+import { getObject } from "../../../shared/utils/configHelpers";
 import { useWelcomeNotion } from "../../../onboarding/hooks/useWelcomeNotion";
 import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {return {};}
-  return value as Record<string, unknown>;
-}
 
 export function NotionModalContent(props: {
   gw: GatewayRpcLike;

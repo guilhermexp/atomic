@@ -50,7 +50,7 @@ export function AppleNotesConnectPage(props: {
           >
             Back
           </button>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="flex-row-center">
             <PrimaryButton
               size={"sm"}
               disabled={props.busy}

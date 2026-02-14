@@ -1,13 +1,9 @@
 import React from "react";
 
 import { ActionButton, CheckboxRow, InlineError, TextInput } from "../../../shared/kit";
+import { getObject } from "../../../shared/utils/configHelpers";
 import { useWelcomeApiKey } from "../../../onboarding/hooks/useWelcomeApiKey";
 import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {return {};}
-  return value as Record<string, unknown>;
-}
 
 /** Check if an OpenAI auth profile exists in the config. */
 function detectOpenAiProvider(config: unknown): boolean {
@@ -161,7 +157,7 @@ export function MediaUnderstandingModalContent(props: {
             understanding reliably.
           </InlineError>
           {keyError && <InlineError>{keyError}</InlineError>}
-          <label className="UiSkillModalLabel" style={{ marginTop: 8 }}>
+          <label className="UiSkillModalLabel mt-sm">
             OpenAI API key
           </label>
           <TextInput
@@ -174,7 +170,7 @@ export function MediaUnderstandingModalContent(props: {
             spellCheck={false}
             disabled={busy || keyBusy}
           />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <div className="flex-end mt-sm">
             <ActionButton
               disabled={busy || keyBusy || !openAiKey.trim()}
               onClick={() => void handleSaveKey()}

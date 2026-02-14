@@ -28,8 +28,8 @@
   line-height: 1;
   cursor: pointer;
   transition:
-    color 120ms ease,
-    background 120ms ease;
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .UiChatAttachButton:hover {
@@ -118,8 +118,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  border-radius: 12px;
-  background: #121212;
+  border-radius: var(--radius-lg);
+  background: var(--surface-primary);
   flex-shrink: 0;
   height: 58px;
   box-sizing: border-box;
@@ -143,7 +143,7 @@
 .UiChatAttachmentCardIcon {
   width: 24px;
   height: 24px;
-  color: #ef4444;
+  color: var(--error);
 }
 
 .UiChatAttachmentCardText {
@@ -295,8 +295,8 @@
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition:
-    color 120ms ease,
-    background 120ms ease;
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .UiChatMicButton:hover {
@@ -320,12 +320,12 @@
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: #aeff00;
+  background: var(--lime);
   color: #1e1e1e;
   cursor: pointer;
   transition:
-    background 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .UiChatSendButton:hover:not(:disabled) {
@@ -354,7 +354,7 @@
   height: 13px;
   flex-shrink: 0;
   aspect-ratio: 1/1;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: #0d0d17;
 }
 

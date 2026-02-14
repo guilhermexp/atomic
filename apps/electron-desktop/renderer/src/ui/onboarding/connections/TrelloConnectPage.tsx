@@ -58,7 +58,7 @@ export function TrelloConnectPage(props: {
 
         <div className="UiApiKeyTitle">Connect Trello</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Get your Trello API key and token from{" "}
             <a

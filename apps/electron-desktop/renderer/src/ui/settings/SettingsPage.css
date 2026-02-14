@@ -45,7 +45,7 @@
   font-size: 14px;
   font-weight: 400;
   position: relative;
-  transition: color 120ms ease;
+  transition: color var(--transition-fast);
   cursor: pointer;
 }
 
@@ -97,8 +97,8 @@
   letter-spacing: 0.01em;
   position: relative;
   transition:
-    background 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .UiSettingsNavItem:hover {
@@ -171,7 +171,7 @@
   gap: 8px;
   margin-top: 12px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(230, 237, 243, 0.08);
 }
@@ -219,11 +219,11 @@
 .UiToggleTrack {
   width: 44px;
   height: 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: #3a3a3c;
   position: relative;
   flex-shrink: 0;
-  transition: background 0.2s ease;
+  transition: background var(--transition-base);
 }
 
 .UiToggleThumb {
@@ -234,7 +234,7 @@
   background: #fff;
   left: 2px;
   top: 2px;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-base);
   pointer-events: none;
 }
 

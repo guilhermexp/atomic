@@ -1,20 +1,11 @@
 import React from "react";
 
 import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
+import { getObject, getStringArray } from "../../../shared/utils/configHelpers";
 import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
 
 type GroupPolicy = "open" | "allowlist" | "disabled";
 type DmPolicy = "pairing" | "allowlist" | "open" | "disabled";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {return {};}
-  return value as Record<string, unknown>;
-}
-
-function getStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {return [];}
-  return value.filter((v): v is string => typeof v === "string");
-}
 
 function uniqueStrings(values: string[]): string[] {
   const seen = new Set<string>();

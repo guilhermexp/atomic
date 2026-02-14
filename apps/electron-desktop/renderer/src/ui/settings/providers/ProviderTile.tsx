@@ -7,7 +7,7 @@ import React from "react";
 import type { ModelProviderInfo } from "../../shared/models/providers";
 import { resolveProviderIconUrl } from "../../shared/models/providers";
 
-export function ProviderTile(props: {
+export const ProviderTile = React.memo(function ProviderTile(props: {
   provider: ModelProviderInfo;
   configured: boolean;
   onClick: () => void;
@@ -56,4 +56,4 @@ export function ProviderTile(props: {
       <div className="UiProviderTileDesc">{provider.description}</div>
     </div>
   );
-}
+});

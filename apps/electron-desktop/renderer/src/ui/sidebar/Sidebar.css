@@ -5,7 +5,7 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #121212;
+  background: var(--surface-primary);
   gap: 8px;
 }
 

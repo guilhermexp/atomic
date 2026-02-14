@@ -1,10 +1,8 @@
 import React from "react";
-import toast from "react-hot-toast";
 
-import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
 import { FeatureCta, Modal, TextInput } from "../../shared/kit";
 import type { GatewayState } from "../../../../../src/main/types";
-import { disableSkill, type SkillId, type SkillStatus, useSkillsStatus } from "./useSkillsStatus";
+import { type SkillId, type SkillStatus, useSkillsStatus } from "./useSkillsStatus";
 import {
   AppleNotesModalContent,
   AppleRemindersModalContent,
@@ -19,7 +17,8 @@ import {
 } from "./modals";
 import { CustomSkillMenu } from "./CustomSkillMenu";
 import { CustomSkillUploadModal } from "./CustomSkillUploadModal";
-import { toastStyles } from "../../shared/toast";
+import { useCustomSkills, type CustomSkillMeta } from "./useCustomSkills";
+import { useSkillModal } from "./useSkillModal";
 
 import googleImage from "../../../../../assets/set-up-skills/Google.svg";
 import notionImage from "../../../../../assets/set-up-skills/Notion.svg";
@@ -168,14 +167,7 @@ const SKILLS: SkillDefinition[] = [
   },
 ];
 
-type CustomSkillMeta = {
-  name: string;
-  description: string;
-  emoji: string;
-  dirName: string;
-};
-
-// ---------- Main tab component ----------
+// ── Main tab component ───────────────────────────────────────────────
 
 export function SkillsIntegrationsTab(props: {
   state: Extract<GatewayState, { kind: "ready" }>;
@@ -190,107 +182,17 @@ export function SkillsIntegrationsTab(props: {
     reload: props.reload,
   });
 
-  const [activeModal, setActiveModal] = React.useState<SkillId | null>(null);
-  const [showUploadModal, setShowUploadModal] = React.useState(false);
-  const [customSkills, setCustomSkills] = React.useState<CustomSkillMeta[]>([]);
+  const custom = useCustomSkills(props.onError);
+  const modal = useSkillModal({
+    gw: props.gw,
+    markConnected,
+    markDisabled,
+    refresh,
+    loadConfig,
+    onError: props.onError,
+  });
+
   const [searchQuery, setSearchQuery] = React.useState("");
-
-  // Load custom skills on mount
-  React.useEffect(() => {
-    const api = getDesktopApiOrNull();
-    if (!api?.listCustomSkills) {return;}
-    void api.listCustomSkills().then((res) => {
-      if (res.ok && res.skills) {
-        setCustomSkills(res.skills);
-      }
-    });
-  }, []);
-
-  const handleCustomSkillInstalled = React.useCallback((skill: CustomSkillMeta) => {
-    setCustomSkills((prev) => {
-      // Replace if already exists, otherwise append
-      const exists = prev.some((s) => s.dirName === skill.dirName);
-      if (exists) {
-        return prev.map((s) => (s.dirName === skill.dirName ? skill : s));
-      }
-      return [...prev, skill];
-    });
-    setShowUploadModal(false);
-    toast.success(
-      (t) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>Upload success!</div>
-          <div style={{ opacity: 0.8, fontSize: 13 }}>Your skill is connected</div>
-        </div>
-      ),
-      {
-        duration: 3000,
-        position: "bottom-right",
-        style: {
-          ...toastStyles,
-          background: "rgba(34, 120, 60, 0.95)",
-          color: "#fff",
-          border: "1px solid rgba(72, 187, 100, 0.4)",
-        },
-        iconTheme: { primary: "#48bb64", secondary: "#fff" },
-      },
-    );
-  }, []);
-
-  const handleRemoveCustomSkill = React.useCallback(async (dirName: string, name: string) => {
-    const confirmed = window.confirm(`Remove skill "${name}"?\n\nThis will delete the skill files.`);
-    if (!confirmed) {return;}
-
-    const api = getDesktopApiOrNull();
-    if (!api?.removeCustomSkill) {return;}
-
-    const res = await api.removeCustomSkill(dirName);
-    if (res.ok) {
-      setCustomSkills((prev) => prev.filter((s) => s.dirName !== dirName));
-    } else {
-      props.onError(res.error || "Failed to remove skill");
-    }
-  }, [props]);
-
-  const openModal = React.useCallback((skillId: SkillId) => {
-    setActiveModal(skillId);
-  }, []);
-
-  const closeModal = React.useCallback(() => {
-    setActiveModal(null);
-  }, []);
-
-  /** Called by modal content after a successful connection. */
-  const handleConnected = React.useCallback(
-    (skillId: SkillId) => {
-      markConnected(skillId);
-      void refresh();
-      setActiveModal(null);
-    },
-    [markConnected, refresh]
-  );
-
-  /** Called by modal content after disabling a skill. */
-  const handleDisabled = React.useCallback(
-    async (skillId: SkillId) => {
-      props.onError(null);
-      try {
-        await disableSkill(props.gw, loadConfig, skillId);
-        markDisabled(skillId);
-        void refresh();
-        setActiveModal(null);
-      } catch (err) {
-        props.onError(String(err));
-      }
-    },
-    [loadConfig, markDisabled, props, refresh]
-  );
-
-  /** Tile card class based on status. */
-  const tileClass = (status: SkillStatus) => {
-    if (status === "disabled") {return "UiSkillCard UiSkillCard--disabled";}
-    return "UiSkillCard";
-  };
 
   return (
     <div className="UiSettingsContentInner">
@@ -299,7 +201,7 @@ export function SkillsIntegrationsTab(props: {
         <button
           type="button"
           className="UiAddCustomSkillLink"
-          onClick={() => setShowUploadModal(true)}
+          onClick={() => custom.setShowUploadModal(true)}
         >
           + Add custom skill
         </button>
@@ -318,234 +220,315 @@ export function SkillsIntegrationsTab(props: {
         />
       </div>
 
-      {(() => {
-        const q = searchQuery.trim().toLowerCase();
-        const filteredCustom = q
-          ? customSkills.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
-          : customSkills;
-        const filteredBuiltin = q
-          ? SKILLS.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
-          : SKILLS;
-        const hasResults = filteredCustom.length > 0 || filteredBuiltin.length > 0;
+      <SkillsGrid
+        searchQuery={searchQuery}
+        customSkills={custom.customSkills}
+        statuses={statuses}
+        onOpenModal={modal.openModal}
+        onRemoveCustomSkill={custom.handleRemoveCustomSkill}
+      />
 
-        if (!hasResults) {
-          return (
-            <div className="UiSkillsEmptyState">
-              <div className="UiSkillsEmptyStateText">No skills matching "{searchQuery.trim()}"</div>
-            </div>
-          );
-        }
+      {/* ── Skill configuration modals ────────────────────────── */}
+      <SkillModals
+        activeModal={modal.activeModal}
+        onClose={modal.closeModal}
+        gw={props.gw}
+        loadConfig={loadConfig}
+        statuses={statuses}
+        onConnected={modal.handleConnected}
+        onDisabled={modal.handleDisabled}
+      />
 
-        return (<div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
-        <div className="UiSkillsGrid">
-          {/* Custom (user-installed) skill cards — shown first */}
-          {filteredCustom.map((skill) => (
-            <div key={`custom-${skill.dirName}`} className="UiSkillCard" role="group" aria-label={skill.name}>
-              <div className="UiSkillTopRow">
-                <span className="UiSkillIcon UiSkillIcon--custom" aria-hidden="true">
-                  {skill.emoji}
-                  <span className="UiProviderTileCheck" aria-label="Installed">✓</span>
+      {/* ── Custom skill upload modal ────────────────────────── */}
+      <CustomSkillUploadModal
+        open={custom.showUploadModal}
+        onClose={() => custom.setShowUploadModal(false)}
+        onInstalled={custom.handleCustomSkillInstalled}
+      />
+    </div>
+  );
+}
+
+// ── Skills grid ──────────────────────────────────────────────────────
+
+function SkillsGrid(props: {
+  searchQuery: string;
+  customSkills: CustomSkillMeta[];
+  statuses: Record<SkillId, SkillStatus>;
+  onOpenModal: (id: SkillId) => void;
+  onRemoveCustomSkill: (dirName: string, name: string) => Promise<void>;
+}) {
+  const { searchQuery, customSkills, statuses, onOpenModal, onRemoveCustomSkill } = props;
+
+  const q = searchQuery.trim().toLowerCase();
+  const filteredCustom = q
+    ? customSkills.filter(
+        (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
+      )
+    : customSkills;
+  const filteredBuiltin = q
+    ? SKILLS.filter(
+        (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
+      )
+    : SKILLS;
+  const hasResults = filteredCustom.length > 0 || filteredBuiltin.length > 0;
+
+  if (!hasResults) {
+    return (
+      <div className="UiSkillsEmptyState">
+        <div className="UiSkillsEmptyStateText">
+          No skills matching &quot;{searchQuery.trim()}&quot;
+        </div>
+      </div>
+    );
+  }
+
+  const tileClass = (status: SkillStatus) => {
+    if (status === "disabled") {
+      return "UiSkillCard UiSkillCard--disabled";
+    }
+    return "UiSkillCard";
+  };
+
+  return (
+    <div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
+      <div className="UiSkillsGrid">
+        {/* Custom (user-installed) skill cards */}
+        {filteredCustom.map((skill) => (
+          <div
+            key={`custom-${skill.dirName}`}
+            className="UiSkillCard"
+            role="group"
+            aria-label={skill.name}
+          >
+            <div className="UiSkillTopRow">
+              <span className="UiSkillIcon UiSkillIcon--custom" aria-hidden="true">
+                {skill.emoji}
+                <span className="UiProviderTileCheck" aria-label="Installed">
+                  ✓
                 </span>
-                <div className="UiSkillTopRight UiSkillTopRight--custom">
-                  <CustomSkillMenu onRemove={() => void handleRemoveCustomSkill(skill.dirName, skill.name)} />
+              </span>
+              <div className="UiSkillTopRight UiSkillTopRight--custom">
+                <CustomSkillMenu
+                  onRemove={() => void onRemoveCustomSkill(skill.dirName, skill.name)}
+                />
+              </div>
+            </div>
+            <div className="UiSkillName">{skill.name}</div>
+            <div className="UiSkillDescription">{skill.description}</div>
+          </div>
+        ))}
+
+        {/* Built-in skill cards */}
+        {filteredBuiltin.map((skill) => {
+          const status = statuses[skill.id];
+          const isInteractive = status !== "coming-soon";
+          return (
+            <div
+              key={skill.id}
+              className={tileClass(status)}
+              role="group"
+              aria-label={skill.name}
+            >
+              <div className="UiSkillTopRow">
+                <span className="UiSkillIcon" aria-hidden="true">
+                  {skill.image ? <img src={skill.image} alt="" /> : skill.iconText}
+                  {status === "connected" ? (
+                    <span className="UiProviderTileCheck" aria-label="Key configured">
+                      ✓
+                    </span>
+                  ) : null}
+                </span>
+                <div className="UiSkillTopRight">
+                  <FeatureCta
+                    status={status}
+                    onConnect={isInteractive ? () => onOpenModal(skill.id) : undefined}
+                    onSettings={isInteractive ? () => onOpenModal(skill.id) : undefined}
+                  />
                 </div>
               </div>
               <div className="UiSkillName">{skill.name}</div>
               <div className="UiSkillDescription">{skill.description}</div>
             </div>
-          ))}
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-          {filteredBuiltin.map((skill) => {
-            const status = statuses[skill.id];
-            const isInteractive = status !== "coming-soon";
-            return (
-              <div
-                key={skill.id}
-                className={tileClass(status)}
-                role="group"
-                aria-label={skill.name}
-              >
-                <div className="UiSkillTopRow">
-                  <span className={`UiSkillIcon`} aria-hidden="true">
-                    {skill.image ? <img src={skill.image} alt="" /> : skill.iconText}
-                    {status === "connected" ? (
-                      <span className="UiProviderTileCheck" aria-label="Key configured">
-                        ✓
-                      </span>
-                    ) : null}
-                  </span>
-                  <div className="UiSkillTopRight">
-                    <FeatureCta
-                      status={status}
-                      onConnect={isInteractive ? () => openModal(skill.id) : undefined}
-                      onSettings={isInteractive ? () => openModal(skill.id) : undefined}
-                    />
-                  </div>
-                </div>
-                <div className="UiSkillName">{skill.name}</div>
-                <div className="UiSkillDescription">{skill.description}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>);
-      })()}
+// ── Skill modals ─────────────────────────────────────────────────────
 
-      {/* ── Skill configuration modals ────────────────────────── */}
-      <Modal
-        open={activeModal === "google-workspace"}
-        onClose={closeModal}
-        aria-label="Google Workspace settings"
-        header={"Google Workspace"}
-      >
+function SkillModals(props: {
+  activeModal: SkillId | null;
+  onClose: () => void;
+  gw: GatewayRpc;
+  loadConfig: () => Promise<ConfigSnapshotLike>;
+  statuses: Record<SkillId, SkillStatus>;
+  onConnected: (id: SkillId) => void;
+  onDisabled: (id: SkillId) => Promise<void>;
+}) {
+  const { activeModal, onClose, gw, loadConfig, statuses, onConnected, onDisabled } = props;
+
+  const MODAL_REGISTRY: Array<{
+    id: SkillId;
+    header: string;
+    label: string;
+    render: () => React.ReactNode;
+  }> = [
+    {
+      id: "google-workspace",
+      header: "Google Workspace",
+      label: "Google Workspace settings",
+      render: () => (
         <GoogleWorkspaceModalContent
           isConnected={statuses["google-workspace"] === "connected"}
-          onConnected={() => handleConnected("google-workspace")}
-          onDisabled={() => void handleDisabled("google-workspace")}
+          onConnected={() => onConnected("google-workspace")}
+          onDisabled={() => void onDisabled("google-workspace")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "notion"}
-        header={"Notion"}
-        onClose={closeModal}
-        aria-label="Notion settings"
-      >
+      ),
+    },
+    {
+      id: "notion",
+      header: "Notion",
+      label: "Notion settings",
+      render: () => (
         <NotionModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses.notion === "connected"}
-          onConnected={() => handleConnected("notion")}
-          onDisabled={() => void handleDisabled("notion")}
+          onConnected={() => onConnected("notion")}
+          onDisabled={() => void onDisabled("notion")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "trello"}
-        header={"Trello"}
-        onClose={closeModal}
-        aria-label="Trello settings"
-      >
+      ),
+    },
+    {
+      id: "trello",
+      header: "Trello",
+      label: "Trello settings",
+      render: () => (
         <TrelloModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses.trello === "connected"}
-          onConnected={() => handleConnected("trello")}
-          onDisabled={() => void handleDisabled("trello")}
+          onConnected={() => onConnected("trello")}
+          onDisabled={() => void onDisabled("trello")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "github"}
-        header={"GitHub"}
-        onClose={closeModal}
-        aria-label="GitHub settings"
-      >
+      ),
+    },
+    {
+      id: "github",
+      header: "GitHub",
+      label: "GitHub settings",
+      render: () => (
         <GitHubModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses.github === "connected"}
-          onConnected={() => handleConnected("github")}
-          onDisabled={() => void handleDisabled("github")}
+          onConnected={() => onConnected("github")}
+          onDisabled={() => void onDisabled("github")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "web-search"}
-        onClose={closeModal}
-        aria-label="Web Search settings"
-        header={"Web Search"}
-      >
+      ),
+    },
+    {
+      id: "web-search",
+      header: "Web Search",
+      label: "Web Search settings",
+      render: () => (
         <WebSearchModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses["web-search"] === "connected"}
-          onConnected={() => handleConnected("web-search")}
-          onDisabled={() => void handleDisabled("web-search")}
+          onConnected={() => onConnected("web-search")}
+          onDisabled={() => void onDisabled("web-search")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "media-understanding"}
-        onClose={closeModal}
-        aria-label="Media Understanding settings"
-        header={"Media Understanding"}
-      >
+      ),
+    },
+    {
+      id: "media-understanding",
+      header: "Media Understanding",
+      label: "Media Understanding settings",
+      render: () => (
         <MediaUnderstandingModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses["media-understanding"] === "connected"}
-          onConnected={() => handleConnected("media-understanding")}
-          onDisabled={() => void handleDisabled("media-understanding")}
+          onConnected={() => onConnected("media-understanding")}
+          onDisabled={() => void onDisabled("media-understanding")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "slack"}
-        onClose={closeModal}
-        aria-label="Slack settings"
-        header={"Slack"}
-      >
+      ),
+    },
+    {
+      id: "slack",
+      header: "Slack",
+      label: "Slack settings",
+      render: () => (
         <SlackModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses.slack === "connected"}
-          onConnected={() => handleConnected("slack")}
-          onDisabled={() => void handleDisabled("slack")}
+          onConnected={() => onConnected("slack")}
+          onDisabled={() => void onDisabled("slack")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "obsidian"}
-        header={"Obsidian"}
-        onClose={closeModal}
-        aria-label="Obsidian settings"
-      >
+      ),
+    },
+    {
+      id: "obsidian",
+      header: "Obsidian",
+      label: "Obsidian settings",
+      render: () => (
         <ObsidianModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses.obsidian === "connected"}
-          onConnected={() => handleConnected("obsidian")}
-          onDisabled={() => void handleDisabled("obsidian")}
+          onConnected={() => onConnected("obsidian")}
+          onDisabled={() => void onDisabled("obsidian")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "apple-notes"}
-        onClose={closeModal}
-        aria-label="Apple Notes settings"
-        header={"Apple Notes"}
-      >
+      ),
+    },
+    {
+      id: "apple-notes",
+      header: "Apple Notes",
+      label: "Apple Notes settings",
+      render: () => (
         <AppleNotesModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses["apple-notes"] === "connected"}
-          onConnected={() => handleConnected("apple-notes")}
-          onDisabled={() => void handleDisabled("apple-notes")}
+          onConnected={() => onConnected("apple-notes")}
+          onDisabled={() => void onDisabled("apple-notes")}
         />
-      </Modal>
-
-      <Modal
-        open={activeModal === "apple-reminders"}
-        onClose={closeModal}
-        aria-label="Apple Reminders settings"
-        header={"Apple Reminders"}
-      >
+      ),
+    },
+    {
+      id: "apple-reminders",
+      header: "Apple Reminders",
+      label: "Apple Reminders settings",
+      render: () => (
         <AppleRemindersModalContent
-          gw={props.gw}
+          gw={gw}
           loadConfig={loadConfig}
           isConnected={statuses["apple-reminders"] === "connected"}
-          onConnected={() => handleConnected("apple-reminders")}
-          onDisabled={() => void handleDisabled("apple-reminders")}
+          onConnected={() => onConnected("apple-reminders")}
+          onDisabled={() => void onDisabled("apple-reminders")}
         />
-      </Modal>
+      ),
+    },
+  ];
 
-      {/* ── Custom skill upload modal ────────────────────────── */}
-      <CustomSkillUploadModal
-        open={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        onInstalled={handleCustomSkillInstalled}
-      />
-    </div>
+  return (
+    <>
+      {MODAL_REGISTRY.map((entry) => (
+        <Modal
+          key={entry.id}
+          open={activeModal === entry.id}
+          onClose={onClose}
+          aria-label={entry.label}
+          header={entry.header}
+        >
+          {entry.render()}
+        </Modal>
+      ))}
+    </>
   );
 }

@@ -44,7 +44,7 @@ export function TelegramTokenPage(props: {
 
         <div className="UiApiKeyTitle">Connect Telegram</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Get your bot token from the Telegram.{" "}
             <a

@@ -1,6 +1,7 @@
 import React from "react";
 
 import { getDesktopApiOrNull } from "../../../ipc/desktopApi";
+import { getObject } from "../../shared/utils/configHelpers";
 
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -30,13 +31,6 @@ export type SkillId =
   | "sag";
 
 export type SkillStatus = "connect" | "connected" | "disabled" | "coming-soon";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-  return value as Record<string, unknown>;
-}
 
 /** Resolve a skill entry's status: connected, disabled, or connect (not configured). */
 function resolveSkillEntryStatus(config: Record<string, unknown>, skillKey: string): SkillStatus {

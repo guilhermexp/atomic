@@ -236,7 +236,7 @@ export function SkillsSetupPage(props: {
           Set up integrations to solve more tasks or do it later
         </div>
 
-        <div className="UiProviderList UiListWithScroll">
+        <div className="UiProviderList UiListWithScroll scrollable">
           <div className="UiSkillsGrid">
             {SKILLS.map((skill) => {
               const status =

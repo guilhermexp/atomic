@@ -44,7 +44,7 @@ export function NotionConnectPage(props: {
 
         <div className="UiApiKeyTitle">Connect Notion</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Create a Notion integration, copy its API key, then share the target pages/databases
             with the integration.{" "}

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { getObject } from "../../shared/utils/configHelpers";
+
 type GatewayRpc = {
   request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
 };
@@ -23,13 +25,6 @@ export type ConnectorId =
   | "msteams";
 
 export type ConnectorStatus = "connect" | "connected" | "disabled" | "coming-soon";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-  return value as Record<string, unknown>;
-}
 
 /** Derive connector statuses from the openclaw config snapshot. */
 function deriveStatusFromConfig(config: unknown): Record<ConnectorId, ConnectorStatus> {

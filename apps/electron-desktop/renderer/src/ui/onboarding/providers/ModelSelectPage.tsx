@@ -136,7 +136,7 @@ export function ModelSelectPage(props: {
         <div className="UiSectionSubtitle">
           Choose your preferred model. You can change this later in settings.
         </div>
-        <div className="UiProviderList UiListWithScroll">
+        <div className="UiProviderList UiListWithScroll scrollable">
           {filteredModels.map((model) => {
             const modelKey = `${model.provider}/${model.id}`;
             const tier = getModelTier(model);

@@ -46,7 +46,7 @@ export function TelegramUserPage(props: {
 
         <div className="UiApiKeyTitle">Allow Telegram DMs</div>
 
-        <div className="UiContentWrapper">
+        <div className="UiContentWrapper scrollable">
           <div className="UiApiKeySubtitle">
             Get your Telegram user id.{" "}
             <a
@@ -72,20 +72,6 @@ export function TelegramUserPage(props: {
               <li>Copy your Telegram user id</li>
               <li>Paste the token in the field below and click Connect</li>
             </ol>
-
-            {/*{props.channelsProbe ? (*/}
-            {/*  <details className="UiGoogleWorkspaceDetails" style={{ marginTop: 10 }}>*/}
-            {/*    <summary className="UiGoogleWorkspaceDetailsSummary">*/}
-            {/*      Troubleshooting: channels.status (probe)*/}
-            {/*    </summary>*/}
-            {/*    <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>*/}
-            {/*      <div className="UiPill">channels.status (probe)</div>*/}
-            {/*      <pre style={{ maxHeight: 240, overflow: "auto" }}>*/}
-            {/*        {JSON.stringify(props.channelsProbe, null, 2)}*/}
-            {/*      </pre>*/}
-            {/*    </div>*/}
-            {/*  </details>*/}
-            {/*) : null}*/}
 
             <div className="UiApiKeySpacer" aria-hidden="true" />
           </div>

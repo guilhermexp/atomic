@@ -47,7 +47,7 @@ function IconTrash({ className }: { className?: string }) {
   );
 }
 
-export function SessionSidebarItem({
+export const SessionSidebarItem = React.memo(function SessionSidebarItem({
   sessionKey,
   title,
   isActive,
@@ -145,4 +145,4 @@ export function SessionSidebarItem({
       </button>
     </li>
   );
-}
+});

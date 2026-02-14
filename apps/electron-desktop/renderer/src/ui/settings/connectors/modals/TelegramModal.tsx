@@ -1,17 +1,8 @@
 import React from "react";
 
 import { ActionButton, InlineError, TextInput } from "../../../shared/kit";
+import { getObject, getStringArray } from "../../../shared/utils/configHelpers";
 import type { ConfigSnapshot, GatewayRpcLike } from "../../../onboarding/hooks/types";
-
-function getObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {return {};}
-  return value as Record<string, unknown>;
-}
-
-function getStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {return [];}
-  return value.filter((v): v is string => typeof v === "string");
-}
 
 /** Normalize a user-typed Telegram ID (strip tg:/telegram: prefix). */
 function normalizeId(raw: string): string {
@@ -217,7 +208,7 @@ export function TelegramModalContent(props: {
                 Get bot token ↗
               </a>
             </div>
-            <div className="UiSectionSubtitleAccent" style={{ marginTop: 8 }}>
+            <div className="UiSectionSubtitleAccent mt-sm">
               How to get your Telegram bot token?
             </div>
             <ol>
@@ -244,7 +235,7 @@ export function TelegramModalContent(props: {
                 Open BotFather ↗
               </a>
             </div>
-            <div className="UiSectionSubtitleAccent" style={{ marginTop: 8 }}>
+            <div className="UiSectionSubtitleAccent mt-sm">
               How to get your Telegram user ID?
             </div>
             <ol>
@@ -266,18 +257,17 @@ export function TelegramModalContent(props: {
         )}
       </div>
       {error && <InlineError>{error}</InlineError>}
-      {/*{status && <div className="UiSkillModalStatus">{status}</div>}*/}
 
       {/* ── Bot token (hidden during allowlist step of setup flow) ── */}
       {setupStep !== "allowlist" && (
         <div className="UiSkillModalField">
           <label className="UiSkillModalLabel">Bot token</label>
           {hasExistingToken && !botToken && (
-            <div className="UiSkillModalStatus" style={{ marginBottom: 4 }}>
+            <div className="UiSkillModalStatus mb-xs">
               Token configured. Enter a new token to update.
             </div>
           )}
-          <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+          <div className="flex-col-gap-sm">
             <div>
               <TextInput
                 type="password"
@@ -301,24 +291,6 @@ export function TelegramModalContent(props: {
           </div>
         </div>
       )}
-
-      {/*/!* ── DM policy ─────────────────────────────────────── *!/*/}
-      {/*<div className="UiSkillModalField">*/}
-      {/*  <label className="UiSkillModalLabel">DM policy</label>*/}
-      {/*  <div className="UiSkillModalProviderSelect">*/}
-      {/*    {["pairing", "allowlist", "open"].map((p) => (*/}
-      {/*      <button*/}
-      {/*        key={p}*/}
-      {/*        type="button"*/}
-      {/*        className={`UiSkillModalProviderOption${dmPolicy === p ? " UiSkillModalProviderOption--active" : ""}`}*/}
-      {/*        disabled={busy}*/}
-      {/*        onClick={() => void handlePolicyChange(p)}*/}
-      {/*      >*/}
-      {/*        {p}*/}
-      {/*      </button>*/}
-      {/*    ))}*/}
-      {/*  </div>*/}
-      {/*</div>*/}
 
       {/* ── Allowlist management (hidden during token step of setup flow) ── */}
       {setupStep !== "token" && (
@@ -347,7 +319,7 @@ export function TelegramModalContent(props: {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+          <div className="flex-col-gap-sm">
             <div>
               <TextInput
                 type="text"

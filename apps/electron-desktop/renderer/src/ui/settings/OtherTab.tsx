@@ -182,27 +182,6 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
             </span>
           </div>
 
-          {/*<>*/}
-          {/*  <div className="UiSettingsOtherRow">*/}
-          {/*    <button*/}
-          {/*      type="button"*/}
-          {/*      className="UiSettingsOtherLink"*/}
-          {/*      onClick={() => void api?.openLogs()}*/}
-          {/*    >*/}
-          {/*      Open logs*/}
-          {/*    </button>*/}
-          {/*  </div>*/}
-          {/*  <div className="UiSettingsOtherRow">*/}
-          {/*    <button*/}
-          {/*      type="button"*/}
-          {/*      className="UiSettingsOtherLink"*/}
-          {/*      onClick={() => void api?.toggleDevTools()}*/}
-          {/*    >*/}
-          {/*      Dev Tools*/}
-          {/*    </button>*/}
-          {/*  </div>*/}
-          {/*</>*/}
-
           <div className="UiSettingsOtherRow">
             <span className="UiSettingsOtherRowLabel">License</span>
             <button

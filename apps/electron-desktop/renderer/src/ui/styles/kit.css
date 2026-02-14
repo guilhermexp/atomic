@@ -23,7 +23,7 @@
 .UiBrandIcon {
   width: 18px;
   height: 18px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   object-fit: contain;
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35))
     drop-shadow(0 0 16px rgba(194, 255, 64, 0.16));
@@ -34,7 +34,7 @@
   height: 18px;
   display: inline-grid;
   place-items: center;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: rgba(194, 255, 64, 0.18);
   color: var(--lime);
   font-weight: 800;
@@ -137,7 +137,7 @@
 
 .UiGlassCard {
   box-sizing: border-box;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: #1e1e1e;
   padding: 24px 24px 16px;
   animation: gatewaySplashEnter 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
@@ -313,7 +313,7 @@
 .UiInputWrap {
   margin-top: 6px;
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1px;
   background-image: linear-gradient(
     173deg,
@@ -352,8 +352,8 @@
   width: 100%;
   border: none;
   outline: none;
-  border-radius: 12px;
-  background-color: #292929 !important;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-secondary) !important;
   color: var(--text);
   padding: 8px 12px;
   font-size: 13px;
@@ -385,12 +385,12 @@ select.UiInput {
   gap: 8px;
   padding: 8px 16px;
   opacity: 1;
-  border-radius: 100px;
+  border-radius: var(--radius-full);
   background: #ffffff0d;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    opacity 0.2s ease;
+    background var(--transition-base),
+    border-color var(--transition-base),
+    opacity var(--transition-base);
   width: 100%;
   font-weight: 500;
   font-size: 13px;
@@ -405,8 +405,8 @@ select.UiInput {
 }
 
 .UiActionButton-primary {
-  background: #c4ff47;
-  color: #121212;
+  background: var(--lime-soft);
+  color: var(--surface-primary);
 }
 
 .UiActionButton-primary:hover {
@@ -476,16 +476,16 @@ select.UiInput {
   min-width: 250px;
   display: block;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background:
-    linear-gradient(0deg, #aeff00, #aeff00),
+    linear-gradient(0deg, var(--lime), var(--lime)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.2) 100%);
-  color: #121212;
+  color: var(--surface-primary);
   padding: 9px 14px;
   font-weight: 500;
   font-size: 17px;
   line-height: 22px;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
   cursor: pointer;
 }
 
@@ -538,12 +538,12 @@ select.UiInput {
   min-width: 84px;
   display: block;
   border: none;
-  border-radius: 999px;
-  background: #343434;
+  border-radius: var(--radius-full);
+  background: var(--surface-tertiary);
   color: #ffffff;
   font-weight: 750;
   padding: 8px;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-base);
   cursor: pointer;
 }
 
@@ -620,25 +620,6 @@ select.UiInput {
 .UiModalContent {
   overflow-y: auto;
   flex: 1;
-  scrollbar-width: auto;
-}
-
-.UiModalContent::-webkit-scrollbar {
-  width: 6px;
-}
-
-.UiModalContent::-webkit-scrollbar-track {
-  background: #ffffff0a;
-  border-radius: 1000px;
-}
-
-.UiModalContent::-webkit-scrollbar-thumb {
-  background: #ffffff26;
-  border-radius: 1000px;
-}
-
-.UiModalContent::-webkit-scrollbar-thumb:hover {
-  background: #ffffff40;
 }
 
 @keyframes uiModalSlideUp {
@@ -666,8 +647,8 @@ select.UiInput {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: 8px;
-  transition: opacity 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition-base);
 }
 
 .UiModalClose:hover {

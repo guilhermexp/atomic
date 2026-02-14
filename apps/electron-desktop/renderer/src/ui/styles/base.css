@@ -1,13 +1,60 @@
 :root {
   color-scheme: dark;
+
+  /* ── base palette ─── */
   --bg: #171717;
   --panel: rgba(255, 255, 255, 0.03);
   --border: rgba(230, 237, 243, 0.12);
   --text: #e6edf3;
   --muted: rgba(230, 237, 243, 0.82);
   --muted2: rgba(230, 237, 243, 0.65);
+  --muted3: rgba(230, 237, 243, 0.45);
   --accent: #ff7a00;
   --lime: #aeff00;
+
+  /* ── surface colors ─── */
+  --surface-primary: #121212;
+  --surface-secondary: #292929;
+  --surface-tertiary: #343434;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+
+  /* ── semantic colors ─── */
+  --success: #38bb58;
+  --error: #ef4444;
+  --warning: #ff7a00;
+  --info: #0d6fff;
+  --lime-soft: #c4ff47;
+
+  /* ── spacing scale ─── */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* ── typography ─── */
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 18px;
+
+  /* ── border radius ─── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* ── transitions ─── */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ── focus ring ─── */
+  --focus-ring: rgba(13, 111, 255, 0.5);
 }
 
 html,
@@ -48,3 +95,41 @@ body {
 a {
   all: unset;
 }
+
+/* ── Scrollable utility ─── */
+/* Apply `.scrollable` to any container that needs thin custom scrollbars. */
+.scrollable {
+  scrollbar-width: auto;
+}
+
+.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: #ffffff0a;
+  border-radius: var(--radius-full);
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background: #ffffff26;
+  border-radius: var(--radius-full);
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background: #ffffff40;
+}
+
+/* ── Spacing utilities ─── */
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+
+/* ── Layout utilities ─── */
+.flex-col-gap-sm { display: flex; gap: var(--spacing-sm); flex-direction: column; }
+.flex-row-center { display: flex; gap: 10px; align-items: center; }
+.flex-end { display: flex; justify-content: flex-end; }
