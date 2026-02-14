@@ -29,6 +29,7 @@ describe("chatSlice initial state", () => {
       sending: false,
       error: null,
       epoch: 0,
+      activeSessionKey: "",
     });
   });
 });
@@ -42,6 +43,7 @@ describe("chatSlice reducers", () => {
     sending: false,
     error: null,
     epoch: 0,
+    activeSessionKey: "",
   };
 
   it("setSending toggles sending flag", () => {
@@ -58,17 +60,18 @@ describe("chatSlice reducers", () => {
     expect(state2.error).toBeNull();
   });
 
-  it("sessionCleared empties messages, streamByRun, and increments epoch", () => {
+  it("sessionCleared empties messages, streamByRun, increments epoch, and sets activeSessionKey", () => {
     const populated: ChatSliceState = {
       ...base,
       messages: [{ id: "1", role: "user", text: "hi" }],
       streamByRun: { r1: { id: "s-r1", role: "assistant", text: "…", runId: "r1" } },
       epoch: 5,
     };
-    const state = chatReducer(populated, chatActions.sessionCleared());
+    const state = chatReducer(populated, chatActions.sessionCleared("session-abc"));
     expect(state.messages).toEqual([]);
     expect(state.streamByRun).toEqual({});
     expect(state.epoch).toBe(6);
+    expect(state.activeSessionKey).toBe("session-abc");
   });
 
   it("historyLoaded replaces messages with parsed history", () => {
@@ -79,6 +82,43 @@ describe("chatSlice reducers", () => {
     const state = chatReducer(base, chatActions.historyLoaded(history));
     expect(state.messages).toEqual(history);
     expect(state.streamByRun).toEqual({});
+  });
+
+  it("historyLoaded deduplicates live assistant messages that match history text", () => {
+    // Simulate a race condition: a stream final event arrived between
+    // sessionCleared and historyLoaded, producing a live assistant message
+    // whose text already exists in the incoming history.
+    const withLive: ChatSliceState = {
+      ...base,
+      messages: [
+        { id: "a-r1-0", role: "assistant", text: "response text", runId: "r1", ts: 9999 },
+      ],
+    };
+    const history: UiMessage[] = [
+      { id: "h-1", role: "user", text: "hello", ts: 100 },
+      { id: "h-2", role: "assistant", text: "response text", ts: 200 },
+    ];
+    const state = chatReducer(withLive, chatActions.historyLoaded(history));
+    // The live message should be dropped because its text matches history.
+    expect(state.messages).toEqual(history);
+  });
+
+  it("historyLoaded keeps live assistant messages not present in history", () => {
+    // A live assistant message whose text does NOT appear in history should be
+    // preserved (the API hasn't persisted it yet).
+    const withLive: ChatSliceState = {
+      ...base,
+      messages: [
+        { id: "a-r2-0", role: "assistant", text: "brand new response", runId: "r2", ts: 9999 },
+      ],
+    };
+    const history: UiMessage[] = [
+      { id: "h-1", role: "user", text: "hello", ts: 100 },
+    ];
+    const state = chatReducer(withLive, chatActions.historyLoaded(history));
+    expect(state.messages).toHaveLength(2);
+    expect(state.messages[0]).toEqual(history[0]);
+    expect(state.messages[1].text).toBe("brand new response");
   });
 
   it("userMessageQueued appends pending user message", () => {
@@ -399,7 +439,7 @@ describe("loadChatHistory thunk", () => {
     const store = createTestStore();
     const mockRequest = vi.fn().mockImplementation(async () => {
       // Simulate session clear during fetch
-      store.dispatch(chatActions.sessionCleared());
+      store.dispatch(chatActions.sessionCleared("other-session"));
       return {
         sessionKey: "s1",
         sessionId: "id1",

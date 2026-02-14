@@ -27,6 +27,11 @@ export type ChatSliceState = {
   /** Monotonically increasing epoch; bumped on every sessionCleared so stale
    *  loadChatHistory results can be detected and discarded. */
   epoch: number;
+  /** The session key that messages/streamByRun belong to.  Used by the UI to
+   *  avoid rendering stale messages from a previous session during the single
+   *  render that occurs between a navigation (which changes sessionKey
+   *  immediately) and the sessionCleared effect (which runs after the render). */
+  activeSessionKey: string;
 };
 
 const initialState: ChatSliceState = {
@@ -35,6 +40,7 @@ const initialState: ChatSliceState = {
   sending: false,
   error: null,
   epoch: 0,
+  activeSessionKey: "",
 };
 
 export type GatewayRequest = <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -351,10 +357,11 @@ const chatSlice = createSlice({
       state.error = action.payload;
     },
     /** Clear transcript when switching to another session so we don't show the previous thread. */
-    sessionCleared(state) {
+    sessionCleared(state, action: PayloadAction<string>) {
       state.messages = [];
       state.streamByRun = {};
       state.epoch += 1;
+      state.activeSessionKey = action.payload;
     },
     historyLoaded(state, action: PayloadAction<UiMessage[]>) {
       const fromHistory = action.payload;
@@ -362,10 +369,15 @@ const chatSlice = createSlice({
         fromHistory.length > 0 ? Math.max(...fromHistory.map((m) => m.ts ?? 0)) : 0;
       // Keep assistant messages from live stream (runId) that are newer than history,
       // so we don't lose them when the API hasn't persisted yet.
+      // Deduplicate against history by text to avoid race-condition duplicates
+      // (e.g. a stream final arriving between sessionCleared and historyLoaded).
+      const historyTexts = new Set(fromHistory.map((m) => m.text));
       const liveOnly: UiMessage[] = [];
       for (const m of state.messages) {
         if (m.role === "assistant" && m.runId && m.ts != null && m.ts > lastHistoryTs) {
-          liveOnly.push(m);
+          if (!historyTexts.has(m.text)) {
+            liveOnly.push(m);
+          }
         }
       }
       state.messages =

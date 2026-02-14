@@ -47,8 +47,14 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     optimistic?.key === sessionKey ? (optimistic.firstAttachments ?? null) : null;
 
   const dispatch = useAppDispatch();
-  const messages = useAppSelector((s) => s.chat.messages);
-  const streamByRun = useAppSelector((s) => s.chat.streamByRun);
+  const rawMessages = useAppSelector((s) => s.chat.messages);
+  const activeSessionKey = useAppSelector((s) => s.chat.activeSessionKey);
+  // Prevent rendering stale messages from a previous session during the single
+  // render between navigation (sessionKey changes immediately) and the
+  // sessionCleared effect (runs after the render).
+  const messages = activeSessionKey === sessionKey ? rawMessages : [];
+  const rawStreamByRun = useAppSelector((s) => s.chat.streamByRun);
+  const streamByRun = activeSessionKey === sessionKey ? rawStreamByRun : {};
   const sending = useAppSelector((s) => s.chat.sending);
   const error = useAppSelector((s) => s.chat.error);
 
@@ -86,12 +92,16 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     return userMsg ?? null;
   }, [messages, optimisticFirstMessage]);
 
-  // Clear optimistic session only when we're on that thread and chat.history has returned the matching user message.
+  // Clear optimistic session once history has loaded user messages for this
+  // thread.  Using the presence of any user message (rather than strict text
+  // matching) avoids stale optimistic state when the gateway stores the text
+  // in a slightly different form.
+  const hasUserFromHistory = messages.some((m) => m.role === "user");
   React.useEffect(() => {
-    if (matchingFirstUserFromHistory !== null && optimistic?.key === sessionKey) {
+    if (optimistic?.key === sessionKey && hasUserFromHistory) {
       setOptimistic(null);
     }
-  }, [matchingFirstUserFromHistory, optimistic?.key, sessionKey, setOptimistic]);
+  }, [optimistic?.key, sessionKey, hasUserFromHistory, setOptimistic]);
 
   React.useEffect(() => {
     return gw.onEvent((evt) => {
@@ -136,7 +146,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   // into a single effect eliminates the window where stale messages from the
   // previous mount could coexist with freshly-loaded history.
   React.useEffect(() => {
-    dispatch(chatActions.sessionCleared());
+    dispatch(chatActions.sessionCleared(sessionKey));
     refresh();
   }, [sessionKey, dispatch, refresh]);
 
@@ -147,10 +157,13 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   }, [sessionKey]);
 
   // Derived list and waiting state (needed for scroll deps).
+  // Only prepend the optimistic first message when history hasn't loaded user
+  // messages yet.  Once history arrives the real message takes over, preventing
+  // duplication even if the startsWith text match fails.
   const allMessages =
     matchingFirstUserFromHistory != null
       ? messages
-      : optimisticFirstMessage != null
+      : optimisticFirstMessage != null && !hasUserFromHistory
         ? [{ id: "opt-first", role: "user" as const, text: optimisticFirstMessage }, ...messages]
         : messages;
   const displayMessages = allMessages.filter(
