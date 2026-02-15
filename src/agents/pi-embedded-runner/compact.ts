@@ -251,6 +251,13 @@ export async function compactEmbeddedPiSessionDirect(
           accountId: params.agentAccountId,
         }) ?? [])
       : undefined;
+    // Webchat supports media (images/files) via the gateway chat API.
+    if (runtimeChannel === "webchat") {
+      runtimeCapabilities = runtimeCapabilities ?? [];
+      if (!runtimeCapabilities.some((cap) => String(cap).trim().toLowerCase() === "media")) {
+        runtimeCapabilities.push("media");
+      }
+    }
     if (runtimeChannel === "telegram" && params.config) {
       const inlineButtonsScope = resolveTelegramInlineButtonsScope({
         cfg: params.config,

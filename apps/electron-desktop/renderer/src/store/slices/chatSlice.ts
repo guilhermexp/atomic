@@ -215,6 +215,7 @@ export function parseHistoryMessages(raw: unknown[]): UiMessage[] {
     if (text && isHeartbeatMessage(role, text)) {
       continue;
     }
+    console.log("attachments>>>", attachments);
     // Strip gateway-injected metadata (untrusted context blocks, date headers,
     // attachment markers, etc.) so the UI shows only the actual message content.
     const displayText = text ? stripMetadata(text).trim() : "";
