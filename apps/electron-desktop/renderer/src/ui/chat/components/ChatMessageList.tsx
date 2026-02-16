@@ -57,19 +57,44 @@ export function ChatMessageList(props: {
       ? "first-user"
       : m.id;
 
+  // Group consecutive tool-call-only assistant messages into single blocks.
+  type RenderItem =
+    | { kind: "user"; msg: DisplayMessage }
+    | { kind: "assistant"; msg: DisplayMessage }
+    | { kind: "tool-group"; msgs: DisplayMessage[] };
+
+  const renderItems: RenderItem[] = [];
+  for (const m of displayMessages) {
+    if (m.role === "user") {
+      renderItems.push({ kind: "user", msg: m });
+      continue;
+    }
+    const isToolOnly = !m.text && m.toolCalls && m.toolCalls.length > 0;
+    if (isToolOnly) {
+      const prev = renderItems[renderItems.length - 1];
+      if (prev?.kind === "tool-group") {
+        prev.msgs.push(m);
+      } else {
+        renderItems.push({ kind: "tool-group", msgs: [m] });
+      }
+    } else {
+      renderItems.push({ kind: "assistant", msg: m });
+    }
+  }
+
   return (
     <div className={ct.UiChatTranscript} ref={scrollRef}>
-      {displayMessages.map((m) => {
-        const attachmentsToShow: UiMessageAttachment[] =
-          m.id === "opt-first" && optimisticFirstAttachments?.length
-            ? optimisticFirstAttachments.map((att) => ({
-                type: att.mimeType?.startsWith("image/") ? "image" : "file",
-                mimeType: att.mimeType,
-                dataUrl: att.dataUrl,
-              }))
-            : (m.attachments ?? []);
-
-        if (m.role === "user") {
+      {renderItems.map((item) => {
+        if (item.kind === "user") {
+          const m = item.msg;
+          const attachmentsToShow: UiMessageAttachment[] =
+            m.id === "opt-first" && optimisticFirstAttachments?.length
+              ? optimisticFirstAttachments.map((att) => ({
+                  type: att.mimeType?.startsWith("image/") ? "image" : "file",
+                  mimeType: att.mimeType,
+                  dataUrl: att.dataUrl,
+                }))
+              : (m.attachments ?? []);
           return (
             <UserMessageBubble
               key={getMessageKey(m)}
@@ -82,7 +107,25 @@ export function ChatMessageList(props: {
           );
         }
 
-        // Assistant message from history
+        if (item.kind === "tool-group") {
+          const key = item.msgs.map((m) => getMessageKey(m)).join("+");
+          return (
+            <div key={key} className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
+              <div className={am["UiChatBubble-assistant"]}>
+                {item.msgs.map((m) => (
+                  <ToolCallCards
+                    key={getMessageKey(m)}
+                    toolCalls={m.toolCalls!}
+                    toolResults={m.toolResults}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // Assistant message with text (may also have tool calls)
+        const m = item.msg;
         return (
           <div key={getMessageKey(m)} className={`${ct.UiChatRow} ${am["UiChatRow-assistant"]}`}>
             <div className={am["UiChatBubble-assistant"]}>

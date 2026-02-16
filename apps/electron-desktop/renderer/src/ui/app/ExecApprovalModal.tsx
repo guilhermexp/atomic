@@ -1,5 +1,7 @@
 import React from "react";
 import { useGatewayRpc } from "@gateway/context";
+import { useAppDispatch } from "@store/hooks";
+import { chatActions } from "@store/slices/chatSlice";
 import s from "./ExecApprovalModal.module.css";
 
 // ── Types ──────────────────────────────────────────────────
@@ -123,6 +125,7 @@ function MetaRow({ label, value }: { label: string; value?: string | null }) {
 
 export function ExecApprovalOverlay() {
   const gw = useGatewayRpc();
+  const dispatch = useAppDispatch();
   const [queue, setQueue] = React.useState<ExecApprovalRequest[]>([]);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -165,6 +168,25 @@ export function ExecApprovalOverlay() {
         decision,
       });
       setQueue((prev) => prev.filter((e) => e.id !== active.id));
+      // Auto-send a continuation message after a short delay so the
+      // exec command has time to finish and enqueue its system event
+      // before the agent starts a new run.
+      const sessionKey = active.request.sessionKey;
+      if (sessionKey) {
+        dispatch(chatActions.setAwaitingContinuation(true));
+        const msg = decision === "deny" ? "denied" : "continue";
+        setTimeout(() => {
+          gw.request("chat.send", {
+            sessionKey,
+            message: msg,
+            deliver: false,
+            idempotencyKey: crypto.randomUUID(),
+          }).catch((err) => {
+            console.error("[ExecApproval] auto-continue chat.send failed:", err);
+            dispatch(chatActions.setAwaitingContinuation(false));
+          });
+        }, 1500);
+      }
     } catch (err) {
       setError(`Exec approval failed: ${String(err)}`);
     } finally {
@@ -227,22 +249,25 @@ function ExecApprovalCard({
           {queueCount > 1 && <div className={s.ExecApprovalBadge}>{queueCount} pending</div>}
         </div>
 
-        {/* Command */}
-        <div className={s.ExecApprovalCommand}>{request.command}</div>
+        {/* Scrollable body */}
+        <div className={s.ExecApprovalBody}>
+          {/* Command */}
+          <div className={s.ExecApprovalCommand}>{request.command}</div>
 
-        {/* Meta rows */}
-        <div className={s.ExecApprovalMeta}>
-          <MetaRow label="Host" value={request.host} />
-          <MetaRow label="Agent" value={request.agentId} />
-          <MetaRow label="Session" value={request.sessionKey} />
-          <MetaRow label="CWD" value={request.cwd} />
-          <MetaRow label="Resolved" value={request.resolvedPath} />
-          <MetaRow label="Security" value={request.security} />
-          <MetaRow label="Ask" value={request.ask} />
+          {/* Meta rows */}
+          <div className={s.ExecApprovalMeta}>
+            <MetaRow label="Host" value={request.host} />
+            <MetaRow label="Agent" value={request.agentId} />
+            <MetaRow label="Session" value={request.sessionKey} />
+            <MetaRow label="CWD" value={request.cwd} />
+            <MetaRow label="Resolved" value={request.resolvedPath} />
+            <MetaRow label="Security" value={request.security} />
+            <MetaRow label="Ask" value={request.ask} />
+          </div>
+
+          {/* Error */}
+          {error && <div className={s.ExecApprovalError}>{error}</div>}
         </div>
-
-        {/* Error */}
-        {error && <div className={s.ExecApprovalError}>{error}</div>}
 
         {/* Actions */}
         <div className={s.ExecApprovalActions}>

@@ -65,6 +65,8 @@ export type ChatSliceState = {
   activeSessionKey: string;
   /** Tool calls currently in-flight, streamed via agent "tool" events. Keyed by toolCallId. */
   liveToolCalls: Record<string, LiveToolCall>;
+  /** True while waiting for the agent to respond after an exec approval auto-continue. */
+  awaitingContinuation: boolean;
 };
 
 const initialState: ChatSliceState = {
@@ -75,6 +77,7 @@ const initialState: ChatSliceState = {
   epoch: 0,
   activeSessionKey: "",
   liveToolCalls: {},
+  awaitingContinuation: false,
 };
 
 export type GatewayRequest = <T = unknown>(method: string, params?: unknown) => Promise<T>;
@@ -198,6 +201,16 @@ export function extractAttachmentsFromMessage(msg: unknown): UiMessageAttachment
 // Default heartbeat prompt sent by the gateway as a user message.
 const HEARTBEAT_PROMPT_PREFIX = "Read HEARTBEAT.md if it exists (workspace context).";
 const HEARTBEAT_OK_TOKEN = "HEARTBEAT_OK";
+
+/** Messages auto-sent after exec approval that should be hidden from the UI. */
+const APPROVAL_CONTINUE_TOKENS = new Set(["continue", "denied"]);
+
+/** Detect auto-continue messages sent after exec approval (single-word message). */
+export function isApprovalContinueMessage(role: string, text: string): boolean {
+  if (role !== "user") {return false;}
+  const trimmed = text.trim().toLowerCase();
+  return !trimmed.includes(" ") && APPROVAL_CONTINUE_TOKENS.has(trimmed);
+}
 
 /** Detect heartbeat-related messages that should be hidden from the chat UI. */
 export function isHeartbeatMessage(role: string, text: string): boolean {
@@ -460,6 +473,9 @@ const chatSlice = createSlice({
     setSending(state, action: PayloadAction<boolean>) {
       state.sending = action.payload;
     },
+    setAwaitingContinuation(state, action: PayloadAction<boolean>) {
+      state.awaitingContinuation = action.payload;
+    },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
@@ -493,6 +509,39 @@ const chatSlice = createSlice({
           ? [...fromHistory, ...liveOnly.toSorted((a, b) => (a.ts ?? 0) - (b.ts ?? 0))]
           : fromHistory;
       state.streamByRun = {};
+
+      // Resolve approval-pending statuses and clear the loader when the
+      // closing continue/denied message has appeared in history.
+      const allMsgs = state.messages;
+      for (let i = 0; i < allMsgs.length; i++) {
+        const msg = allMsgs[i];
+        if (!msg.toolResults?.some((r) => r.status === "approval-pending")) {continue;}
+        // Look for the first closure message after this pending result.
+        let resolvedAs: "approved" | "denied" | null = null;
+        for (let j = i + 1; j < allMsgs.length; j++) {
+          if (isApprovalContinueMessage(allMsgs[j].role, allMsgs[j].text)) {
+            const word = allMsgs[j].text.trim().toLowerCase();
+            resolvedAs = word === "denied" ? "denied" : "approved";
+            break;
+          }
+        }
+        if (resolvedAs && msg.toolResults) {
+          for (const r of msg.toolResults) {
+            if (r.status === "approval-pending") {
+              r.status = resolvedAs;
+            }
+          }
+        }
+      }
+
+      if (state.awaitingContinuation) {
+        const hasPendingLeft = allMsgs.some((m) =>
+          m.toolResults?.some((r) => r.status === "approval-pending")
+        );
+        if (!hasPendingLeft) {
+          state.awaitingContinuation = false;
+        }
+      }
     },
     userMessageQueued(
       state,

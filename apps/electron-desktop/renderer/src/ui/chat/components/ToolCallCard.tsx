@@ -81,7 +81,13 @@ export function ToolCallCard({
         {result?.status ? (
           <span
             className={`${s.ToolCallStatus} ${
-              result.status === "approval-pending" ? s["ToolCallStatus--pending"] : ""
+              result.status === "approval-pending"
+                ? s["ToolCallStatus--pending"]
+                : result.status === "approved"
+                  ? s["ToolCallStatus--approved"]
+                  : result.status === "denied"
+                    ? s["ToolCallStatus--denied"]
+                    : ""
             }`}
           >
             {result.status === "approval-pending" ? "pending" : result.status}
