@@ -9,8 +9,20 @@
 
 .ExecApprovalCard {
   width: 460px;
+  max-height: min(80vh, 600px);
   padding: 20px 24px;
   gap: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ExecApprovalBody {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
 }
 
 .ExecApprovalHeader {

@@ -43,6 +43,7 @@ export function ensureGatewayConfigFile(params: { configPath: string; token: str
       // Allow "null" so the embedded Control UI client can connect to the local loopback gateway.
       controlUi: {
         allowedOrigins: ["null"],
+        dangerouslyDisableDeviceAuth: true,
       },
     },
     // Enable debug logging by default to help diagnose provider/model errors.
@@ -82,7 +83,10 @@ export function ensureGatewayConfigFile(params: { configPath: string; token: str
       ? controlUi.allowedOrigins.map((v) => String(v).trim()).filter(Boolean)
       : [];
 
-    if (allowedOrigins.includes("null")) {
+    const hasNullOrigin = allowedOrigins.includes("null");
+    const hasDeviceAuthBypass = controlUi.dangerouslyDisableDeviceAuth === true;
+
+    if (hasNullOrigin && hasDeviceAuthBypass) {
       return;
     }
 
@@ -92,7 +96,8 @@ export function ensureGatewayConfigFile(params: { configPath: string; token: str
         ...gateway,
         controlUi: {
           ...controlUi,
-          allowedOrigins: [...allowedOrigins, "null"],
+          allowedOrigins: hasNullOrigin ? allowedOrigins : [...allowedOrigins, "null"],
+          dangerouslyDisableDeviceAuth: true,
         },
       },
     };

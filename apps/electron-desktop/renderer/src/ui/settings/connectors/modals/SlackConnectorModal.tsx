@@ -74,14 +74,15 @@ export function SlackConnectorModalContent(props: {
           setChannelsRaw(channelKeys.join(", "));
         }
 
-        // DM policy.
-        if (typeof dm.policy === "string") {
-          const dp = dm.policy as DmPolicy;
-          if (["pairing", "allowlist", "open", "disabled"].includes(dp)) {setDmPolicy(dp);}
+        // DM policy: prefer top-level alias, fall back to legacy nested key.
+        const resolvedDmPolicy = (typeof slack.dmPolicy === "string" ? slack.dmPolicy : dm.policy) as DmPolicy | undefined;
+        if (resolvedDmPolicy && ["pairing", "allowlist", "open", "disabled"].includes(resolvedDmPolicy)) {
+          setDmPolicy(resolvedDmPolicy);
         }
 
-        // DM allowFrom.
-        const dmAllow = getStringArray(dm.allowFrom).filter((v) => v !== "*");
+        // DM allowFrom: prefer top-level alias, fall back to legacy nested key.
+        const rawAllowFrom = Array.isArray(slack.allowFrom) ? slack.allowFrom : dm.allowFrom;
+        const dmAllow = getStringArray(rawAllowFrom).filter((v) => v !== "*");
         if (dmAllow.length > 0) {
           setDmAllowFromRaw(dmAllow.join(", "));
         }
@@ -129,11 +130,9 @@ export function SlackConnectorModalContent(props: {
         enabled: true,
         groupPolicy,
         ...(channelsObj ? { channels: channelsObj } : {}),
-        dm: {
-          enabled: dmPolicy !== "disabled",
-          policy: dmPolicy,
-          ...(dmAllowFrom ? { allowFrom: dmAllowFrom } : {}),
-        },
+        dmPolicy,
+        ...(dmAllowFrom ? { allowFrom: dmAllowFrom } : {}),
+        dm: { enabled: dmPolicy !== "disabled" },
       };
       if (botToken.trim()) {patch.botToken = botToken.trim();}
       if (appToken.trim()) {patch.appToken = appToken.trim();}

@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "@store/hooks";
 import {
   chatActions,
   isHeartbeatMessage,
+  isApprovalContinueMessage,
   loadChatHistory,
   sendChatMessage,
   type ChatAttachmentInput,
@@ -73,7 +74,10 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const messages = activeSessionKey === sessionKey ? rawMessages : [];
   const rawStreamByRun = useAppSelector((s) => s.chat.streamByRun);
   const streamByRun = activeSessionKey === sessionKey ? rawStreamByRun : {};
+  const rawLiveToolCalls = useAppSelector((s) => s.chat.liveToolCalls);
+  const liveToolCalls = activeSessionKey === sessionKey ? Object.values(rawLiveToolCalls) : [];
   const sending = useAppSelector((s) => s.chat.sending);
+  const awaitingContinuation = useAppSelector((s) => s.chat.awaitingContinuation);
   const error = useAppSelector((s) => s.chat.error);
 
   const gw = useGatewayRpc();
@@ -170,14 +174,17 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const displayMessages = allMessages.filter(
     (m) =>
       (m.role === "user" || m.role === "assistant") &&
-      m.text.trim() !== "" &&
-      !isHeartbeatMessage(m.role, m.text)
+      (m.text.trim() !== "" || (m.toolCalls && m.toolCalls.length > 0)) &&
+      !isHeartbeatMessage(m.role, m.text) &&
+      !isApprovalContinueMessage(m.role, m.text)
   );
 
+  const hasActiveStream = Object.keys(streamByRun).length > 0 || liveToolCalls.length > 0;
   const waitingForFirstResponse =
-    displayMessages.some((m) => m.role === "user") &&
+    (displayMessages.some((m) => m.role === "user") &&
     !displayMessages.some((m) => m.role === "assistant") &&
-    Object.keys(streamByRun).length === 0;
+    !hasActiveStream) ||
+    (awaitingContinuation && !hasActiveStream);
 
   React.useEffect(() => {
     const el = scrollRef.current;
@@ -185,7 +192,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
       return;
     }
     el.scrollTop = el.scrollHeight;
-  }, [messages.length, optimisticFirstMessage, streamByRun, waitingForFirstResponse]);
+  }, [messages.length, optimisticFirstMessage, streamByRun, liveToolCalls, waitingForFirstResponse, awaitingContinuation]);
 
   React.useEffect(() => {
     if (error) {
@@ -213,6 +220,7 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
       <ChatMessageList
         displayMessages={displayMessages}
         streamByRun={streamByRun}
+        liveToolCalls={liveToolCalls}
         optimisticFirstMessage={optimisticFirstMessage}
         optimisticFirstAttachments={optimisticFirstAttachments}
         matchingFirstUserFromHistory={matchingFirstUserFromHistory}

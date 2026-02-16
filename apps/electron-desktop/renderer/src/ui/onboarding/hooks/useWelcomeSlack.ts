@@ -103,11 +103,9 @@ export function useWelcomeSlack({
                 appToken,
                 groupPolicy,
                 ...(channels ? { channels } : {}),
-                dm: {
-                  enabled: dmPolicy !== "disabled",
-                  policy: dmPolicy,
-                  ...(dmAllowFrom ? { allowFrom: dmAllowFrom } : {}),
-                },
+                dmPolicy,
+                ...(dmAllowFrom ? { allowFrom: dmAllowFrom } : {}),
+                dm: { enabled: dmPolicy !== "disabled" },
               },
             },
             plugins: {
