@@ -8,6 +8,12 @@ import { registerTerminalIpcHandlers } from "./main/terminal/ipc";
 import { DEFAULT_PORT } from "./main/constants";
 import { ensureGatewayConfigFile, readGatewayTokenFromConfig } from "./main/gateway/config";
 import { spawnGateway } from "./main/gateway/spawn";
+import {
+  writeGatewayPid,
+  removeGatewayPid,
+  killOrphanedGateway,
+  removeStaleGatewayLock,
+} from "./main/gateway/pid-file";
 import { initAutoUpdater, disposeAutoUpdater } from "./main/updater";
 import { killUpdateSplash } from "./main/update-splash";
 import {
@@ -31,6 +37,8 @@ let preloadPathForWindow: string | null = null;
 let rendererIndexForWindow: string | null = null;
 
 let gateway: ChildProcess | null = null;
+let gatewayPid: number | null = null;
+let gatewayStateDir: string | null = null;
 let logsDirForUi: string | null = null;
 let gatewayState: GatewayState | null = null;
 let consentAccepted = false;
@@ -38,6 +46,7 @@ let consentAccepted = false;
 async function stopGatewayChild(): Promise<void> {
   const child = gateway;
   gateway = null;
+  gatewayPid = null;
   if (!child) {
     return;
   }
@@ -171,16 +180,57 @@ app.on("activate", () => {
   void showMainWindow();
 });
 
-app.on("before-quit", async () => {
+// Last-resort synchronous kill: if the process exits without proper cleanup,
+// force-kill the gateway child so it doesn't linger as an orphan.
+process.on("exit", () => {
+  if (gatewayPid) {
+    try {
+      process.kill(gatewayPid, "SIGKILL");
+    } catch {
+      // Already dead — nothing to do.
+    }
+    gatewayPid = null;
+  }
+});
+
+let isQuitting = false;
+app.on("before-quit", (event) => {
+  if (isQuitting) {
+    return;
+  }
+  // Prevent the default quit so we can await async cleanup first.
+  isQuitting = true;
+  event.preventDefault();
+
   disposeAutoUpdater();
-  await stopGatewayChild();
+  stopGatewayChild()
+    .then(() => {
+      if (gatewayStateDir) {
+        removeGatewayPid(gatewayStateDir);
+      }
+    })
+    .finally(() => {
+      // Now let the app actually quit (isQuitting flag prevents re-entry).
+      app.quit();
+    });
 });
 
 void app.whenReady().then(async () => {
   const userData = app.getPath("userData");
   const stateDir = path.join(userData, "openclaw");
+  gatewayStateDir = stateDir;
   const logsDir = path.join(userData, "logs");
   logsDirForUi = logsDir;
+
+  // Kill any orphaned gateway process left over from a previous crash / force-quit.
+  const killedPid = killOrphanedGateway(stateDir);
+  if (killedPid) {
+    console.log(`[main] Cleaned up orphaned gateway process (PID ${killedPid})`);
+  }
+
+  // Remove stale gateway lock file so the new spawn can acquire it.
+  const configPath = path.join(stateDir, "openclaw.json");
+  removeStaleGatewayLock(configPath);
 
   const openclawDir = app.isPackaged ? resolveBundledOpenClawDir() : resolveRepoRoot(MAIN_DIR);
   // In dev, prefer a real Node binary. Spawning the Gateway via the Electron binary (process.execPath)
@@ -198,7 +248,6 @@ void app.whenReady().then(async () => {
 
   const port = await pickPort(DEFAULT_PORT);
   const url = `http://127.0.0.1:${port}/`;
-  const configPath = path.join(stateDir, "openclaw.json");
   const tokenFromConfig = readGatewayTokenFromConfig(configPath);
   const token = tokenFromConfig ?? randomBytes(24).toString("base64url");
   ensureGatewayConfigFile({ configPath, token });
@@ -251,6 +300,16 @@ void app.whenReady().then(async () => {
       ghBin,
       electronRunAsNode: nodeBin === process.execPath,
       stderrTail,
+    });
+
+    // Track the PID for orphan cleanup (process.on('exit') guard + PID file for next launch).
+    gatewayPid = gateway.pid ?? null;
+    if (gatewayPid) {
+      writeGatewayPid(stateDir, gatewayPid);
+    }
+    gateway.on("exit", () => {
+      gatewayPid = null;
+      removeGatewayPid(stateDir);
     });
 
     const ok = await waitForPortOpen("127.0.0.1", port, 30_000);

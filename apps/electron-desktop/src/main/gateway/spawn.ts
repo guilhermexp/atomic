@@ -61,6 +61,9 @@ export function spawnGateway(params: {
     String(port),
     "--allow-unconfigured",
     "--verbose",
+    // Kill any lingering gateway process on this port before binding.
+    // Covers orphans from crashes, force-quit, or previous app versions.
+    "--force",
   ];
 
   const envPath = typeof process.env.PATH === "string" ? process.env.PATH : "";

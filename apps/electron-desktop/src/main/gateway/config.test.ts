@@ -100,14 +100,14 @@ describe("ensureGatewayConfigFile", () => {
     expect(content.gateway.controlUi.allowedOrigins).toContain("http://localhost:3000");
   });
 
-  it("does not patch if null already in allowedOrigins", () => {
+  it("does not patch if null already in allowedOrigins and deviceAuth bypass set", () => {
     const configPath = path.join(tmpDir, "already-patched.json");
     const existing = {
       gateway: {
         mode: "local",
         bind: "loopback",
         auth: { mode: "token", token: "tok" },
-        controlUi: { allowedOrigins: ["null"] },
+        controlUi: { allowedOrigins: ["null"], dangerouslyDisableDeviceAuth: true },
       },
     };
     fs.writeFileSync(configPath, JSON.stringify(existing, null, 2));
