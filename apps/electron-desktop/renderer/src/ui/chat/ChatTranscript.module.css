@@ -88,6 +88,15 @@
   }
 }
 
+/* Skip entry animation for messages that just transitioned from streaming */
+.UiChatRow--noAnim {
+  animation: none;
+}
+
+.UiChatRow--noAnim :global(.UiChatText) {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .UiChatRow {
     animation: none;

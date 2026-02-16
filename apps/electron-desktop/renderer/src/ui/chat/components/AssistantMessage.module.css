@@ -36,11 +36,15 @@
   line-height: 1.6;
   font-size: 16px;
   color: #fff;
-  animation: chatTextFadeIn 450ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
 }
 
 .UiChatBubble-stream {
   opacity: 0.9;
+}
+
+/* Streaming text appears immediately — no fade-in delay */
+.UiChatBubble-stream :global(.UiChatText) {
+  animation: none;
 }
 
 .UiChatTypingDots {
