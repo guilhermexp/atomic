@@ -6,6 +6,7 @@ import {
   extractToolCalls,
   loadChatHistory,
 } from "@store/slices/chatSlice";
+import { HIDDEN_TOOL_NAMES } from "../components/ToolCallCard";
 
 type ChatEvent = {
   runId: string;
@@ -100,6 +101,7 @@ export function useChatStream(
         const name = typeof data.name === "string" ? data.name : "";
 
         if (phase === "start" && toolCallId && name) {
+          if (HIDDEN_TOOL_NAMES.has(name)) {return;}
           const args =
             data.args && typeof data.args === "object"
               ? (data.args as Record<string, unknown>)

@@ -30,6 +30,8 @@ describe("chatSlice initial state", () => {
       error: null,
       epoch: 0,
       activeSessionKey: "",
+      liveToolCalls: {},
+      awaitingContinuation: false,
     });
   });
 });
@@ -44,6 +46,8 @@ describe("chatSlice reducers", () => {
     error: null,
     epoch: 0,
     activeSessionKey: "",
+    liveToolCalls: {},
+    awaitingContinuation: false,
   };
 
   it("setSending toggles sending flag", () => {

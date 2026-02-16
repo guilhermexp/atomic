@@ -23,6 +23,9 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
+/** Tool names that should be hidden from the chat UI. */
+export const HIDDEN_TOOL_NAMES: ReadonlySet<string> = new Set(["process"]);
+
 /** Human-readable labels for known tool names. */
 const TOOL_LABELS: Record<string, string> = {
   exec: "Run command",
@@ -145,14 +148,15 @@ export function ToolCallCards({
   toolCalls: UiToolCall[];
   toolResults?: UiToolResult[];
 }) {
-  if (!toolCalls.length) {return null;}
+  const visible = toolCalls.filter((tc) => !HIDDEN_TOOL_NAMES.has(tc.name));
+  if (!visible.length) {return null;}
   const resultMap = new Map<string, UiToolResult>();
   for (const r of toolResults ?? []) {
     if (r.toolCallId) {resultMap.set(r.toolCallId, r);}
   }
   return (
     <div className={s.ToolCallCards}>
-      {toolCalls.map((tc) => (
+      {visible.map((tc) => (
         <ToolCallCard key={tc.id} toolCall={tc} result={resultMap.get(tc.id)} />
       ))}
     </div>
@@ -214,10 +218,11 @@ function LiveToolCallCardItem({ tc }: { tc: LiveToolCall }) {
 
 /** Render live (in-flight) tool calls streamed via agent events. */
 export function LiveToolCallCards({ toolCalls }: { toolCalls: LiveToolCall[] }) {
-  if (!toolCalls.length) {return null;}
+  const visible = toolCalls.filter((tc) => !HIDDEN_TOOL_NAMES.has(tc.name));
+  if (!visible.length) {return null;}
   return (
     <div className={s.ToolCallCards}>
-      {toolCalls.map((tc) => (
+      {visible.map((tc) => (
         <LiveToolCallCardItem key={tc.toolCallId} tc={tc} />
       ))}
     </div>

@@ -14,6 +14,7 @@ import {
 } from "@store/slices/chatSlice";
 import type { GatewayState } from "@main/types";
 import { CopyIcon, CheckIcon } from "@shared/kit/icons";
+import { HIDDEN_TOOL_NAMES } from "./components/ToolCallCard";
 import { ChatComposer, type ChatComposerRef } from "./components/ChatComposer";
 import { ChatMessageList } from "./components/ChatMessageList";
 import { useOptimisticSession } from "./hooks/optimisticSessionContext";
@@ -174,7 +175,8 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const displayMessages = allMessages.filter(
     (m) =>
       (m.role === "user" || m.role === "assistant") &&
-      (m.text.trim() !== "" || (m.toolCalls && m.toolCalls.length > 0)) &&
+      (m.text.trim() !== "" ||
+        (m.toolCalls && m.toolCalls.some((tc) => !HIDDEN_TOOL_NAMES.has(tc.name)))) &&
       !isHeartbeatMessage(m.role, m.text) &&
       !isApprovalContinueMessage(m.role, m.text)
   );

@@ -29,7 +29,7 @@ const MODEL_TIERS: Record<string, Record<ModelTier, string>> = {
   xai: {
     ultra: "",
     pro: "grok-4",
-    fast: "",
+    fast: "grok-4-1-fast",
   },
   openrouter: {
     ultra: "",
