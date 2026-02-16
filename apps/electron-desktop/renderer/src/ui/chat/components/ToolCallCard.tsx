@@ -3,6 +3,26 @@ import type { UiToolCall, UiToolResult, LiveToolCall, UiMessageAttachment } from
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
 import s from "./ToolCallCard.module.css";
 
+/** Flat wide chevron icon — points down by default, rotated via CSS when expanded. */
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`${s.ToolCallChevron} ${open ? s["ToolCallChevron--open"] : ""}`}
+      xmlns="http://www.w3.org/2000/svg"
+      width="10"
+      height="6"
+      viewBox="0 0 10 6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M1 1l4 4 4-4" />
+    </svg>
+  );
+}
+
 /** Human-readable labels for known tool names. */
 const TOOL_LABELS: Record<string, string> = {
   exec: "Run command",
@@ -12,46 +32,18 @@ const TOOL_LABELS: Record<string, string> = {
   browser: "Browser",
 };
 
-/** Format tool arguments into a short one-liner for display. */
-function formatArgs(args: Record<string, unknown>): string {
-  if ("command" in args && typeof args.command === "string") {
-    return args.command;
+/** Extract all tool arguments as displayable key-value entries. */
+function getArgEntries(args: Record<string, unknown>): { key: string; value: string }[] {
+  const entries: { key: string; value: string }[] = [];
+  for (const [key, val] of Object.entries(args)) {
+    if (val === undefined || val === null) continue;
+    const str = typeof val === "string" ? val : JSON.stringify(val);
+    entries.push({ key, value: str });
   }
-  if ("path" in args && typeof args.path === "string") {
-    return args.path;
-  }
-  if ("query" in args && typeof args.query === "string") {
-    return args.query;
-  }
-  const keys = Object.keys(args);
-  if (keys.length === 0) {return "";}
-  // Fall back to first string value
-  for (const k of keys) {
-    if (typeof args[k] === "string") {return `${k}: ${args[k]}`;}
-  }
-  return keys.join(", ");
+  return entries;
 }
 
-/** Small icon for the tool card header. */
-function ToolIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
-  );
-}
-
-/** Render images (expanded) and file attachments from a tool result. */
+/** Render images and file attachments from a tool result. */
 function ToolResultAttachments({ attachments }: { attachments: UiMessageAttachment[] }) {
   const images = attachments.filter((a) => a.dataUrl && a.mimeType?.startsWith("image/"));
   const files = attachments.filter(
@@ -79,7 +71,7 @@ function ToolResultAttachments({ attachments }: { attachments: UiMessageAttachme
   );
 }
 
-/** Render a single tool call as a compact card. */
+/** Render a single tool call as an inline collapsible section. */
 export function ToolCallCard({
   toolCall,
   result,
@@ -87,15 +79,14 @@ export function ToolCallCard({
   toolCall: UiToolCall;
   result?: UiToolResult;
 }) {
-  // Auto-expand when the result contains images
   const hasImages = result?.attachments?.some(
     (a) => a.dataUrl && a.mimeType?.startsWith("image/"),
   ) ?? false;
   const [expanded, setExpanded] = React.useState(hasImages);
   const label = TOOL_LABELS[toolCall.name] ?? toolCall.name;
-  const argsSummary = formatArgs(toolCall.arguments);
   const hasResult = Boolean(result?.text);
   const hasAttachments = Boolean(result?.attachments?.length);
+  const argEntries = getArgEntries(toolCall.arguments);
 
   return (
     <div className={s.ToolCallCard}>
@@ -105,37 +96,42 @@ export function ToolCallCard({
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
       >
-        <span className={s.ToolCallIcon}>
-          <ToolIcon />
-        </span>
         <span className={s.ToolCallLabel}>{label}</span>
-        {argsSummary ? (
-          <span className={s.ToolCallArgs}>{argsSummary}</span>
-        ) : null}
-        {result?.status ? (
-          <span
-            className={`${s.ToolCallStatus} ${
-              result.status === "approval-pending"
-                ? s["ToolCallStatus--pending"]
-                : result.status === "approved"
-                  ? s["ToolCallStatus--approved"]
-                  : result.status === "denied"
-                    ? s["ToolCallStatus--denied"]
-                    : ""
-            }`}
-          >
-            {result.status === "approval-pending" ? "pending" : result.status}
-          </span>
-        ) : null}
-        <span className={`${s.ToolCallChevron} ${expanded ? s["ToolCallChevron--open"] : ""}`}>
-          ▸
-        </span>
+        <ChevronIcon open={expanded} />
       </button>
-      {expanded && hasResult ? (
-        <pre className={s.ToolCallOutput}>{result!.text}</pre>
-      ) : null}
-      {expanded && hasAttachments ? (
-        <ToolResultAttachments attachments={result!.attachments!} />
+      {expanded ? (
+        <div className={s.ToolCallBody}>
+          {argEntries.map((entry) => (
+            <div key={entry.key} className={s.ToolCallArgLine}>
+              <span className={s.ToolCallArgKey}>{entry.key}:</span>{" "}
+              <span className={s.ToolCallArgValue}>{entry.value}</span>
+            </div>
+          ))}
+          {result?.status ? (
+            <div className={`${s.ToolCallStatusLine} ${
+              result.status === "approved"
+                ? s["ToolCallStatusLine--approved"]
+                : result.status === "denied"
+                  ? s["ToolCallStatusLine--denied"]
+                  : result.status === "approval-pending"
+                    ? s["ToolCallStatusLine--pending"]
+                    : ""
+            }`}>
+              <span className={s.ToolCallStatusIcon}>
+                {result.status === "approved" ? "\u2713" : result.status === "denied" ? "\u2717" : "\u23F3"}
+              </span>
+              <span className={s.ToolCallStatusText}>
+                {result.status === "approved" ? "Approved" : result.status === "denied" ? "Denied" : "Pending"}
+              </span>
+            </div>
+          ) : null}
+          {hasResult ? (
+            <div className={s.ToolCallResultText}>{result!.text}</div>
+          ) : null}
+          {hasAttachments ? (
+            <ToolResultAttachments attachments={result!.attachments!} />
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -167,9 +163,9 @@ export function ToolCallCards({
 function LiveToolCallCardItem({ tc }: { tc: LiveToolCall }) {
   const [expanded, setExpanded] = React.useState(false);
   const label = TOOL_LABELS[tc.name] ?? tc.name;
-  const argsSummary = formatArgs(tc.arguments);
   const isRunning = tc.phase === "start" || tc.phase === "update";
   const hasResult = Boolean(tc.resultText);
+  const argEntries = getArgEntries(tc.arguments);
 
   return (
     <div className={`${s.ToolCallCard} ${isRunning ? s["ToolCallCard--live"] : ""}`}>
@@ -179,24 +175,37 @@ function LiveToolCallCardItem({ tc }: { tc: LiveToolCall }) {
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
       >
-        <span className={s.ToolCallIcon}>
-          <ToolIcon />
-        </span>
         <span className={s.ToolCallLabel}>{label}</span>
-        {argsSummary ? (
-          <span className={s.ToolCallArgs}>{argsSummary}</span>
-        ) : null}
         {isRunning ? (
-          <span className={s["ToolCallStatus--running"]}>running…</span>
+          <span className={s["ToolCallBadge--running"]}>running\u2026</span>
         ) : tc.isError ? (
-          <span className={s["ToolCallStatus--error"]}>error</span>
+          <span className={s["ToolCallBadge--error"]}>error</span>
         ) : null}
-        <span className={`${s.ToolCallChevron} ${expanded ? s["ToolCallChevron--open"] : ""}`}>
-          ▸
-        </span>
+        <ChevronIcon open={expanded} />
       </button>
-      {expanded && hasResult ? (
-        <pre className={s.ToolCallOutput}>{tc.resultText}</pre>
+      {expanded ? (
+        <div className={s.ToolCallBody}>
+          {argEntries.map((entry) => (
+            <div key={entry.key} className={s.ToolCallArgLine}>
+              <span className={s.ToolCallArgKey}>{entry.key}:</span>{" "}
+              <span className={s.ToolCallArgValue}>{entry.value}</span>
+            </div>
+          ))}
+          {isRunning ? (
+            <div className={`${s.ToolCallStatusLine} ${s["ToolCallStatusLine--running"]}`}>
+              <span className={s.ToolCallStatusIcon}>{"\u27F3"}</span>
+              <span className={s.ToolCallStatusText}>Running\u2026</span>
+            </div>
+          ) : tc.isError ? (
+            <div className={`${s.ToolCallStatusLine} ${s["ToolCallStatusLine--error"]}`}>
+              <span className={s.ToolCallStatusIcon}>{"\u2717"}</span>
+              <span className={s.ToolCallStatusText}>Error</span>
+            </div>
+          ) : null}
+          {hasResult ? (
+            <div className={s.ToolCallResultText}>{tc.resultText}</div>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
