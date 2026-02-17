@@ -57,6 +57,15 @@ export const MODEL_PROVIDERS: ModelProviderInfo[] = [
     helpText: "Get your API key from the Anthropic Console.",
   },
   {
+    id: "moonshot",
+    name: "Moonshot (Kimi)",
+    description: "Kimi K2.5 with 256K context window for complex reasoning and coding",
+    popular: true,
+    placeholder: "sk-...",
+    helpUrl: "https://platform.moonshot.cn/console/api-keys",
+    helpText: "Get your API key from the Moonshot AI Platform.",
+  },
+  {
     id: "openrouter",
     name: "OpenRouter",
     description: "One gateway to 200+ AI models. Ideal for flexibility and experimentation",
@@ -90,6 +99,14 @@ export const MODEL_PROVIDERS: ModelProviderInfo[] = [
     helpText: "Sign in with your ChatGPT account.",
   },
   {
+    id: "kimi-coding",
+    name: "Kimi Coding",
+    description: "Dedicated coding endpoint with Kimi K2.5 optimized for development tasks",
+    placeholder: "sk-...",
+    helpUrl: "https://www.kimi.com/code/en",
+    helpText: "Get your API key from the Kimi Coding Platform.",
+  },
+  {
     id: "xai",
     name: "xAI (Grok)",
     description: "High-performance reasoning model by xAI with web search capabilities",
@@ -112,22 +129,6 @@ export const MODEL_PROVIDERS: ModelProviderInfo[] = [
     placeholder: "sk-...",
     helpUrl: "https://platform.minimax.io/user-center/basic-information/interface-key",
     helpText: "Get your API key from the MiniMax Platform.",
-  },
-  {
-    id: "moonshot",
-    name: "Moonshot (Kimi)",
-    description: "Kimi K2.5 with 256K context window for complex reasoning and coding",
-    placeholder: "sk-...",
-    helpUrl: "https://platform.moonshot.cn/console/api-keys",
-    helpText: "Get your API key from the Moonshot AI Platform.",
-  },
-  {
-    id: "kimi-coding",
-    name: "Kimi Coding",
-    description: "Dedicated coding endpoint with Kimi K2.5 optimized for development tasks",
-    placeholder: "sk-...",
-    helpUrl: "https://www.kimi.com/code/en",
-    helpText: "Get your API key from the Kimi Coding Platform.",
   },
 ];
 
