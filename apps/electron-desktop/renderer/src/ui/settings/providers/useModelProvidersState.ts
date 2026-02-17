@@ -283,7 +283,7 @@ export function useModelProvidersState(props: {
           ),
           note: "Settings: set default model",
         });
-        await props.reload();
+        void props.reload().catch(() => {});
         await clearSessionModelOverrides();
         setModelStatus("Default model configured.");
       } catch (err) {
