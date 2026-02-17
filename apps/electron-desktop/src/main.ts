@@ -50,13 +50,19 @@ async function stopGatewayChild(): Promise<void> {
     return;
   }
 
-  // Immediate SIGKILL — no graceful shutdown ceremony.
+  // Kill the entire process group (gateway + any children it spawned).
+  // The negative PID targets the process group since we spawn with detached: true.
   try {
-    process.kill(pid, "SIGKILL");
+    process.kill(-pid, "SIGKILL");
   } catch {
-    // Already dead
-    gatewayPid = null;
-    return;
+    // Fallback: kill just the main process if group kill fails.
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+      // Already dead
+      gatewayPid = null;
+      return;
+    }
   }
 
   // Wait for the process to actually die so the port is released.
@@ -189,13 +195,17 @@ app.on("activate", () => {
 });
 
 // Last-resort synchronous kill: if the process exits without proper cleanup,
-// force-kill the gateway child so it doesn't linger as an orphan.
+// force-kill the gateway process group so nothing lingers as an orphan.
 process.on("exit", () => {
   if (gatewayPid) {
     try {
-      process.kill(gatewayPid, "SIGKILL");
+      process.kill(-gatewayPid, "SIGKILL");
     } catch {
-      // Already dead — nothing to do.
+      try {
+        process.kill(gatewayPid, "SIGKILL");
+      } catch {
+        // Already dead — nothing to do.
+      }
     }
     gatewayPid = null;
   }
