@@ -55,6 +55,9 @@ const EXPECTED_CHANNELS = [
   "updater-check",
   "updater-download",
   "updater-install",
+  // backup
+  "backup-create",
+  "backup-restore",
   // skills
   "install-custom-skill",
   "list-custom-skills",

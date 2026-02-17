@@ -44,25 +44,33 @@ let gatewayState: GatewayState | null = null;
 let consentAccepted = false;
 
 async function stopGatewayChild(): Promise<void> {
-  const child = gateway;
+  const pid = gatewayPid;
   gateway = null;
-  gatewayPid = null;
-  if (!child) {
+  if (!pid) {
     return;
   }
+
+  // Immediate SIGKILL — no graceful shutdown ceremony.
   try {
-    child.kill("SIGTERM");
-  } catch (err) {
-    console.warn("[main] stopGatewayChild SIGTERM failed:", err);
+    process.kill(pid, "SIGKILL");
+  } catch {
+    // Already dead
+    gatewayPid = null;
+    return;
   }
-  await new Promise((r) => setTimeout(r, 1500));
-  if (!child.killed) {
+
+  // Wait for the process to actually die so the port is released.
+  const deadline = Date.now() + 3000;
+  while (Date.now() < deadline) {
     try {
-      child.kill("SIGKILL");
-    } catch (err) {
-      console.warn("[main] stopGatewayChild SIGKILL failed:", err);
+      process.kill(pid, 0);
+    } catch {
+      break;
     }
+    await new Promise((r) => setTimeout(r, 50));
   }
+
+  gatewayPid = null;
 }
 
 function broadcastGatewayState(win: BrowserWindow | null, state: GatewayState) {
@@ -249,7 +257,7 @@ void app.whenReady().then(async () => {
   const port = await pickPort(DEFAULT_PORT);
   const url = `http://127.0.0.1:${port}/`;
   const tokenFromConfig = readGatewayTokenFromConfig(configPath);
-  const token = tokenFromConfig ?? randomBytes(24).toString("base64url");
+  let token = tokenFromConfig ?? randomBytes(24).toString("base64url");
   ensureGatewayConfigFile({ configPath, token });
 
   const rendererIndex = resolveRendererIndex({
@@ -353,6 +361,10 @@ void app.whenReady().then(async () => {
     obsidianCliBin,
     ghBin,
     stopGatewayChild,
+    getGatewayToken: () => token,
+    setGatewayToken: (t: string) => {
+      token = t;
+    },
   });
 
   registerTerminalIpcHandlers({

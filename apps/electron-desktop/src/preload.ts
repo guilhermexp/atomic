@@ -96,6 +96,9 @@ type OpenclawDesktopApi = {
   onUpdateDownloadProgress: (cb: (payload: UpdateDownloadProgressPayload) => void) => () => void;
   onUpdateDownloaded: (cb: (payload: UpdateDownloadedPayload) => void) => () => void;
   onUpdateError: (cb: (payload: UpdateErrorPayload) => void) => () => void;
+  // Backup & restore
+  createBackup: () => Promise<{ ok: boolean; cancelled?: boolean; error?: string }>;
+  restoreBackup: (data: string) => Promise<{ ok: boolean; error?: string }>;
   // Custom skills
   installCustomSkill: (data: string) => Promise<{
     ok: boolean;
@@ -187,6 +190,9 @@ const api: OpenclawDesktopApi = {
   onUpdateDownloaded: (cb: (payload: UpdateDownloadedPayload) => void) =>
     onIpc("updater-downloaded", cb),
   onUpdateError: (cb: (payload: UpdateErrorPayload) => void) => onIpc("updater-error", cb),
+  // Backup & restore
+  createBackup: async () => ipcRenderer.invoke("backup-create"),
+  restoreBackup: async (data: string) => ipcRenderer.invoke("backup-restore", { data }),
   // Custom skills
   installCustomSkill: async (data: string) => ipcRenderer.invoke("install-custom-skill", { data }),
   listCustomSkills: async () => ipcRenderer.invoke("list-custom-skills"),
