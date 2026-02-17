@@ -4,7 +4,6 @@
 }
 
 .UiChatBubble-assistant {
-  max-width: min(600px, 80%);
   border: none;
   background: transparent;
   padding: 4px 0 2px;

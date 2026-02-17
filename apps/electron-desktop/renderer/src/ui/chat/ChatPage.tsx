@@ -37,7 +37,8 @@ function extractText(node: React.ReactNode): string {
     return node.map(extractText).join("");
   }
   if (typeof node === "object" && "props" in node) {
-    return extractText((node as React.ReactElement).props.children);
+    const el = node as React.ReactElement<{ children?: React.ReactNode }>;
+    return extractText(el.props.children);
   }
   return "";
 }
@@ -54,10 +55,10 @@ function CopyCodeButton({ code }: { code: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      aria-label={copied ? "Copied" : "Copy code"}
+      aria-label={copied ? "Copied" : "Copy"}
     >
       {copied ? <CheckIcon /> : <CopyIcon />}
-      {copied ? "Copied!" : "Copy code"}
+      {copied ? "Copied" : "Copy"}
     </button>
   );
 }
@@ -157,8 +158,8 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
     }
   }, [optimistic?.key, sessionKey, hasUserFromHistory, setOptimistic]);
 
-  // Subscribe to gateway chat stream events.
-  useChatStream(gw, dispatch, sessionKey);
+  // Subscribe to gateway chat stream events (hook expects payload required; context type has payload optional).
+  useChatStream(gw as Parameters<typeof useChatStream>[0], dispatch, sessionKey);
 
   const refresh = React.useCallback(() => {
     void dispatch(loadChatHistory({ request: gw.request, sessionKey, limit: 200 }));
@@ -239,12 +240,18 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   return (
     <div className={ct.UiChatShell}>
       <ChatMessageList
-        displayMessages={displayMessages}
+        displayMessages={
+          displayMessages as React.ComponentProps<typeof ChatMessageList>["displayMessages"]
+        }
         streamByRun={streamByRun}
         liveToolCalls={liveToolCalls}
         optimisticFirstMessage={optimisticFirstMessage}
         optimisticFirstAttachments={optimisticFirstAttachments}
-        matchingFirstUserFromHistory={matchingFirstUserFromHistory}
+        matchingFirstUserFromHistory={
+          matchingFirstUserFromHistory as React.ComponentProps<
+            typeof ChatMessageList
+          >["matchingFirstUserFromHistory"]
+        }
         waitingForFirstResponse={waitingForFirstResponse}
         markdownComponents={markdownComponents}
         scrollRef={scrollRef}
