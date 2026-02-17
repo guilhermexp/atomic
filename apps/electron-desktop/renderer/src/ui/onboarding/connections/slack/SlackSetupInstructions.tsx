@@ -54,9 +54,9 @@ export function SlackSetupInstructions() {
             </li>
             <li>
               <div>
-                Create the bot token (xoxb-...): <strong>OAuth &amp; Permissions</strong> → add
-                bot scopes (use the Manifest below) → <strong>Install to Workspace</strong> →
-                copy <strong>Bot User OAuth Token</strong>.
+                Create the bot token (xoxb-...): <strong>OAuth &amp; Permissions</strong> → add bot
+                scopes (use the Manifest below) → <strong>Install to Workspace</strong> → copy{" "}
+                <strong>Bot User OAuth Token</strong>.
               </div>
             </li>
             <li>
@@ -69,13 +69,13 @@ export function SlackSetupInstructions() {
             <li>
               <div>
                 The <strong>Client Secret</strong> and <strong>Signing Secret</strong> shown in
-                Slack <strong>Basic Information</strong> are <em>not</em> the tokens used for
-                Socket Mode in OpenClaw.
+                Slack <strong>Basic Information</strong> are <em>not</em> the tokens used for Socket
+                Mode in OpenClaw.
               </div>
             </li>
             <li>
-              If you previously pasted secrets anywhere public, rotate them in Slack
-              (Regenerate) and use new tokens.
+              If you previously pasted secrets anywhere public, rotate them in Slack (Regenerate)
+              and use new tokens.
             </li>
           </ul>
         </div>

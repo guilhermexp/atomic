@@ -80,12 +80,7 @@ export function SkillsGrid(props: {
           const status = statuses[skill.id];
           const isInteractive = status !== "coming-soon";
           return (
-            <div
-              key={skill.id}
-              className={tileClass(status)}
-              role="group"
-              aria-label={skill.name}
-            >
+            <div key={skill.id} className={tileClass(status)} role="group" aria-label={skill.name}>
               <div className="UiSkillTopRow">
                 <span className="UiSkillIcon" aria-hidden="true">
                   {skill.image ? <img src={skill.image} alt="" /> : skill.iconText}

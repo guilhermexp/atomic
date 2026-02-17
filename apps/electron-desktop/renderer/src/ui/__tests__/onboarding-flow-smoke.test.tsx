@@ -59,7 +59,7 @@ describe("Onboarding flow smoke tests", () => {
     const { container } = render(
       <TestShell>
         <ProviderSelectPage error={null} selectedProvider={null} onSelect={noop} />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelectorAll("input[type='radio']").length).toBeGreaterThan(0);
@@ -78,7 +78,7 @@ describe("Onboarding flow smoke tests", () => {
           onSubmit={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -95,7 +95,7 @@ describe("Onboarding flow smoke tests", () => {
           onSubmit={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelectorAll("button[disabled]").length).toBeGreaterThan(0);
@@ -114,7 +114,7 @@ describe("Onboarding flow smoke tests", () => {
           onBack={noop}
           onRetry={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -130,7 +130,7 @@ describe("Onboarding flow smoke tests", () => {
           onBack={noop}
           onRetry={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -165,7 +165,7 @@ describe("Onboarding flow smoke tests", () => {
           onSkip={noop}
           onContinue={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelectorAll("[class*='Skill']").length).toBeGreaterThan(0);
@@ -199,7 +199,7 @@ describe("Onboarding flow smoke tests", () => {
           onSkip={noop}
           onContinue={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expect(container.innerHTML.toLowerCase()).toContain("onnect");
   });
@@ -218,7 +218,7 @@ describe("Onboarding flow smoke tests", () => {
           onSkip={noop}
           onContinue={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });

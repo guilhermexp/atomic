@@ -32,11 +32,7 @@ type GatewayRpc = {
 };
 
 /** Subscribe to gateway chat events and dispatch stream actions for the given session. */
-export function useChatStream(
-  gw: GatewayRpc,
-  dispatch: AppDispatch,
-  sessionKey: string
-) {
+export function useChatStream(gw: GatewayRpc, dispatch: AppDispatch, sessionKey: string) {
   React.useEffect(() => {
     return gw.onEvent((evt) => {
       // Handle chat events (text streaming)
@@ -50,39 +46,37 @@ export function useChatStream(
           dispatch(chatActions.streamDeltaReceived({ runId: payload.runId, text }));
           return;
         }
-      if (payload.state === "final") {
-        const text = extractText(payload.message);
-        const toolCalls = extractToolCalls(payload.message);
-        // streamFinalReceived also collects live tool calls for this runId
-        // and merges them into the finalized message, then clears them.
-        dispatch(
-          chatActions.streamFinalReceived({
-            runId: payload.runId,
-            seq: payload.seq,
-            text,
-            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-          })
-        );
-        // Reload full chat history from the server, matching the web admin
-        // behavior. The server-side history contains final tool results
-        // (e.g. after exec approval) which replace the streamed versions.
-        void dispatch(
-          loadChatHistory({ request: gw.request, sessionKey, limit: 200 })
-        );
-        return;
-      }
-      if (payload.state === "error") {
-        dispatch(
-          chatActions.streamErrorReceived({
-            runId: payload.runId,
-            errorMessage: payload.errorMessage,
-          })
-        );
-        return;
-      }
-      if (payload.state === "aborted") {
-        dispatch(chatActions.streamAborted({ runId: payload.runId }));
-      }
+        if (payload.state === "final") {
+          const text = extractText(payload.message);
+          const toolCalls = extractToolCalls(payload.message);
+          // streamFinalReceived also collects live tool calls for this runId
+          // and merges them into the finalized message, then clears them.
+          dispatch(
+            chatActions.streamFinalReceived({
+              runId: payload.runId,
+              seq: payload.seq,
+              text,
+              toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+            })
+          );
+          // Reload full chat history from the server, matching the web admin
+          // behavior. The server-side history contains final tool results
+          // (e.g. after exec approval) which replace the streamed versions.
+          void dispatch(loadChatHistory({ request: gw.request, sessionKey, limit: 200 }));
+          return;
+        }
+        if (payload.state === "error") {
+          dispatch(
+            chatActions.streamErrorReceived({
+              runId: payload.runId,
+              errorMessage: payload.errorMessage,
+            })
+          );
+          return;
+        }
+        if (payload.state === "aborted") {
+          dispatch(chatActions.streamAborted({ runId: payload.runId }));
+        }
         return;
       }
 
@@ -101,14 +95,14 @@ export function useChatStream(
         const name = typeof data.name === "string" ? data.name : "";
 
         if (phase === "start" && toolCallId && name) {
-          if (HIDDEN_TOOL_NAMES.has(name)) {return;}
+          if (HIDDEN_TOOL_NAMES.has(name)) {
+            return;
+          }
           const args =
             data.args && typeof data.args === "object"
               ? (data.args as Record<string, unknown>)
               : {};
-          dispatch(
-            chatActions.toolCallStarted({ toolCallId, runId, name, arguments: args })
-          );
+          dispatch(chatActions.toolCallStarted({ toolCallId, runId, name, arguments: args }));
           return;
         }
         if (phase === "result" && toolCallId) {

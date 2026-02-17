@@ -25,7 +25,10 @@ import { initGatewayState } from "@store/slices/gatewaySlice";
 import { loadOnboardingFromStorage } from "@store/slices/onboardingSlice";
 import type { GatewayState } from "@main/types";
 import { isBootstrapPath, routes } from "./routes";
-import { OptimisticSessionProvider, OptimisticSessionSync } from "../chat/hooks/optimisticSessionContext";
+import {
+  OptimisticSessionProvider,
+  OptimisticSessionSync,
+} from "../chat/hooks/optimisticSessionContext";
 import { ExecApprovalOverlay } from "./ExecApprovalModal";
 import a from "./App.module.css";
 

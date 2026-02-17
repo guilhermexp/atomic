@@ -42,7 +42,9 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
   // Load the current launch-at-login state on mount.
   React.useEffect(() => {
     const api = getDesktopApiOrNull();
-    if (!api?.getLaunchAtLogin) {return;}
+    if (!api?.getLaunchAtLogin) {
+      return;
+    }
     void api.getLaunchAtLogin().then((res) => setLaunchAtStartup(res.enabled));
   }, []);
 
@@ -74,7 +76,9 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
     const ok = window.confirm(
       "All local data will be deleted and Google Workspace will be disconnected. The app will close and you’ll need to set it up again."
     );
-    if (!ok) {return;}
+    if (!ok) {
+      return;
+    }
     onError(null);
     setResetBusy(true);
     try {

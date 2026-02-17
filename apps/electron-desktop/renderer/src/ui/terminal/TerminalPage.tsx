@@ -14,7 +14,9 @@ type TerminalApi = {
   terminalList: () => Promise<Array<{ id: string; alive: boolean }>>;
   terminalGetBuffer: (id: string) => Promise<string>;
   onTerminalData: (cb: (p: { id: string; data: string }) => void) => () => void;
-  onTerminalExit: (cb: (p: { id: string; exitCode: number; signal?: number }) => void) => () => void;
+  onTerminalExit: (
+    cb: (p: { id: string; exitCode: number; signal?: number }) => void
+  ) => () => void;
 };
 
 function getApi(): TerminalApi | undefined {
@@ -58,13 +60,7 @@ const XTERM_THEME = {
 
 // ─── Single terminal pane (xterm instance) ─────────────────────────────────
 
-function TerminalPane({
-  terminalId,
-  visible,
-}: {
-  terminalId: string;
-  visible: boolean;
-}) {
+function TerminalPane({ terminalId, visible }: { terminalId: string; visible: boolean }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const termRef = React.useRef<Terminal | null>(null);
   const fitAddonRef = React.useRef<FitAddon | null>(null);
@@ -237,9 +233,7 @@ export function TerminalPage() {
       return;
     }
     const unsub = api.onTerminalExit((p) => {
-      setTabs((prev) =>
-        prev.map((t) => (t.id === p.id ? { ...t, alive: false } : t)),
-      );
+      setTabs((prev) => prev.map((t) => (t.id === p.id ? { ...t, alive: false } : t)));
     });
     return unsub;
   }, []);
@@ -273,7 +267,7 @@ export function TerminalPage() {
         return next;
       });
     },
-    [activeId],
+    [activeId]
   );
 
   if (!ready) {
@@ -323,11 +317,7 @@ export function TerminalPage() {
       {/* Terminal panes — all mounted, only the active one is visible */}
       <div className={s.UiTerminalPaneContainer}>
         {tabs.map((tab) => (
-          <TerminalPane
-            key={tab.id}
-            terminalId={tab.id}
-            visible={tab.id === activeId}
-          />
+          <TerminalPane key={tab.id} terminalId={tab.id} visible={tab.id === activeId} />
         ))}
         {tabs.length === 0 && (
           <div className={s.UiTerminalEmpty}>

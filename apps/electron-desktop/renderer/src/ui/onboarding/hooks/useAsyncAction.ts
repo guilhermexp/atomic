@@ -35,7 +35,7 @@ export function useAsyncAction({ setError, setStatus }: UseAsyncActionOpts) {
         setBusy(false);
       }
     },
-    [setError, setStatus],
+    [setError, setStatus]
   );
 
   return { busy, run } as const;

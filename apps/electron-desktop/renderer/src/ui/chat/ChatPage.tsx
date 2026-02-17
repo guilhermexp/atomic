@@ -24,10 +24,18 @@ import ct from "./ChatTranscript.module.css";
 
 /** Extract plain text from React children tree (for copying code content). */
 function extractText(node: React.ReactNode): string {
-  if (typeof node === "string") {return node;}
-  if (typeof node === "number") {return String(node);}
-  if (node == null || typeof node === "boolean") {return "";}
-  if (Array.isArray(node)) {return node.map(extractText).join("");}
+  if (typeof node === "string") {
+    return node;
+  }
+  if (typeof node === "number") {
+    return String(node);
+  }
+  if (node == null || typeof node === "boolean") {
+    return "";
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractText).join("");
+  }
   if (typeof node === "object" && "props" in node) {
     return extractText((node as React.ReactElement).props.children);
   }
@@ -109,7 +117,9 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
           const className = (child.props as Record<string, unknown>).className;
           if (typeof className === "string") {
             const match = className.match(/language-(\S+)/);
-            if (match) {lang = match[1];}
+            if (match) {
+              lang = match[1];
+            }
           }
         }
         const code = extractText(children).replace(/\n$/, "");
@@ -122,12 +132,14 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
         );
       },
     }),
-    [],
+    []
   );
 
   /** First user message in history that matches optimistic text; used for seamless handoff. */
   const matchingFirstUserFromHistory = React.useMemo(() => {
-    if (optimisticFirstMessage === null) {return null;}
+    if (optimisticFirstMessage === null) {
+      return null;
+    }
     const userMsg = messages.find(
       (m) => m.role === "user" && m.text.startsWith(optimisticFirstMessage)
     );
@@ -184,8 +196,8 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const hasActiveStream = Object.keys(streamByRun).length > 0 || liveToolCalls.length > 0;
   const waitingForFirstResponse =
     (displayMessages.some((m) => m.role === "user") &&
-    !displayMessages.some((m) => m.role === "assistant") &&
-    !hasActiveStream) ||
+      !displayMessages.some((m) => m.role === "assistant") &&
+      !hasActiveStream) ||
     (awaitingContinuation && !hasActiveStream);
 
   React.useEffect(() => {
@@ -194,7 +206,14 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
       return;
     }
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages.length, optimisticFirstMessage, streamByRun, liveToolCalls, waitingForFirstResponse, awaitingContinuation]);
+  }, [
+    messages.length,
+    optimisticFirstMessage,
+    streamByRun,
+    liveToolCalls,
+    waitingForFirstResponse,
+    awaitingContinuation,
+  ]);
 
   React.useEffect(() => {
     if (error) {

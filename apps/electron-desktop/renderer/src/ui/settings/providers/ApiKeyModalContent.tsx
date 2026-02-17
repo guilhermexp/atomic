@@ -32,7 +32,9 @@ export function ApiKeyModalContent(props: {
 
   const handleSave = React.useCallback(async () => {
     const trimmed = draftKey.trim();
-    if (!trimmed) {return;}
+    if (!trimmed) {
+      return;
+    }
 
     setValidationError("");
     setValidating(true);
@@ -72,7 +74,9 @@ export function ApiKeyModalContent(props: {
             className="UiLink"
             onClick={(e) => {
               e.preventDefault();
-              if (!provider.helpUrl) {return;}
+              if (!provider.helpUrl) {
+                return;
+              }
               void getDesktopApiOrNull()?.openExternal(provider.helpUrl);
             }}
           >
@@ -87,7 +91,9 @@ export function ApiKeyModalContent(props: {
           value={draftKey}
           onChange={(v) => {
             setDraftKey(v);
-            if (validationError) {setValidationError("");}
+            if (validationError) {
+              setValidationError("");
+            }
           }}
           placeholder={provider.placeholder}
           autoCapitalize="none"

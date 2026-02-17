@@ -47,7 +47,7 @@ export function CustomSkillUploadModal(props: {
       try {
         const buffer = await file.arrayBuffer();
         const base64 = btoa(
-          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ""),
+          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
         );
 
         const api = getDesktopApiOrNull();
@@ -66,7 +66,7 @@ export function CustomSkillUploadModal(props: {
         setState("error");
       }
     },
-    [props],
+    [props]
   );
 
   const onDrop = React.useCallback(
@@ -80,7 +80,7 @@ export function CustomSkillUploadModal(props: {
         void handleFile(file);
       }
     },
-    [handleFile],
+    [handleFile]
   );
 
   const onDragOver = React.useCallback((e: React.DragEvent) => {
@@ -111,7 +111,7 @@ export function CustomSkillUploadModal(props: {
         fileInputRef.current.value = "";
       }
     },
-    [handleFile],
+    [handleFile]
   );
 
   const openFilePicker = React.useCallback(() => {
@@ -119,7 +119,12 @@ export function CustomSkillUploadModal(props: {
   }, []);
 
   return (
-    <Modal open={props.open} onClose={props.onClose} header="Add custom skill" aria-label="Add custom skill">
+    <Modal
+      open={props.open}
+      onClose={props.onClose}
+      header="Add custom skill"
+      aria-label="Add custom skill"
+    >
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -144,7 +149,11 @@ export function CustomSkillUploadModal(props: {
             <div className={cs.UiCustomSkillDropZoneTitle}>Drag ZIP folder here</div>
             <div className={cs.UiCustomSkillDropZoneSubtext}>
               Or{" "}
-              <button type="button" className={cs.UiCustomSkillChooseFileLink} onClick={openFilePicker}>
+              <button
+                type="button"
+                className={cs.UiCustomSkillChooseFileLink}
+                onClick={openFilePicker}
+              >
                 choose a file
               </button>{" "}
               from finder
@@ -154,14 +163,18 @@ export function CustomSkillUploadModal(props: {
       </div>
 
       {/* Error message */}
-      {state === "error" && error ? (
-        <div className={cs.UiCustomSkillError}>{error}</div>
-      ) : null}
+      {state === "error" && error ? <div className={cs.UiCustomSkillError}>{error}</div> : null}
 
       {/* Info block */}
       <div className={cs.UiCustomSkillInfoBlock}>
         <span className={cs.UiCustomSkillInfoIcon} aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
             <path d="M8 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             <circle cx="8" cy="5" r="0.75" fill="currentColor" />
@@ -185,8 +198,19 @@ export function CustomSkillUploadModal(props: {
       {/* Security warning */}
       <div className={cs.UiCustomSkillDangerBlock}>
         <span className={cs.UiCustomSkillDangerIcon} aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 1L1 14h14L8 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8 1L1 14h14L8 1z"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinejoin="round"
+            />
             <path d="M8 6v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             <circle cx="8" cy="12" r="0.75" fill="currentColor" />
           </svg>

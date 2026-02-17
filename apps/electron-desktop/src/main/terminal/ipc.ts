@@ -49,14 +49,17 @@ export function registerTerminalIpcHandlers(params: {
     }
   });
 
-  ipcMain.handle("terminal:resize", async (_evt, p: { id?: unknown; cols?: unknown; rows?: unknown }) => {
-    const id = typeof p?.id === "string" ? p.id : "";
-    const cols = typeof p?.cols === "number" ? p.cols : 80;
-    const rows = typeof p?.rows === "number" ? p.rows : 24;
-    if (id) {
-      resizeTerminal(id, cols, rows);
+  ipcMain.handle(
+    "terminal:resize",
+    async (_evt, p: { id?: unknown; cols?: unknown; rows?: unknown }) => {
+      const id = typeof p?.id === "string" ? p.id : "";
+      const cols = typeof p?.cols === "number" ? p.cols : 80;
+      const rows = typeof p?.rows === "number" ? p.rows : 24;
+      if (id) {
+        resizeTerminal(id, cols, rows);
+      }
     }
-  });
+  );
 
   ipcMain.handle("terminal:kill", async (_evt, p: { id?: unknown }) => {
     const id = typeof p?.id === "string" ? p.id : "";

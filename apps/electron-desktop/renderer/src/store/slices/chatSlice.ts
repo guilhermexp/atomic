@@ -209,7 +209,9 @@ const APPROVAL_CONTINUE_TOKENS = new Set(["continue", "denied"]);
 
 /** Detect auto-continue messages sent after exec approval (single-word message). */
 export function isApprovalContinueMessage(role: string, text: string): boolean {
-  if (role !== "user") {return false;}
+  if (role !== "user") {
+    return false;
+  }
   const trimmed = text.trim().toLowerCase();
   return !trimmed.includes(" ") && APPROVAL_CONTINUE_TOKENS.has(trimmed);
 }
@@ -217,7 +219,9 @@ export function isApprovalContinueMessage(role: string, text: string): boolean {
 /** Detect heartbeat-related messages that should be hidden from the chat UI. */
 export function isHeartbeatMessage(role: string, text: string): boolean {
   const trimmed = text.trim();
-  if (!trimmed) {return false;}
+  if (!trimmed) {
+    return false;
+  }
   // User-side: the heartbeat prompt injected by the gateway.
   // Use includes() because gateway may prepend metadata (date headers, etc.).
   if (role === "user" && trimmed.includes(HEARTBEAT_PROMPT_PREFIX)) {
@@ -247,11 +251,17 @@ function parseRole(value: unknown): UiMessage["role"] {
 /** Extract tool calls from an assistant message's content array. */
 export function extractToolCalls(msg: unknown): UiToolCall[] {
   const out: UiToolCall[] = [];
-  if (!msg || typeof msg !== "object") {return out;}
+  if (!msg || typeof msg !== "object") {
+    return out;
+  }
   const m = msg as { content?: unknown };
-  if (!Array.isArray(m.content)) {return out;}
+  if (!Array.isArray(m.content)) {
+    return out;
+  }
   for (const part of m.content) {
-    if (!part || typeof part !== "object") {continue;}
+    if (!part || typeof part !== "object") {
+      continue;
+    }
     const p = part as { type?: string; id?: string; name?: string; arguments?: unknown };
     const t = typeof p.type === "string" ? p.type.toLowerCase() : "";
     if (
@@ -273,7 +283,9 @@ export function extractToolCalls(msg: unknown): UiToolCall[] {
 
 /** Extract tool result info from a toolResult-role message. */
 function extractToolResult(msg: unknown): UiToolResult | null {
-  if (!msg || typeof msg !== "object") {return null;}
+  if (!msg || typeof msg !== "object") {
+    return null;
+  }
   const m = msg as {
     role?: string;
     toolCallId?: string;
@@ -282,7 +294,9 @@ function extractToolResult(msg: unknown): UiToolResult | null {
     details?: { status?: string };
   };
   const role = typeof m.role === "string" ? m.role : "";
-  if (role !== "toolResult" && role !== "tool_result") {return null;}
+  if (role !== "toolResult" && role !== "tool_result") {
+    return null;
+  }
   const text = extractText(msg);
   const attachments = extractAttachmentsFromMessage(msg);
   return {
@@ -519,7 +533,9 @@ const chatSlice = createSlice({
       const allMsgs = state.messages;
       for (let i = 0; i < allMsgs.length; i++) {
         const msg = allMsgs[i];
-        if (!msg.toolResults?.some((r) => r.status === "approval-pending")) {continue;}
+        if (!msg.toolResults?.some((r) => r.status === "approval-pending")) {
+          continue;
+        }
         // Look for the first closure message after this pending result.
         let resolvedAs: "approved" | "denied" | null = null;
         for (let j = i + 1; j < allMsgs.length; j++) {

@@ -4,12 +4,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  type ConfigSliceState,
-  configActions,
-  configReducer,
-  reloadConfig,
-} from "./configSlice";
+import { type ConfigSliceState, configActions, configReducer, reloadConfig } from "./configSlice";
 
 // ── Initial state ──────────────────────────────────────────────────────────────
 

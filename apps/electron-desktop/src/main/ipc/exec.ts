@@ -11,10 +11,7 @@ import type { ExecResult } from "../../shared/types";
  * Create a standardized "binary not found" ExecResult.
  * Replaces 10+ copy-pasted blocks across IPC handlers.
  */
-export function createBinaryNotFoundResult(
-  binPath: string,
-  prepareCmd: string
-): ExecResult {
+export function createBinaryNotFoundResult(binPath: string, prepareCmd: string): ExecResult {
   return {
     ok: false,
     code: null,
@@ -28,10 +25,7 @@ export function createBinaryNotFoundResult(
  * Check if a binary exists; if not, return a not-found result.
  * Returns null when binary exists (caller should proceed).
  */
-export function checkBinaryExists(
-  binPath: string,
-  prepareCmd: string
-): ExecResult | null {
+export function checkBinaryExists(binPath: string, prepareCmd: string): ExecResult | null {
   if (!fs.existsSync(binPath)) {
     return createBinaryNotFoundResult(binPath, prepareCmd);
   }

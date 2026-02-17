@@ -54,11 +54,7 @@ function ensureTerminalBinDir(params: {
 
   // Create a small shell wrapper instead of a symlink so we can control which
   // node binary is used (important in packaged mode where system node may not exist).
-  const script = [
-    "#!/bin/sh",
-    `exec "${nodeCmd}" "${openclawMjs}" "$@"`,
-    "",
-  ].join("\n");
+  const script = ["#!/bin/sh", `exec "${nodeCmd}" "${openclawMjs}" "$@"`, ""].join("\n");
   fs.writeFileSync(wrapperPath, script, { mode: 0o755 });
 
   return binDir;

@@ -42,10 +42,7 @@ export function downloadedBin(mainDir: string, tool: string): string {
  * Resolve a tool binary path: bundled (packaged) or downloaded (dev).
  * Combines bundledBin / downloadedBin into a single call.
  */
-export function resolveBin(
-  tool: string,
-  opts: { isPackaged: boolean; mainDir: string },
-): string {
+export function resolveBin(tool: string, opts: { isPackaged: boolean; mainDir: string }): string {
   return opts.isPackaged ? bundledBin(tool) : downloadedBin(opts.mainDir, tool);
 }
 

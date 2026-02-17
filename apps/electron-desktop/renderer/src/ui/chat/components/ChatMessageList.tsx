@@ -4,7 +4,12 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
-import type { UiMessageAttachment, UiToolCall, UiToolResult, LiveToolCall } from "@store/slices/chatSlice";
+import type {
+  UiMessageAttachment,
+  UiToolCall,
+  UiToolResult,
+  LiveToolCall,
+} from "@store/slices/chatSlice";
 import { isHeartbeatMessage } from "@store/slices/chatSlice";
 import type { ChatAttachmentInput } from "@store/slices/chatSlice";
 import { CopyMessageButton } from "./CopyMessageButton";
@@ -137,7 +142,13 @@ export function ChatMessageList(props: {
               ) : null}
               {m.text ? (
                 <div className="UiChatText UiMarkdown">
-                  <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={markdownComponents}>{m.text}</Markdown>
+                  <Markdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={markdownComponents}
+                  >
+                    {m.text}
+                  </Markdown>
                 </div>
               ) : null}
               {m.text ? (

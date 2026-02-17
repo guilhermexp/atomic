@@ -28,18 +28,26 @@ export function GitHubModalContent(props: {
 
   // Check current gh auth status when already connected.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const api = getDesktopApiOrNull();
-        if (!api) {return;}
+        if (!api) {
+          return;
+        }
         const res = await api.ghApiUser();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         if (res.ok && res.stdout?.trim()) {
           try {
             const parsed = JSON.parse(res.stdout) as { login?: string };
-            if (parsed.login) {setGhUser(parsed.login);}
+            if (parsed.login) {
+              setGhUser(parsed.login);
+            }
           } catch {
             // Not JSON; ignore.
           }

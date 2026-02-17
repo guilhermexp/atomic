@@ -73,7 +73,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onBack={noop}
           onSkip={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelectorAll("input").length).toBeGreaterThan(0);
@@ -92,7 +92,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onBack={noop}
           onSkip={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -100,14 +100,8 @@ describe("Onboarding connect-page smoke tests", () => {
   it("NotionConnectPage renders input and button", () => {
     const { container } = render(
       <TestShell>
-        <NotionConnectPage
-          status={null}
-          error={null}
-          busy={false}
-          onSubmit={noop}
-          onBack={noop}
-        />
-      </TestShell>,
+        <NotionConnectPage status={null} error={null} busy={false} onSubmit={noop} onBack={noop} />
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -117,14 +111,8 @@ describe("Onboarding connect-page smoke tests", () => {
   it("TrelloConnectPage renders two input fields", () => {
     const { container } = render(
       <TestShell>
-        <TrelloConnectPage
-          status={null}
-          error={null}
-          busy={false}
-          onSubmit={noop}
-          onBack={noop}
-        />
-      </TestShell>,
+        <TrelloConnectPage status={null} error={null} busy={false} onSubmit={noop} onBack={noop} />
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelectorAll("input").length).toBeGreaterThanOrEqual(2);
@@ -145,7 +133,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onRecheck={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -168,7 +156,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onRecheck={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.innerHTML).toContain("My Vault");
@@ -177,14 +165,8 @@ describe("Onboarding connect-page smoke tests", () => {
   it("GitHubConnectPage renders PAT input", () => {
     const { container } = render(
       <TestShell>
-        <GitHubConnectPage
-          status={null}
-          error={null}
-          busy={false}
-          onSubmit={noop}
-          onBack={noop}
-        />
-      </TestShell>,
+        <GitHubConnectPage status={null} error={null} busy={false} onSubmit={noop} onBack={noop} />
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -200,7 +182,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onCheckAndEnable={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("button")).toBeTruthy();
@@ -216,7 +198,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onAuthorizeAndEnable={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("button")).toBeTruthy();
@@ -225,14 +207,8 @@ describe("Onboarding connect-page smoke tests", () => {
   it("SlackConnectPage renders form with input", () => {
     const { container } = render(
       <TestShell>
-        <SlackConnectPage
-          status={null}
-          error={null}
-          busy={false}
-          onSubmit={noop}
-          onBack={noop}
-        />
-      </TestShell>,
+        <SlackConnectPage status={null} error={null} busy={false} onSubmit={noop} onBack={noop} />
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -249,7 +225,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onNext={noop}
           onSkip={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -267,7 +243,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onNext={noop}
           onSkip={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
     expect(container.querySelector("input")).toBeTruthy();
@@ -288,7 +264,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onRunAuthList={vi.fn(() => Promise.resolve({}))}
           onFinish={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -305,7 +281,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onSubmit={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });
@@ -320,7 +296,7 @@ describe("Onboarding connect-page smoke tests", () => {
           onSubmit={noop}
           onBack={noop}
         />
-      </TestShell>,
+      </TestShell>
     );
     expectRendered(container);
   });

@@ -28,10 +28,7 @@ describe("gatewaySlice reducers", () => {
       url: "http://localhost:18789",
       token: "tok",
     };
-    const state = gatewayReducer(
-      { state: null },
-      gatewayActions.setGatewayState(gwState)
-    );
+    const state = gatewayReducer({ state: null }, gatewayActions.setGatewayState(gwState));
     expect(state.state).toEqual(gwState);
   });
 

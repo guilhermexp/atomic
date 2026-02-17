@@ -57,7 +57,7 @@ describe("resolveBundled* functions", () => {
 
   it("resolveBundledGogCredentialsPath returns correct path", () => {
     expect(resolveBundledGogCredentialsPath()).toBe(
-      path.join(MOCK_RESOURCES, "gog-credentials", "gog-client-secret.json"),
+      path.join(MOCK_RESOURCES, "gog-credentials", "gog-client-secret.json")
     );
   });
 });
@@ -79,7 +79,7 @@ describe("downloadedBin", () => {
     const tools = ["gog", "jq", "memo", "remindctl", "obsidian-cli", "gh"];
     for (const tool of tools) {
       expect(downloadedBin(mainDir, tool)).toBe(
-        path.join(appDir, `.${tool}-runtime`, platArch, tool),
+        path.join(appDir, `.${tool}-runtime`, platArch, tool)
       );
     }
   });
@@ -91,13 +91,13 @@ describe("resolveBin", () => {
 
   it("returns bundled path when isPackaged is true", () => {
     expect(resolveBin("gog", { isPackaged: true, mainDir })).toBe(
-      path.join(MOCK_RESOURCES, "gog", platArch, "gog"),
+      path.join(MOCK_RESOURCES, "gog", platArch, "gog")
     );
   });
 
   it("returns downloaded path when isPackaged is false", () => {
     expect(resolveBin("gog", { isPackaged: false, mainDir })).toBe(
-      path.join(appDir, ".gog-runtime", platArch, "gog"),
+      path.join(appDir, ".gog-runtime", platArch, "gog")
     );
   });
 
@@ -106,11 +106,11 @@ describe("resolveBin", () => {
     for (const tool of tools) {
       // Bundled
       expect(resolveBin(tool, { isPackaged: true, mainDir })).toBe(
-        path.join(MOCK_RESOURCES, tool, platArch, tool),
+        path.join(MOCK_RESOURCES, tool, platArch, tool)
       );
       // Downloaded
       expect(resolveBin(tool, { isPackaged: false, mainDir })).toBe(
-        path.join(appDir, `.${tool}-runtime`, platArch, tool),
+        path.join(appDir, `.${tool}-runtime`, platArch, tool)
       );
     }
   });
@@ -122,7 +122,7 @@ describe("resolveDownloadedGogCredentialsPath", () => {
 
   it("returns correct path", () => {
     expect(resolveDownloadedGogCredentialsPath(mainDir)).toBe(
-      path.join(appDir, ".gog-runtime", "credentials", "gog-client-secret.json"),
+      path.join(appDir, ".gog-runtime", "credentials", "gog-client-secret.json")
     );
   });
 });
@@ -158,7 +158,7 @@ describe("resolveRendererIndex", () => {
       path.resolve("/app/electron-desktop/dist", ".."),
       "renderer",
       "dist",
-      "index.html",
+      "index.html"
     );
     expect(result).toBe(expected);
   });

@@ -79,7 +79,11 @@ type OpenclawDesktopApi = {
   setLaunchAtLogin: (enabled: boolean) => Promise<{ ok: true }>;
   // App version
   getAppVersion: () => Promise<{ version: string }>;
-  fetchReleaseNotes: (version: string, owner: string, repo: string) => Promise<{ ok: boolean; body: string; htmlUrl: string }>;
+  fetchReleaseNotes: (
+    version: string,
+    owner: string,
+    repo: string
+  ) => Promise<{ ok: boolean; body: string; htmlUrl: string }>;
   // Auto-updater
   checkForUpdate: () => Promise<void>;
   downloadUpdate: () => Promise<void>;
@@ -107,7 +111,9 @@ type OpenclawDesktopApi = {
   terminalList: () => Promise<Array<{ id: string; alive: boolean }>>;
   terminalGetBuffer: (id: string) => Promise<string>;
   onTerminalData: (cb: (payload: { id: string; data: string }) => void) => () => void;
-  onTerminalExit: (cb: (payload: { id: string; exitCode: number; signal?: number }) => void) => () => void;
+  onTerminalExit: (
+    cb: (payload: { id: string; exitCode: number; signal?: number }) => void
+  ) => () => void;
 };
 
 // Expose only the bare minimum to the renderer. The Control UI is served by the Gateway and

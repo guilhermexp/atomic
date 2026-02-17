@@ -165,7 +165,9 @@ export function ConnectorsTab(props: {
   );
 
   const tileClass = (status: ConnectorStatus) => {
-    if (status === "disabled") {return "UiSkillCard UiSkillCard--disabled";}
+    if (status === "disabled") {
+      return "UiSkillCard UiSkillCard--disabled";
+    }
     return "UiSkillCard";
   };
 

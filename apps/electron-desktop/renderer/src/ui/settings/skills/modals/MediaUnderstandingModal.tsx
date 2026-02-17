@@ -13,7 +13,9 @@ function detectOpenAiProvider(config: unknown): boolean {
   const profiles = getObject(auth.profiles);
   const order = getObject(auth.order);
   const hasProfile = Object.values(profiles).some((p) => {
-    if (!p || typeof p !== "object" || Array.isArray(p)) {return false;}
+    if (!p || typeof p !== "object" || Array.isArray(p)) {
+      return false;
+    }
     return (p as { provider?: unknown }).provider === "openai";
   });
   const hasOrder = Object.prototype.hasOwnProperty.call(order, "openai");
@@ -51,7 +53,9 @@ export function MediaUnderstandingModalContent(props: {
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         setHasOpenAi(detectOpenAiProvider(cfg));
 
@@ -158,9 +162,7 @@ export function MediaUnderstandingModalContent(props: {
             understanding reliably.
           </InlineError>
           {keyError && <InlineError>{keyError}</InlineError>}
-          <label className={`${sm.UiSkillModalLabel} mt-sm`}>
-            OpenAI API key
-          </label>
+          <label className={`${sm.UiSkillModalLabel} mt-sm`}>OpenAI API key</label>
           <TextInput
             type="password"
             value={openAiKey}

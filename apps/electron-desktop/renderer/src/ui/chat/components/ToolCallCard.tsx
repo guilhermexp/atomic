@@ -1,5 +1,10 @@
 import React from "react";
-import type { UiToolCall, UiToolResult, LiveToolCall, UiMessageAttachment } from "@store/slices/chatSlice";
+import type {
+  UiToolCall,
+  UiToolResult,
+  LiveToolCall,
+  UiMessageAttachment,
+} from "@store/slices/chatSlice";
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
 import s from "./ToolCallCard.module.css";
 
@@ -49,9 +54,7 @@ function getArgEntries(args: Record<string, unknown>): { key: string; value: str
 /** Render images and file attachments from a tool result. */
 function ToolResultAttachments({ attachments }: { attachments: UiMessageAttachment[] }) {
   const images = attachments.filter((a) => a.dataUrl && a.mimeType?.startsWith("image/"));
-  const files = attachments.filter(
-    (a) => !(a.dataUrl && a.mimeType?.startsWith("image/")),
-  );
+  const files = attachments.filter((a) => !(a.dataUrl && a.mimeType?.startsWith("image/")));
 
   return (
     <div className={s.ToolCallAttachments}>
@@ -82,9 +85,8 @@ export function ToolCallCard({
   toolCall: UiToolCall;
   result?: UiToolResult;
 }) {
-  const hasImages = result?.attachments?.some(
-    (a) => a.dataUrl && a.mimeType?.startsWith("image/"),
-  ) ?? false;
+  const hasImages =
+    result?.attachments?.some((a) => a.dataUrl && a.mimeType?.startsWith("image/")) ?? false;
   const [expanded, setExpanded] = React.useState(hasImages);
   const label = TOOL_LABELS[toolCall.name] ?? toolCall.name;
   const hasResult = Boolean(result?.text);
@@ -111,29 +113,35 @@ export function ToolCallCard({
             </div>
           ))}
           {result?.status ? (
-            <div className={`${s.ToolCallStatusLine} ${
-              result.status === "approved"
-                ? s["ToolCallStatusLine--approved"]
-                : result.status === "denied"
-                  ? s["ToolCallStatusLine--denied"]
-                  : result.status === "approval-pending"
-                    ? s["ToolCallStatusLine--pending"]
-                    : ""
-            }`}>
+            <div
+              className={`${s.ToolCallStatusLine} ${
+                result.status === "approved"
+                  ? s["ToolCallStatusLine--approved"]
+                  : result.status === "denied"
+                    ? s["ToolCallStatusLine--denied"]
+                    : result.status === "approval-pending"
+                      ? s["ToolCallStatusLine--pending"]
+                      : ""
+              }`}
+            >
               <span className={s.ToolCallStatusIcon}>
-                {result.status === "approved" ? "\u2713" : result.status === "denied" ? "\u2717" : "\u23F3"}
+                {result.status === "approved"
+                  ? "\u2713"
+                  : result.status === "denied"
+                    ? "\u2717"
+                    : "\u23F3"}
               </span>
               <span className={s.ToolCallStatusText}>
-                {result.status === "approved" ? "Approved" : result.status === "denied" ? "Denied" : "Pending"}
+                {result.status === "approved"
+                  ? "Approved"
+                  : result.status === "denied"
+                    ? "Denied"
+                    : "Pending"}
               </span>
             </div>
           ) : null}
-          {hasResult ? (
-            <div className={s.ToolCallResultText}>{result!.text}</div>
-          ) : null}
-          {hasAttachments ? (
-            <ToolResultAttachments attachments={result!.attachments!} />
-          ) : null}
+          {hasResult ? <div className={s.ToolCallResultText}>{result!.text}</div> : null}
+          {hasAttachments ? <ToolResultAttachments attachments={result!.attachments!} /> : null}
         </div>
       ) : null}
     </div>
@@ -149,10 +157,14 @@ export function ToolCallCards({
   toolResults?: UiToolResult[];
 }) {
   const visible = toolCalls.filter((tc) => !HIDDEN_TOOL_NAMES.has(tc.name));
-  if (!visible.length) {return null;}
+  if (!visible.length) {
+    return null;
+  }
   const resultMap = new Map<string, UiToolResult>();
   for (const r of toolResults ?? []) {
-    if (r.toolCallId) {resultMap.set(r.toolCallId, r);}
+    if (r.toolCallId) {
+      resultMap.set(r.toolCallId, r);
+    }
   }
   return (
     <div className={s.ToolCallCards}>
@@ -202,9 +214,7 @@ function LiveToolCallCardItem({ tc }: { tc: LiveToolCall }) {
               <span className={s.ToolCallStatusText}>Error</span>
             </div>
           ) : null}
-          {hasResult ? (
-            <div className={s.ToolCallResultText}>{tc.resultText}</div>
-          ) : null}
+          {hasResult ? <div className={s.ToolCallResultText}>{tc.resultText}</div> : null}
         </div>
       ) : null}
     </div>
@@ -214,7 +224,9 @@ function LiveToolCallCardItem({ tc }: { tc: LiveToolCall }) {
 /** Render live (in-flight) tool calls streamed via agent events. */
 export function LiveToolCallCards({ toolCalls }: { toolCalls: LiveToolCall[] }) {
   const visible = toolCalls.filter((tc) => !HIDDEN_TOOL_NAMES.has(tc.name));
-  if (!visible.length) {return null;}
+  if (!visible.length) {
+    return null;
+  }
   return (
     <div className={s.ToolCallCards}>
       {visible.map((tc) => (

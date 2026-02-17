@@ -39,7 +39,9 @@ export function useTelegramConfig(props: {
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         const channels = getObject(cfg.channels);
         const telegram = getObject(channels.telegram);
@@ -67,7 +69,9 @@ export function useTelegramConfig(props: {
     async (patch: Record<string, unknown>, note: string) => {
       const snap = await props.loadConfig();
       const baseHash = typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
-      if (!baseHash) {throw new Error("Config base hash missing. Reload and try again.");}
+      if (!baseHash) {
+        throw new Error("Config base hash missing. Reload and try again.");
+      }
       await props.gw.request("config.patch", {
         baseHash,
         raw: JSON.stringify(
@@ -97,7 +101,9 @@ export function useTelegramConfig(props: {
     setStatus("Saving Telegram bot token…");
     try {
       const patch: Record<string, unknown> = { enabled: true };
-      if (token) {patch.botToken = token;}
+      if (token) {
+        patch.botToken = token;
+      }
       await patchTelegram(patch, "Settings: update Telegram bot token");
       setStatus("Bot token saved.");
       setBotToken("");
@@ -125,7 +131,9 @@ export function useTelegramConfig(props: {
 
   const handleAddId = React.useCallback(async () => {
     const id = normalizeId(newId);
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
     if (allowList.includes(id)) {
       setError(`"${id}" is already in the allowlist.`);
       return;

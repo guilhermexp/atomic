@@ -38,11 +38,15 @@ export function ObsidianModalContent(props: {
     let cancelled = false;
     (async () => {
       const api = getDesktopApiOrNull();
-      if (!api) {return;}
+      if (!api) {
+        return;
+      }
       setVaultsLoading(true);
       try {
         const res = await api.obsidianVaultsList();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         if (!res.ok) {
           setError(res.stderr?.trim() || res.stdout?.trim() || "Failed to list Obsidian vaults");
           return;
@@ -51,12 +55,16 @@ export function ObsidianModalContent(props: {
         const list: ObsidianVault[] = Array.isArray(parsed)
           ? parsed
               .map((v) => {
-                if (!v || typeof v !== "object" || Array.isArray(v)) {return null;}
+                if (!v || typeof v !== "object" || Array.isArray(v)) {
+                  return null;
+                }
                 const o = v as { name?: unknown; path?: unknown; open?: unknown };
                 const name = typeof o.name === "string" ? o.name : "";
                 const vaultPath = typeof o.path === "string" ? o.path : "";
                 const open = o.open === true;
-                if (!name || !vaultPath) {return null;}
+                if (!name || !vaultPath) {
+                  return null;
+                }
                 return { name, path: vaultPath, open };
               })
               .filter((v): v is ObsidianVault => Boolean(v))
@@ -65,9 +73,13 @@ export function ObsidianModalContent(props: {
         const openVault = list.find((v) => v.open);
         setSelectedVault(openVault?.name || list[0]?.name || "");
       } catch (err) {
-        if (!cancelled) {setError(String(err));}
+        if (!cancelled) {
+          setError(String(err));
+        }
       } finally {
-        if (!cancelled) {setVaultsLoading(false);}
+        if (!cancelled) {
+          setVaultsLoading(false);
+        }
       }
     })();
     return () => {

@@ -65,7 +65,9 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
 
     const adjustTextareaHeight = React.useCallback(() => {
       const el = textareaRef.current;
-      if (!el) {return;}
+      if (!el) {
+        return;
+      }
       el.style.height = "0";
       const next = Math.min(Math.max(el.scrollHeight, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT);
       el.style.height = `${next}px`;
@@ -78,7 +80,9 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
     const addFiles = React.useCallback(
       (files: FileList | File[]) => {
         const fileArray = Array.from(files);
-        if (!fileArray.length) {return;}
+        if (!fileArray.length) {
+          return;
+        }
         const currentCount = attachments.length;
         const totalNew = fileArray.length;
         if (currentCount + totalNew > maxAttachments) {

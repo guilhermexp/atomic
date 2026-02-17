@@ -32,14 +32,18 @@ class MockWebSocket {
     const list = this.listeners[event];
     if (list) {
       const idx = list.indexOf(fn);
-      if (idx >= 0) {list.splice(idx, 1);}
+      if (idx >= 0) {
+        list.splice(idx, 1);
+      }
     }
   }
 
   send = vi.fn();
 
   close(code?: number, reason?: string) {
-    if (this.readyState === MockWebSocket.CLOSED) {return;}
+    if (this.readyState === MockWebSocket.CLOSED) {
+      return;
+    }
     this.readyState = MockWebSocket.CLOSED;
     this.emit("close", { code: code ?? 1000, reason: reason ?? "" });
   }
@@ -107,7 +111,9 @@ function createClient(overrides: Partial<GatewayClientOptions> = {}) {
 
 function lastWs(): MockWebSocket {
   const ws = wsInstances[wsInstances.length - 1];
-  if (!ws) {throw new Error("No WebSocket instance created");}
+  if (!ws) {
+    throw new Error("No WebSocket instance created");
+  }
   return ws;
 }
 

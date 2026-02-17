@@ -5,9 +5,7 @@ import { useAsyncAction } from "./useAsyncAction";
 
 describe("useAsyncAction", () => {
   it("starts with busy = false", () => {
-    const { result } = renderHook(() =>
-      useAsyncAction({ setError: vi.fn(), setStatus: vi.fn() }),
-    );
+    const { result } = renderHook(() => useAsyncAction({ setError: vi.fn(), setStatus: vi.fn() }));
     expect(result.current.busy).toBe(false);
   });
 

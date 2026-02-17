@@ -31,12 +31,16 @@ export function WebSearchModalContent(props: {
 
   // Pre-fill provider from config when already connected.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         const tools = getObject(cfg.tools);
         const web = getObject(tools.web);
@@ -86,14 +90,22 @@ export function WebSearchModalContent(props: {
         <div className={sm.UiSkillModalProviderSelect}>
           <button
             type="button"
-            className={provider === "brave" ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}` : sm.UiSkillModalProviderOption}
+            className={
+              provider === "brave"
+                ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}`
+                : sm.UiSkillModalProviderOption
+            }
             onClick={() => setProvider("brave")}
           >
             Brave Search
           </button>
           <button
             type="button"
-            className={provider === "perplexity" ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}` : sm.UiSkillModalProviderOption}
+            className={
+              provider === "perplexity"
+                ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}`
+                : sm.UiSkillModalProviderOption
+            }
             onClick={() => setProvider("perplexity")}
           >
             Perplexity Sonar

@@ -28,7 +28,7 @@ export function TelegramAllowlistStep(props: {
                 className={tg.UiAllowlistRemove}
                 disabled={props.busy}
                 title={`Remove ${id}`}
-                onClick={() =>  props.onRemove(id)}
+                onClick={() => props.onRemove(id)}
                 aria-label={`Remove ${id}`}
               >
                 ×

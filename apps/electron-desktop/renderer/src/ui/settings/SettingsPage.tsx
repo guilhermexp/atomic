@@ -36,7 +36,9 @@ function SettingsTabItem({ to, children }: { to: string; children: React.ReactNo
     <NavLink
       to={`/settings/${to}`}
       end={false}
-      className={({ isActive }) => `${s.UiSettingsTab}${isActive ? ` ${s["UiSettingsTab--active"]}` : ""}`}
+      className={({ isActive }) =>
+        `${s.UiSettingsTab}${isActive ? ` ${s["UiSettingsTab--active"]}` : ""}`
+      }
     >
       {children}
     </NavLink>
@@ -45,7 +47,9 @@ function SettingsTabItem({ to, children }: { to: string; children: React.ReactNo
 
 export function SettingsTab({ tab }: { tab: SettingsTabId }) {
   const ctx = useOutletContext<SettingsOutletContext>();
-  if (!ctx) {return null;}
+  if (!ctx) {
+    return null;
+  }
 
   switch (tab) {
     case "model":

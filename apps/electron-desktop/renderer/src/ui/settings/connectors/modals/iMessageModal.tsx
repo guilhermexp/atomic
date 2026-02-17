@@ -22,7 +22,9 @@ export function IMessageModalContent(props: {
     try {
       const snap = await props.loadConfig();
       const baseHash = typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
-      if (!baseHash) {throw new Error("Config base hash missing. Reload and try again.");}
+      if (!baseHash) {
+        throw new Error("Config base hash missing. Reload and try again.");
+      }
 
       await props.gw.request("config.patch", {
         baseHash,

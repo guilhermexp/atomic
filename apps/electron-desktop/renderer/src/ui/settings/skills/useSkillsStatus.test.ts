@@ -120,9 +120,7 @@ describe("disableSkill – config.patch path", () => {
     const gw = mockGw();
     const loadConfig = mockLoadConfig("   ");
 
-    await expect(disableSkill(gw, loadConfig, "slack")).rejects.toThrow(
-      "Config base hash missing"
-    );
+    await expect(disableSkill(gw, loadConfig, "slack")).rejects.toThrow("Config base hash missing");
     expect(gw.request).not.toHaveBeenCalled();
   });
 });

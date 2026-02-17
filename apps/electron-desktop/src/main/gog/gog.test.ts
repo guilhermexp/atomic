@@ -294,9 +294,7 @@ describe("clearGogAuthTokens", () => {
     await new Promise((r) => setTimeout(r, 10));
     children[0].stdout.emit(
       "data",
-      Buffer.from(
-        JSON.stringify({ accounts: [{ email: "a@test.com" }, { email: "b@test.com" }] })
-      )
+      Buffer.from(JSON.stringify({ accounts: [{ email: "a@test.com" }, { email: "b@test.com" }] }))
     );
     children[0].emit("close", 0);
 

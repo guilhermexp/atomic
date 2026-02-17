@@ -20,12 +20,16 @@ export function SignalModalContent(props: {
 
   // Pre-fill: detect existing account.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         const channels = getObject(cfg.channels);
         const signal = getObject(channels.signal);
@@ -53,10 +57,14 @@ export function SignalModalContent(props: {
     try {
       const snap = await props.loadConfig();
       const baseHash = typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
-      if (!baseHash) {throw new Error("Config base hash missing. Reload and try again.");}
+      if (!baseHash) {
+        throw new Error("Config base hash missing. Reload and try again.");
+      }
 
       const patch: Record<string, unknown> = { enabled: true };
-      if (acc) {patch.account = acc;}
+      if (acc) {
+        patch.account = acc;
+      }
 
       await props.gw.request("config.patch", {
         baseHash,

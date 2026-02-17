@@ -133,7 +133,9 @@ export function UpdateBanner() {
 
   return (
     <div className={s.UpdateBanner} role="status" aria-live="polite">
-      <div className={`${s["UpdateBanner-icon"]}${isError ? ` ${s["UpdateBanner-icon--error"]}` : ""}`}>
+      <div
+        className={`${s["UpdateBanner-icon"]}${isError ? ` ${s["UpdateBanner-icon--error"]}` : ""}`}
+      >
         {phase.kind === "available" && <DownloadIcon />}
         {phase.kind === "downloading" && <DownloadIcon />}
         {phase.kind === "ready" && <ReadyIcon />}
@@ -172,7 +174,10 @@ export function UpdateBanner() {
           <div className={s["UpdateBanner-body"]}>
             <span className={s["UpdateBanner-text"]}>Downloading update…</span>
             <div className={s["UpdateBanner-progress"]}>
-              <div className={s["UpdateBanner-progressBar"]} style={{ width: `${phase.percent}%` }} />
+              <div
+                className={s["UpdateBanner-progressBar"]}
+                style={{ width: `${phase.percent}%` }}
+              />
             </div>
           </div>
           <span className={s["UpdateBanner-percent"]}>{phase.percent}%</span>

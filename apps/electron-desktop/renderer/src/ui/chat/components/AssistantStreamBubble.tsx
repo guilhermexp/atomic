@@ -46,7 +46,13 @@ export function AssistantStreamBubble(props: {
         </div>
         {props.text ? (
           <div className="UiChatText UiMarkdown">
-            <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={props.markdownComponents}>{props.text}</Markdown>
+            <Markdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={props.markdownComponents}
+            >
+              {props.text}
+            </Markdown>
           </div>
         ) : null}
       </div>

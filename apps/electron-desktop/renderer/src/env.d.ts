@@ -40,7 +40,7 @@ declare global {
       setApiKey: (provider: string, apiKey: string) => Promise<{ ok: true }>;
       validateApiKey: (
         provider: string,
-        apiKey: string,
+        apiKey: string
       ) => Promise<{ valid: boolean; error?: string }>;
       authHasApiKey: (provider: string) => Promise<{ configured: boolean }>;
       gogAuthList: () => Promise<GogExecResult>;
@@ -76,7 +76,7 @@ declare global {
       fetchReleaseNotes: (
         version: string,
         owner: string,
-        repo: string,
+        repo: string
       ) => Promise<{ ok: boolean; body: string; htmlUrl: string }>;
       // Auto-updater
       checkForUpdate: () => Promise<void>;
@@ -84,7 +84,7 @@ declare global {
       installUpdate: () => Promise<void>;
       onUpdateAvailable: (cb: (payload: UpdateAvailablePayload) => void) => () => void;
       onUpdateDownloadProgress: (
-        cb: (payload: UpdateDownloadProgressPayload) => void,
+        cb: (payload: UpdateDownloadProgressPayload) => void
       ) => () => void;
       onUpdateDownloaded: (cb: (payload: UpdateDownloadedPayload) => void) => () => void;
       onUpdateError: (cb: (payload: UpdateErrorPayload) => void) => () => void;
@@ -108,7 +108,7 @@ declare global {
       terminalGetBuffer: (id: string) => Promise<string>;
       onTerminalData: (cb: (payload: { id: string; data: string }) => void) => () => void;
       onTerminalExit: (
-        cb: (payload: { id: string; exitCode: number; signal?: number }) => void,
+        cb: (payload: { id: string; exitCode: number; signal?: number }) => void
       ) => () => void;
     };
   }

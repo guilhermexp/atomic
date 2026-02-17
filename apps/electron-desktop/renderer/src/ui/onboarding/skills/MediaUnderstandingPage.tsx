@@ -147,7 +147,9 @@ export function MediaUnderstandingPage(props: {
                   value={addKey}
                   onChange={(value) => {
                     setAddKey(value);
-                    if (errorText) {setErrorText("");}
+                    if (errorText) {
+                      setErrorText("");
+                    }
                   }}
                   placeholder="sk-..."
                   autoCapitalize="none"

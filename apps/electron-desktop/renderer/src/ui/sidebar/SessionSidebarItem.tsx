@@ -88,7 +88,9 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
   );
 
   React.useEffect(() => {
-    if (!menuOpen) {return;}
+    if (!menuOpen) {
+      return;
+    }
     const handleClickOutside = (e: MouseEvent) => {
       const trigger = menuTriggerRef.current;
       const popover = popoverRef.current;
@@ -106,7 +108,9 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
   }, [menuOpen]);
 
   return (
-    <li className={`${s.SessionSidebarItem}${menuOpen ? ` ${s["SessionSidebarItem--menuOpen"]}` : ""}`}>
+    <li
+      className={`${s.SessionSidebarItem}${menuOpen ? ` ${s["SessionSidebarItem--menuOpen"]}` : ""}`}
+    >
       <button
         type="button"
         className={`${s.SessionSidebarItem__title}${isActive ? ` ${s["SessionSidebarItem__title--active-true"]}` : ""}`}

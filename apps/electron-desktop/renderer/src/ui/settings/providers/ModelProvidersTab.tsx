@@ -47,11 +47,7 @@ export function ModelProvidersTab(props: {
     <div className={ps.UiSettingsContentInner}>
       <div className={ps.UiSettingsTabTitle}>{title}</div>
 
-      {view === "models" ? (
-        <ModelsView state={state} />
-      ) : (
-        <ProvidersView state={state} />
-      )}
+      {view === "models" ? <ModelsView state={state} /> : <ProvidersView state={state} />}
 
       {/* ── API key modal ──────────────────────────────── */}
       <Modal
@@ -106,9 +102,7 @@ function ModelsView(props: { state: ReturnType<typeof useModelProvidersState> })
             <div className={mp.UiActiveModelInfo}>
               <div className="UiProviderContent">
                 <div className="UiProviderHeader">
-                  <span className="UiProviderName">
-                    {activeModelEntry?.name ?? activeModelId}
-                  </span>
+                  <span className="UiProviderName">{activeModelEntry?.name ?? activeModelId}</span>
                   {activeModelTier ? (
                     <span
                       className={`UiProviderBadge UiModelTierBadge--${activeModelTier}`}

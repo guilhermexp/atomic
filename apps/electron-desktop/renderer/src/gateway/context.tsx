@@ -1,6 +1,11 @@
 import React from "react";
 import { GatewayClient } from "./client";
-export type { ConfigGetResponse, SessionEntry, SessionsListResponse, ModelsListResponse } from "./types";
+export type {
+  ConfigGetResponse,
+  SessionEntry,
+  SessionsListResponse,
+  ModelsListResponse,
+} from "./types";
 
 type GatewayEventFrame = {
   type: "event";

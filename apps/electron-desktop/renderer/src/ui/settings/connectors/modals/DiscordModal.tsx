@@ -20,12 +20,16 @@ export function DiscordModalContent(props: {
 
   // Pre-fill: detect existing token.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         const channels = getObject(cfg.channels);
         const discord = getObject(channels.discord);
@@ -53,10 +57,14 @@ export function DiscordModalContent(props: {
     try {
       const snap = await props.loadConfig();
       const baseHash = typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
-      if (!baseHash) {throw new Error("Config base hash missing. Reload and try again.");}
+      if (!baseHash) {
+        throw new Error("Config base hash missing. Reload and try again.");
+      }
 
       const patch: Record<string, unknown> = { enabled: true };
-      if (t) {patch.token = t;}
+      if (t) {
+        patch.token = t;
+      }
 
       await props.gw.request("config.patch", {
         baseHash,
@@ -90,7 +98,9 @@ export function DiscordModalContent(props: {
       {error && <InlineError>{error}</InlineError>}
       {status && <div className={sm.UiSkillModalStatus}>{status}</div>}
       {hasExistingToken && !token && (
-        <div className={sm.UiSkillModalStatus}>Bot token configured. Enter a new token to update.</div>
+        <div className={sm.UiSkillModalStatus}>
+          Bot token configured. Enter a new token to update.
+        </div>
       )}
 
       <div className={sm.UiSkillModalField}>

@@ -94,9 +94,7 @@ describe("chatSlice reducers", () => {
     // whose text already exists in the incoming history.
     const withLive: ChatSliceState = {
       ...base,
-      messages: [
-        { id: "a-r1-0", role: "assistant", text: "response text", runId: "r1", ts: 9999 },
-      ],
+      messages: [{ id: "a-r1-0", role: "assistant", text: "response text", runId: "r1", ts: 9999 }],
     };
     const history: UiMessage[] = [
       { id: "h-1", role: "user", text: "hello", ts: 100 },
@@ -116,9 +114,7 @@ describe("chatSlice reducers", () => {
         { id: "a-r2-0", role: "assistant", text: "brand new response", runId: "r2", ts: 9999 },
       ],
     };
-    const history: UiMessage[] = [
-      { id: "h-1", role: "user", text: "hello", ts: 100 },
-    ];
+    const history: UiMessage[] = [{ id: "h-1", role: "user", text: "hello", ts: 100 }];
     const state = chatReducer(withLive, chatActions.historyLoaded(history));
     expect(state.messages).toHaveLength(2);
     expect(state.messages[0]).toEqual(history[0]);
@@ -306,9 +302,7 @@ describe("extractAttachmentsFromMessage", () => {
 
   it("extracts image attachment with data field", () => {
     const result = extractAttachmentsFromMessage({
-      content: [
-        { type: "image", data: "abc123", mimeType: "image/jpeg" },
-      ],
+      content: [{ type: "image", data: "abc123", mimeType: "image/jpeg" }],
     });
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe("image");
@@ -409,7 +403,9 @@ describe("parseHistoryMessages", () => {
 function createTestStore(preloadedState?: Partial<ChatSliceState>) {
   return configureStore({
     reducer: { chat: chatReducer },
-    preloadedState: preloadedState ? { chat: { ...chatReducer(undefined, { type: "@@INIT" }), ...preloadedState } } : undefined,
+    preloadedState: preloadedState
+      ? { chat: { ...chatReducer(undefined, { type: "@@INIT" }), ...preloadedState } }
+      : undefined,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {

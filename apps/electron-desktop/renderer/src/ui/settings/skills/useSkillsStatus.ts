@@ -38,9 +38,13 @@ function resolveSkillEntryStatus(config: Record<string, unknown>, skillKey: stri
   const entries = getObject(skills.entries);
   const entry = getObject(entries[skillKey]);
   // Entry exists and is explicitly disabled.
-  if (entry.enabled === false) {return "disabled";}
+  if (entry.enabled === false) {
+    return "disabled";
+  }
   // Entry exists and is enabled.
-  if (entry.enabled === true) {return "connected";}
+  if (entry.enabled === true) {
+    return "connected";
+  }
   return "connect";
 }
 
@@ -179,7 +183,9 @@ export function useSkillsStatus(props: {
 
   // Re-derive config-based statuses whenever configSnap changes.
   React.useEffect(() => {
-    if (!configSnap) {return;}
+    if (!configSnap) {
+      return;
+    }
     setStatuses((prev) => {
       const next = deriveStatusFromConfig(configSnap.config);
       // Preserve Google Workspace status from async gogAuthList check.
@@ -194,9 +200,13 @@ export function useSkillsStatus(props: {
     (async () => {
       try {
         const api = getDesktopApiOrNull();
-        if (!api) {return;}
+        if (!api) {
+          return;
+        }
         const res = await api.gogAuthList();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const connected = res.ok && typeof res.stdout === "string" && res.stdout.trim().length > 0;
         setStatuses((prev) => ({
           ...prev,
@@ -205,7 +215,9 @@ export function useSkillsStatus(props: {
       } catch {
         // Best-effort; leave as "connect".
       } finally {
-        if (!cancelled) {setLoading(false);}
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -216,7 +228,9 @@ export function useSkillsStatus(props: {
   /** Mark a single skill as connected after a successful setup. */
   const markConnected = React.useCallback((skillId: SkillId) => {
     setStatuses((prev) => {
-      if (prev[skillId] === "connected") {return prev;}
+      if (prev[skillId] === "connected") {
+        return prev;
+      }
       return { ...prev, [skillId]: "connected" };
     });
   }, []);
@@ -224,7 +238,9 @@ export function useSkillsStatus(props: {
   /** Mark a single skill as disabled. */
   const markDisabled = React.useCallback((skillId: SkillId) => {
     setStatuses((prev) => {
-      if (prev[skillId] === "disabled") {return prev;}
+      if (prev[skillId] === "disabled") {
+        return prev;
+      }
       return { ...prev, [skillId]: "disabled" };
     });
   }, []);

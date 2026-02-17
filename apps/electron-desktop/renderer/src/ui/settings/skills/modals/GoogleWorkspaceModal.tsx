@@ -26,14 +26,20 @@ export function GoogleWorkspaceModalContent(props: {
 
   // Auto-check connected accounts on mount when already connected.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     const api = getDesktopApiOrNull();
-    if (!api) {return;}
+    if (!api) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const res = await api.gogAuthList();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         if (res.ok && res.stdout?.trim()) {
           setOutput(`Connected accounts:\n${res.stdout.trim()}`);
         }

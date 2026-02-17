@@ -34,7 +34,9 @@ export function StartChatPage({
   // Focus when "New session" was clicked (works even when already on main chat).
   React.useEffect(() => {
     const focusRequested = (location.state as { focusComposer?: boolean } | null)?.focusComposer;
-    if (!focusRequested) {return;}
+    if (!focusRequested) {
+      return;
+    }
     const id = requestAnimationFrame(() => composerRef.current?.focusInput());
     return () => cancelAnimationFrame(id);
   }, [location.state]);

@@ -91,9 +91,7 @@ describe("IPC channel contracts", () => {
 
     registerIpcHandlers(mockParams);
 
-    const registeredChannels = vi
-      .mocked(ipcMain.handle)
-      .mock.calls.map((call) => call[0]);
+    const registeredChannels = vi.mocked(ipcMain.handle).mock.calls.map((call) => call[0]);
 
     for (const channel of EXPECTED_CHANNELS) {
       expect(registeredChannels, `Missing IPC channel: ${channel}`).toContain(channel);
@@ -122,14 +120,10 @@ describe("IPC channel contracts", () => {
 
     registerIpcHandlers(mockParams);
 
-    const registeredChannels = vi
-      .mocked(ipcMain.handle)
-      .mock.calls.map((call) => call[0]);
+    const registeredChannels = vi.mocked(ipcMain.handle).mock.calls.map((call) => call[0]);
 
     for (const channel of registeredChannels) {
-      expect(EXPECTED_CHANNELS, `Unexpected IPC channel registered: ${channel}`).toContain(
-        channel
-      );
+      expect(EXPECTED_CHANNELS, `Unexpected IPC channel registered: ${channel}`).toContain(channel);
     }
   });
 });

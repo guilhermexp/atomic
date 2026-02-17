@@ -14,7 +14,12 @@ import { configureStore } from "@reduxjs/toolkit";
 // infinite useEffect loops in SettingsPage and Sidebar).
 const stableRequest = vi.fn(() => Promise.resolve({}));
 const stableOnEvent = vi.fn(() => () => {});
-const stableGwMock = { client: {}, connected: true, request: stableRequest, onEvent: stableOnEvent };
+const stableGwMock = {
+  client: {},
+  connected: true,
+  request: stableRequest,
+  onEvent: stableOnEvent,
+};
 
 const stableSetOptimistic = vi.fn();
 const stableSessionMock = { optimistic: null, setOptimistic: stableSetOptimistic };
@@ -131,7 +136,7 @@ describe("Smoke render tests", () => {
     const { container } = render(
       <TestShell>
         <LoadingScreen state={null} />
-      </TestShell>,
+      </TestShell>
     );
     expect(container.querySelector(".UiLoadingStage")).toBeTruthy();
     expect(screen.getByText(/loading/i)).toBeTruthy();
@@ -142,7 +147,7 @@ describe("Smoke render tests", () => {
     const { container } = render(
       <TestShell>
         <ConsentScreen onAccepted={onAccepted} />
-      </TestShell>,
+      </TestShell>
     );
     // Query by role/text instead of CSS module class name (CSS modules
     // return undefined class names in vitest without extra config).
@@ -161,7 +166,7 @@ describe("Smoke render tests", () => {
           onAttachmentsChange={vi.fn()}
           onSend={vi.fn()}
         />
-      </TestShell>,
+      </TestShell>
     );
     // The composer should render a textarea / input area.
     const textarea = container.querySelector("textarea");
@@ -172,7 +177,7 @@ describe("Smoke render tests", () => {
     const { container } = render(
       <TestShell initialEntries={["/chat"]}>
         <Sidebar />
-      </TestShell>,
+      </TestShell>
     );
     // The sidebar should render its wrapper element.
     expect(container.firstChild).toBeTruthy();
@@ -189,7 +194,7 @@ describe("Smoke render tests", () => {
     render(
       <TestShell initialEntries={["/settings/ai-models"]}>
         <SettingsPage state={readyState} />
-      </TestShell>,
+      </TestShell>
     );
     expect(screen.getByRole("heading", { name: "Settings" })).toBeTruthy();
     expect(screen.getByText("AI Models")).toBeTruthy();

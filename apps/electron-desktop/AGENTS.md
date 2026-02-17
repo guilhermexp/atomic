@@ -86,15 +86,15 @@ ui/settings/
 
 ### Where to put new code
 
-| What you're adding | Where it goes |
-|---|---|
-| New page / feature | Create a new dir under `ui/` (e.g. `ui/my-feature/`) |
-| Component used by one feature | Inside that feature dir (e.g. `ui/chat/MyComponent.tsx`) |
-| Component/util used by 2+ features | `ui/shared/` (kit for UI primitives, or top-level for utils) |
-| New Redux slice | `store/slices/` (slices stay centralized) |
-| New route | Register in `ui/app/routes.ts`, page component in the feature dir |
-| Global CSS | `ui/styles/` |
-| Per-component CSS | Next to the component file in its feature dir |
+| What you're adding                 | Where it goes                                                     |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| New page / feature                 | Create a new dir under `ui/` (e.g. `ui/my-feature/`)              |
+| Component used by one feature      | Inside that feature dir (e.g. `ui/chat/MyComponent.tsx`)          |
+| Component/util used by 2+ features | `ui/shared/` (kit for UI primitives, or top-level for utils)      |
+| New Redux slice                    | `store/slices/` (slices stay centralized)                         |
+| New route                          | Register in `ui/app/routes.ts`, page component in the feature dir |
+| Global CSS                         | `ui/styles/`                                                      |
+| Per-component CSS                  | Next to the component file in its feature dir                     |
 
 ### Import conventions
 

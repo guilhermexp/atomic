@@ -13,9 +13,13 @@ function uniqueStrings(values: string[]): string[] {
   const next: string[] = [];
   for (const v of values) {
     const trimmed = String(v ?? "").trim();
-    if (!trimmed) {continue;}
+    if (!trimmed) {
+      continue;
+    }
     const key = trimmed.toLowerCase();
-    if (seen.has(key)) {continue;}
+    if (seen.has(key)) {
+      continue;
+    }
     seen.add(key);
     next.push(trimmed);
   }
@@ -50,12 +54,16 @@ export function SlackConnectorModalContent(props: {
 
   // Pre-fill from config when already connected.
   React.useEffect(() => {
-    if (!props.isConnected) {return;}
+    if (!props.isConnected) {
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const snap = await props.loadConfig();
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         const cfg = getObject(snap.config);
         const channels = getObject(cfg.channels);
         const slack = getObject(channels.slack);
@@ -64,7 +72,9 @@ export function SlackConnectorModalContent(props: {
         // Group policy.
         if (typeof slack.groupPolicy === "string") {
           const gp = slack.groupPolicy as GroupPolicy;
-          if (["open", "allowlist", "disabled"].includes(gp)) {setGroupPolicy(gp);}
+          if (["open", "allowlist", "disabled"].includes(gp)) {
+            setGroupPolicy(gp);
+          }
         }
 
         // Channel allowlist — extract keys from channels.slack.channels object.
@@ -75,8 +85,13 @@ export function SlackConnectorModalContent(props: {
         }
 
         // DM policy: prefer top-level alias, fall back to legacy nested key.
-        const resolvedDmPolicy = (typeof slack.dmPolicy === "string" ? slack.dmPolicy : dm.policy) as DmPolicy | undefined;
-        if (resolvedDmPolicy && ["pairing", "allowlist", "open", "disabled"].includes(resolvedDmPolicy)) {
+        const resolvedDmPolicy = (
+          typeof slack.dmPolicy === "string" ? slack.dmPolicy : dm.policy
+        ) as DmPolicy | undefined;
+        if (
+          resolvedDmPolicy &&
+          ["pairing", "allowlist", "open", "disabled"].includes(resolvedDmPolicy)
+        ) {
           setDmPolicy(resolvedDmPolicy);
         }
 
@@ -97,8 +112,12 @@ export function SlackConnectorModalContent(props: {
 
   const canSave = React.useMemo(() => {
     // Need tokens for first connect; for update, can save policy changes alone.
-    if (!props.isConnected && (!botToken.trim() || !appToken.trim())) {return false;}
-    if (dmPolicy === "allowlist" && parseList(dmAllowFromRaw).length === 0) {return false;}
+    if (!props.isConnected && (!botToken.trim() || !appToken.trim())) {
+      return false;
+    }
+    if (dmPolicy === "allowlist" && parseList(dmAllowFromRaw).length === 0) {
+      return false;
+    }
     return true;
   }, [appToken, botToken, dmAllowFromRaw, dmPolicy, props.isConnected]);
 
@@ -109,7 +128,9 @@ export function SlackConnectorModalContent(props: {
     try {
       const snap = await props.loadConfig();
       const baseHash = typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
-      if (!baseHash) {throw new Error("Config base hash missing. Reload and try again.");}
+      if (!baseHash) {
+        throw new Error("Config base hash missing. Reload and try again.");
+      }
 
       // Build channel allowlist object.
       const channelAllowlist = parseList(channelsRaw);
@@ -134,8 +155,12 @@ export function SlackConnectorModalContent(props: {
         ...(dmAllowFrom ? { allowFrom: dmAllowFrom } : {}),
         dm: { enabled: dmPolicy !== "disabled" },
       };
-      if (botToken.trim()) {patch.botToken = botToken.trim();}
-      if (appToken.trim()) {patch.appToken = appToken.trim();}
+      if (botToken.trim()) {
+        patch.botToken = botToken.trim();
+      }
+      if (appToken.trim()) {
+        patch.appToken = appToken.trim();
+      }
 
       await props.gw.request("config.patch", {
         baseHash,
@@ -215,7 +240,11 @@ export function SlackConnectorModalContent(props: {
             <button
               key={p}
               type="button"
-              className={groupPolicy === p ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}` : sm.UiSkillModalProviderOption}
+              className={
+                groupPolicy === p
+                  ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}`
+                  : sm.UiSkillModalProviderOption
+              }
               disabled={busy}
               onClick={() => setGroupPolicy(p)}
             >
@@ -257,7 +286,11 @@ export function SlackConnectorModalContent(props: {
             <button
               key={p}
               type="button"
-              className={dmPolicy === p ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}` : sm.UiSkillModalProviderOption}
+              className={
+                dmPolicy === p
+                  ? `${sm.UiSkillModalProviderOption} ${sm["UiSkillModalProviderOption--active"]}`
+                  : sm.UiSkillModalProviderOption
+              }
               disabled={busy}
               onClick={() => setDmPolicy(p)}
             >

@@ -57,9 +57,7 @@ export function ObsidianConnectPage(props: {
           </div>
 
           <div className="UiApiKeyInputRow">
-            <div className="UiSectionSubtitle mb-sm">
-              Vault
-            </div>
+            <div className="UiSectionSubtitle mb-sm">Vault</div>
             <select
               className="UiInput"
               disabled={props.busy || props.vaultsLoading || props.vaults.length === 0}
@@ -83,11 +81,7 @@ export function ObsidianConnectPage(props: {
                 </>
               )}
             </select>
-            {selected ? (
-              <div className="UiSectionSubtitle mt-sm">
-                Selected: {selected}
-              </div>
-            ) : null}
+            {selected ? <div className="UiSectionSubtitle mt-sm">Selected: {selected}</div> : null}
           </div>
 
           {/*{props.status ? <div className="UiSectionSubtitle">{props.status}</div> : null}*/}

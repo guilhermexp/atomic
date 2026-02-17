@@ -44,7 +44,9 @@ export function UserMessageBubble(props: {
               }
               const mimeType = att.mimeType ?? "application/octet-stream";
               const skipFile = ["toolCall", "thinking"].includes(att.type);
-              if (skipFile) {return null;}
+              if (skipFile) {
+                return null;
+              }
               return (
                 <ChatAttachmentCard
                   key={`${props.id}-att-${idx}`}
@@ -64,7 +66,13 @@ export function UserMessageBubble(props: {
           </div>
         ) : null}
         <div className="UiChatText UiMarkdown">
-          <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={props.markdownComponents}>{messageText}</Markdown>
+          <Markdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            components={props.markdownComponents}
+          >
+            {messageText}
+          </Markdown>
         </div>
       </div>
     </div>

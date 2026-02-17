@@ -36,7 +36,9 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const [status, setStatus] = React.useState<string | null>(null);
   const [error, setErrorState] = React.useState<string | null>(null);
   const setError = React.useCallback((value: string | null) => {
-    if (value) {addToastError(value);}
+    if (value) {
+      addToastError(value);
+    }
     setErrorState(value);
   }, []);
 
@@ -148,7 +150,9 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
 
   const onApiKeySubmit = React.useCallback(
     async (apiKey: string) => {
-      if (!selectedProvider) {return;}
+      if (!selectedProvider) {
+        return;
+      }
       setApiKeyBusy(true);
       setError(null);
       try {

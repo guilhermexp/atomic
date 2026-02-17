@@ -30,7 +30,9 @@ export function WhatsNewModal() {
 
     async function check() {
       const api = getDesktopApiOrNull();
-      if (!api?.getAppVersion) {return;}
+      if (!api?.getAppVersion) {
+        return;
+      }
 
       let { version } = await api.getAppVersion();
 
@@ -54,16 +56,22 @@ export function WhatsNewModal() {
       }
 
       // Same version — nothing to show.
-      if (lastVersion === version) {return;}
+      if (lastVersion === version) {
+        return;
+      }
 
       // New version detected after an update.
-      if (cancelled) {return;}
+      if (cancelled) {
+        return;
+      }
       setState({ kind: "loading", version });
       setOpen(true);
 
       // Fetch release notes via main process IPC (avoids renderer CSP).
       const notes = await api.fetchReleaseNotes(version, GITHUB_OWNER, GITHUB_REPO);
-      if (cancelled) {return;}
+      if (cancelled) {
+        return;
+      }
 
       if (notes.ok && notes.body) {
         setState({ kind: "ready", version, body: notes.body, htmlUrl: notes.htmlUrl });
@@ -90,9 +98,12 @@ export function WhatsNewModal() {
     }
   };
 
-  if (!open || state.kind === "idle") {return null;}
+  if (!open || state.kind === "idle") {
+    return null;
+  }
 
-  const version = state.kind === "loading" ? state.version : state.kind === "ready" ? state.version : "";
+  const version =
+    state.kind === "loading" ? state.version : state.kind === "ready" ? state.version : "";
 
   return (
     <Modal open={open} onClose={handleClose} aria-label="What's new">

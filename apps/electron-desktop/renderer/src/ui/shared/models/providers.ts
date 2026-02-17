@@ -1,4 +1,11 @@
-export type ModelProvider = "anthropic" | "google" | "openai" | "openrouter" | "xai" | "zai" | "minimax";
+export type ModelProvider =
+  | "anthropic"
+  | "google"
+  | "openai"
+  | "openrouter"
+  | "xai"
+  | "zai"
+  | "minimax";
 
 export type ModelProviderInfo = {
   id: ModelProvider;

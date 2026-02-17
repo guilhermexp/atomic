@@ -36,13 +36,10 @@ export function TelegramModalContent(props: {
                 Get bot token ↗
               </a>
             </div>
-            <div className="UiSectionSubtitleAccent mt-sm">
-              How to get your Telegram bot token?
-            </div>
+            <div className="UiSectionSubtitleAccent mt-sm">How to get your Telegram bot token?</div>
             <ol>
               <li>
-                Open Telegram and go to{" "}
-                <span className="UiSectionSubtitleAccent">@BotFather</span>
+                Open Telegram and go to <span className="UiSectionSubtitleAccent">@BotFather</span>
               </li>
               <li>
                 Start a chat and type <span className="UiSectionSubtitleAccent">/newbot</span>
@@ -63,9 +60,7 @@ export function TelegramModalContent(props: {
                 Open BotFather ↗
               </a>
             </div>
-            <div className="UiSectionSubtitleAccent mt-sm">
-              How to get your Telegram user ID?
-            </div>
+            <div className="UiSectionSubtitleAccent mt-sm">How to get your Telegram user ID?</div>
             <ol>
               <li>Open the bot you just created in Telegram</li>
               <li>Click the Start button</li>
@@ -108,11 +103,7 @@ export function TelegramModalContent(props: {
             onAdd={() => void config.handleAddId()}
             onRemove={(id) => void config.handleRemoveId(id)}
           />
-          <ActionButton
-            variant="primary"
-            disabled={config.busy}
-            onClick={config.handleDone}
-          >
+          <ActionButton variant="primary" disabled={config.busy} onClick={config.handleDone}>
             Done
           </ActionButton>
         </>
