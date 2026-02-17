@@ -47,8 +47,12 @@ type OpenclawDesktopApi = {
   startGateway: () => Promise<{ ok: true }>;
   openExternal: (url: string) => Promise<void>;
   setApiKey: (provider: string, apiKey: string) => Promise<{ ok: true }>;
+  setSetupToken: (provider: string, token: string) => Promise<{ ok: true }>;
   validateApiKey: (provider: string, apiKey: string) => Promise<{ valid: boolean; error?: string }>;
   authHasApiKey: (provider: string) => Promise<{ configured: boolean }>;
+  // OAuth login (runs full flow in main process, opens browser automatically)
+  oauthLogin: (provider: string) => Promise<{ ok: true; profileId: string }>;
+  onOAuthProgress: (cb: (payload: { provider: string; message: string }) => void) => () => void;
   gogAuthList: () => Promise<GogExecResult>;
   gogAuthAdd: (params: {
     account: string;
@@ -133,9 +137,15 @@ const api: OpenclawDesktopApi = {
   openExternal: async (url: string) => ipcRenderer.invoke("open-external", { url }),
   setApiKey: async (provider: string, apiKey: string) =>
     ipcRenderer.invoke("auth-set-api-key", { provider, apiKey }),
+  setSetupToken: async (provider: string, token: string) =>
+    ipcRenderer.invoke("auth-set-setup-token", { provider, token }),
   validateApiKey: async (provider: string, apiKey: string) =>
     ipcRenderer.invoke("auth-validate-api-key", { provider, apiKey }),
   authHasApiKey: async (provider: string) => ipcRenderer.invoke("auth-has-api-key", { provider }),
+  // OAuth login (runs full flow in main process, opens browser automatically)
+  oauthLogin: async (provider: string) => ipcRenderer.invoke("oauth:login", { provider }),
+  onOAuthProgress: (cb: (payload: { provider: string; message: string }) => void) =>
+    onIpc("oauth:progress", cb),
   gogAuthList: async () => ipcRenderer.invoke("gog-auth-list"),
   gogAuthAdd: async (params: { account: string; services?: string; noInput?: boolean }) =>
     ipcRenderer.invoke("gog-auth-add", params),

@@ -6,6 +6,7 @@ import { setOnboarded } from "@store/slices/onboardingSlice";
 import type { GatewayState } from "@main/types";
 import { routes } from "../../app/routes";
 import type { Provider } from "../providers/ProviderSelectPage";
+import { MODEL_PROVIDER_BY_ID } from "@shared/models/providers";
 import { useWelcomeApiKey } from "./useWelcomeApiKey";
 import { useWelcomeAppleNotes } from "./useWelcomeAppleNotes";
 import { useWelcomeAppleReminders } from "./useWelcomeAppleReminders";
@@ -68,7 +69,7 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
   const { loadModels, models, modelsError, modelsLoading, onModelSelect, saveDefaultModel } =
     useWelcomeModels({ ...commonDeps, goSkills: nav.goSkills });
 
-  const { saveApiKey, onMediaProviderKeySubmit } = useWelcomeApiKey({
+  const { saveApiKey, saveSetupToken, onMediaProviderKeySubmit } = useWelcomeApiKey({
     ...commonDeps,
     loadModels,
     refreshProviderFlags,
@@ -143,9 +144,51 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
       setSelectedProvider(provider);
       setError(null);
       setStatus(null);
-      nav.goApiKey();
+      const info = MODEL_PROVIDER_BY_ID[provider];
+      if (info?.authType === "oauth") {
+        nav.goOAuthProvider();
+      } else {
+        nav.goApiKey();
+      }
     },
-    [nav.goApiKey, setError]
+    [nav.goApiKey, nav.goOAuthProvider, setError]
+  );
+
+  const onOAuthSuccess = React.useCallback(
+    async (profileId: string) => {
+      try {
+        // Update config with auth profile entry (same pattern as saveApiKey).
+        const provider = profileId.split(":")[0] ?? "";
+        const snap = await loadConfig();
+        const baseHash =
+          typeof snap.hash === "string" && snap.hash.trim() ? snap.hash.trim() : null;
+        if (baseHash && provider) {
+          await gw.request("config.patch", {
+            baseHash,
+            raw: JSON.stringify(
+              {
+                auth: {
+                  profiles: {
+                    [profileId]: { provider, mode: "oauth" },
+                  },
+                  order: {
+                    [provider]: [profileId],
+                  },
+                },
+              },
+              null,
+              2
+            ),
+            note: `Welcome: enable ${provider} oauth profile`,
+          });
+        }
+        await loadModels();
+        nav.goModelSelect();
+      } catch (err) {
+        setError(String(err));
+      }
+    },
+    [gw, loadConfig, loadModels, nav.goModelSelect, setError]
   );
 
   const onApiKeySubmit = React.useCallback(
@@ -168,6 +211,28 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
       }
     },
     [selectedProvider, saveApiKey, loadModels, nav.goModelSelect, setError]
+  );
+
+  const onSetupTokenSubmit = React.useCallback(
+    async (token: string) => {
+      if (!selectedProvider) {
+        return;
+      }
+      setApiKeyBusy(true);
+      setError(null);
+      try {
+        const ok = await saveSetupToken(selectedProvider, token);
+        if (ok) {
+          await loadModels();
+          nav.goModelSelect();
+        }
+      } catch (err) {
+        setError(String(err));
+      } finally {
+        setApiKeyBusy(false);
+      }
+    },
+    [selectedProvider, saveSetupToken, loadModels, nav.goModelSelect, setError]
   );
 
   return {
@@ -244,7 +309,9 @@ export function useWelcomeState({ state, navigate }: WelcomeStateInput) {
     finish,
     goMediaUnderstanding,
     onApiKeySubmit,
+    onSetupTokenSubmit,
     onModelSelect,
+    onOAuthSuccess,
     onProviderSelect,
     selectedProvider,
     status,
