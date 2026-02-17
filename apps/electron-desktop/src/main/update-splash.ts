@@ -74,21 +74,30 @@ function run(argv) {
   win.collectionBehavior = 1 << 0; // NSWindowCollectionBehaviorCanJoinAllSpaces
 
   var cv = win.contentView;
+  var cw = cv.bounds.size.width;
+  var ch = cv.bounds.size.height;
 
-  // ---- Spinner (40x40, centered) ----
-  var spinner = $.NSProgressIndicator.alloc.initWithFrame(
-    $.NSMakeRect((W - 40) / 2, 70, 40, 40)
-  );
-  spinner.style = 1; // NSProgressIndicatorStyleSpinning
-  spinner.displayedWhenStopped = false;
-  spinner.startAnimation(null);
-  cv.addSubview(spinner);
+  // Block centered on both axes (vertical: baseY; horizontal: full width + center alignment).
+  var gapTitleSubtitle = 4;   // smaller gap between title and subtitle
+  var gapLoaderTitle = 14;   // a bit more under the loader (above title)
+  var subtitleH = 20, titleH = 28, spinnerSz = 40;
+  var blockH = subtitleH + gapTitleSubtitle + titleH + gapLoaderTitle + spinnerSz;
+  var baseY = (ch - blockH) / 2;
 
-  // ---- Helper: measure text width and create a centered label ----
+  // ---- Helper: label centered by measured text width (alignment unreliable in JXA) ----
   function makeLabel(text, font, color, y, h) {
-    var attrs = $.NSDictionary.dictionaryWithObjectForKey(font, $.NSFontAttributeName);
-    var textW = $(text).sizeWithAttributes(attrs).width + 4;
-    var textX = (W - textW) / 2;
+    var textW = cw;
+    var textX = 0;
+    try {
+      var attrs = $.NSDictionary.dictionaryWithObjectForKey(font, $.NSFontAttributeName);
+      var attrStr = $.NSAttributedString.alloc.init.initWithStringAttributes(text, attrs);
+      var size = attrStr.size; // NSSize
+      var w = size.width;
+      if (typeof w === 'number' && w > 0) {
+        textW = Math.min(Math.ceil(w) + 16, cw);
+        textX = (cw - textW) / 2;
+      }
+    } catch (e) { /* keep full width */ }
     var field = $.NSTextField.alloc.initWithFrame($.NSMakeRect(textX, y, textW, h));
     field.stringValue = text;
     field.setBezeled(false);
@@ -97,24 +106,35 @@ function run(argv) {
     field.setSelectable(false);
     field.textColor = color;
     field.font = font;
+    field.cell.setAlignment(2); // NSCenterTextAlignment within the centered frame
     return field;
   }
 
-  // ---- Title label (manually centered) ----
-  cv.addSubview(makeLabel(
-    'Updating Atomic Bot\\u2026',
-    $.NSFont.systemFontOfSizeWeight(16, 0.5),
-    $.NSColor.colorWithSRGBRedGreenBlueAlpha(0.9, 0.93, 0.95, 1.0),
-    26, 28
-  ));
-
-  // ---- Subtitle (manually centered) ----
+  // ---- Subtitle (bottom of block, centered) ----
   cv.addSubview(makeLabel(
     'Please wait\\u2026',
     $.NSFont.systemFontOfSize(12),
     $.NSColor.colorWithSRGBRedGreenBlueAlpha(0.55, 0.6, 0.65, 1.0),
-    4, 20
+    baseY, subtitleH
   ));
+
+  // ---- Title (centered) ----
+  cv.addSubview(makeLabel(
+    'Updating Atomic Bot\\u2026',
+    $.NSFont.systemFontOfSizeWeight(16, 0.5),
+    $.NSColor.colorWithSRGBRedGreenBlueAlpha(0.9, 0.93, 0.95, 1.0),
+    baseY + subtitleH + gapTitleSubtitle, titleH
+  ));
+
+  // ---- Spinner / loader (40x40, centered on both axes) ----
+  var spinnerX = (cw - spinnerSz) / 2;
+  var spinner = $.NSProgressIndicator.alloc.initWithFrame(
+    $.NSMakeRect(spinnerX, baseY + subtitleH + gapTitleSubtitle + titleH + gapLoaderTitle, spinnerSz, spinnerSz)
+  );
+  spinner.style = 1; // NSProgressIndicatorStyleSpinning
+  spinner.displayedWhenStopped = false;
+  spinner.startAnimation(null);
+  cv.addSubview(spinner);
 
   // ---- Show ----
   // Manual centering via setFrameDisplayAnimate (performSelector('center')
