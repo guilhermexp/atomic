@@ -5,11 +5,12 @@ export function PrimaryButton(props: {
   size?: "sm";
   disabled?: boolean;
   loading?: boolean;
+  className?: string;
   onClick: () => void;
 }) {
   return (
     <button
-      className={`UiPrimaryButton ${props.size === "sm" && "UiPrimaryButtonSm"}`}
+      className={`UiPrimaryButton ${props.size === "sm" && "UiPrimaryButtonSm"} ${props?.className}`}
       disabled={props.disabled || props.loading}
       onClick={props.onClick}
     >

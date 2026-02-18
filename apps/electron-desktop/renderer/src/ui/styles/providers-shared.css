@@ -28,6 +28,17 @@
   cursor: default;
 }
 
+.UiChatGPTButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 100px;
+  background: #fff;
+  color: #121212;
+  font-weight: 500;
+}
+
 .UiProviderContinueRow {
   display: flex;
   justify-content: space-between;

@@ -134,10 +134,16 @@ export function OAuthModalContent(props: {
   return (
     <>
       <div className={s.UiModalProviderHeader}>
-        <span className={s.UiModalProviderIcon} aria-hidden="true">
-          <img src={resolveProviderIconUrl(provider.id)} alt="" />
-        </span>
-        <span className={s.UiModalProviderName}>{provider.name}</span>
+        {provider?.helpTitle ? (
+          <span>{provider.helpTitle}</span>
+        ) : (
+          <>
+            <span className={s.UiModalProviderIcon} aria-hidden="true">
+              <img src={resolveProviderIconUrl(provider.id)} alt="" />
+            </span>
+            <span className={s.UiModalProviderName}>{provider.name}</span>
+          </>
+        )}
       </div>
 
       <div className={s.UiModalHelpText}>
@@ -183,7 +189,7 @@ export function OAuthModalContent(props: {
             loading={isBusy}
             onClick={() => void startOAuth()}
           >
-            {state === "error" ? "Retry" : isBusy ? "Signing in\u2026" : "Sign in with ChatGPT"}
+            {state === "error" ? "Retry" : isBusy ? "Signing in\u2026" : "Continue with ChatGPT"}
           </ActionButton>
         )}
       </div>

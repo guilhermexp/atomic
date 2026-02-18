@@ -19,6 +19,7 @@ export type ModelProviderInfo = {
   placeholder?: string;
   popular?: boolean;
   helpUrl?: string;
+  helpTitle?: string;
   helpText?: string;
   /** Authentication type. Defaults to "api_key" when omitted. */
   authType?: "api_key" | "oauth";
@@ -96,7 +97,9 @@ export const MODEL_PROVIDERS: ModelProviderInfo[] = [
     description: "Use your ChatGPT subscription to access AI Agent",
     authType: "oauth",
     helpUrl: "https://openai.com/codex/",
-    helpText: "Sign in with your ChatGPT account.",
+    helpTitle: "Continue with your ChatGPT subscription",
+    helpText:
+      "Automatically connect to your ChatGPT account and use the AI Agent at no extra cost.",
   },
   {
     id: "kimi-coding",

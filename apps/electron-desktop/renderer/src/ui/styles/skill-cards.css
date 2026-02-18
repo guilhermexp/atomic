@@ -228,14 +228,19 @@
 }
 
 .UiSkillConnectButtonConfigure {
-  cursor: pointer;
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--surface-tertiary);
   color: #ffffff;
-  font-weight: 750;
-  transition: opacity var(--transition-base);
-  padding: 0 8px;
+  background:
+    linear-gradient(#353535, #353535) padding-box,
+    linear-gradient(
+        150deg,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0) 50%,
+        rgba(255, 255, 255, 0.24) 100%
+      )
+      border-box;
+
+  border: 1px solid transparent;
+  cursor: pointer;
 }
 
 .UiSkillConnectButtonConfigure:hover {
