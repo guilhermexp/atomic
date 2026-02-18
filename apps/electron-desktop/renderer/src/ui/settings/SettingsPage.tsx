@@ -133,7 +133,12 @@ export function SettingsPage({ state }: { state: Extract<GatewayState, { kind: "
   );
 
   return (
-    <HeroPageLayout aria-label="Settings page" hideTopbar color="secondary">
+    <HeroPageLayout
+      aria-label="Settings page"
+      hideTopbar
+      color="secondary"
+      className={s.UiSettingsShell + " scrollable"}
+    >
       <div className={s.UiSettingsShellWrapper}>
         <div className={s.UiSettingsHeader}>
           <h1 className={s.UiSettingsTitle}>Settings</h1>

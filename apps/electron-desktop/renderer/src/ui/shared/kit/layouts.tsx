@@ -32,14 +32,15 @@ export function HeroPageLayout(props: {
   variant?: "default" | "compact";
   color?: "primary" | "secondary";
   hideTopbar?: boolean;
+  className?: string;
 }) {
-  const { title, subtitle, children, role = "main" } = props;
+  const { title, subtitle, children, role = "main", className } = props;
   const align = props.align ?? "start";
   const variant = props.variant ?? "default";
   const color = props.color ?? "primary";
   const hideTopbar = props.hideTopbar ?? false;
   const brandIconUrl = useAppIconUrl();
-  const heroClassName = `UiHero UiHero-align-${align}${variant === "compact" ? " UiHero-compact" : ""}${color === "secondary" ? " UiHero-secondary-color" : ""}`;
+  const heroClassName = `UiHero UiHero-align-${align}${variant === "compact" ? " UiHero-compact" : ""}${color === "secondary" ? " UiHero-secondary-color" : ""} ${className}`;
   return (
     <div className="UiHeroShell" role={role} aria-label={props["aria-label"]}>
       {!hideTopbar && (

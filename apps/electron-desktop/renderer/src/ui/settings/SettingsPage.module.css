@@ -1,11 +1,14 @@
 /* Settings page styles */
 
+.UiSettingsShell {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .UiSettingsShellWrapper {
   width: 100%;
   max-width: 680px;
   min-width: 568px;
-  height: 100vh;
-  overflow: auto;
 }
 
 .UiSettingsHeader {
