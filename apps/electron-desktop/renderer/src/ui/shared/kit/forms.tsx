@@ -1,4 +1,5 @@
 import React from "react";
+import { MagnifierIcon } from "@shared/kit/icons";
 
 export function TextInput(props: {
   value: string;
@@ -16,11 +17,12 @@ export function TextInput(props: {
   label?: string;
   isSearch?: boolean;
 }) {
-  const className = `UiInput${props.error ? " UiInput--error" : ""}${props.className ? ` ${props.className}` : ""}`;
+  const className = `UiInput${props.error ? " UiInput--error" : ""}${props.className ? ` ${props.className}` : ""}${props.isSearch ? ` UiInput--search` : ""}`;
   return (
     <div>
       {props.label && <label className={"UiInputLabel"}>{props.label}</label>}
       <div className={`UiInputWrap ${props.isError ? "UiInputWrapError" : ""}`}>
+        {props.isSearch && <MagnifierIcon className="UiInputIcon" />}
         <input
           ref={props.inputRef}
           className={className}
