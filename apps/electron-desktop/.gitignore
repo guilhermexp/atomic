@@ -8,6 +8,7 @@ vendor/
 .remindctl-runtime/
 .obsidian-cli-runtime/
 .gh-runtime/
+.whisper-cli-runtime/
 .env
 .env.*
 .DS_Store

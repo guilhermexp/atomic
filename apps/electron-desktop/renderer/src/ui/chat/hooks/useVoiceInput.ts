@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getDesktopApiOrNull } from "@ipc/desktopApi";
+import { useWavRecorder } from "./useWavRecorder";
 
 export type VoiceProvider = "openai" | "local";
 
 const STORAGE_KEY = "openclaw:voiceProvider";
+const MODEL_STORAGE_KEY = "openclaw:whisperModel";
+
+export function getWhisperModel(): string {
+  try {
+    return localStorage.getItem(MODEL_STORAGE_KEY) ?? "small";
+  } catch {
+    return "small";
+  }
+}
 
 export function getVoiceProvider(): VoiceProvider {
   try {
@@ -33,6 +44,14 @@ export type UseVoiceInputResult = {
   isProcessing: boolean;
 };
 
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
+
 export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +60,9 @@ export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const providerRef = useRef<VoiceProvider>("openai");
+
+  const wavRecorder = useWavRecorder();
 
   useEffect(() => {
     return () => {
@@ -51,11 +73,12 @@ export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
 
   const startRecording = useCallback(() => {
     setError(null);
-
     const provider = getVoiceProvider();
+    providerRef.current = provider;
 
     if (provider === "local") {
-      setError("Local Whisper is not available yet. Switch to OpenAI Whisper in Settings → Voice.");
+      wavRecorder.startRecording();
+      setIsRecording(true);
       return;
     }
 
@@ -84,9 +107,41 @@ export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
       .catch((err) => {
         setError(`Microphone access denied: ${String(err)}`);
       });
-  }, []);
+  }, [wavRecorder]);
 
   const stopRecording = useCallback(async (): Promise<string | null> => {
+    if (providerRef.current === "local") {
+      setIsRecording(false);
+      setIsProcessing(true);
+
+      try {
+        const wavData = await wavRecorder.stopRecording();
+        if (!wavData || wavData.length === 0) {
+          return null;
+        }
+
+        const api = getDesktopApiOrNull();
+        if (!api?.whisperTranscribe) {
+          setError("Desktop API not available for local transcription.");
+          return null;
+        }
+
+        const base64 = uint8ToBase64(wavData);
+        const result = await api.whisperTranscribe({ audio: base64, model: getWhisperModel() });
+        if (!result.ok) {
+          setError(`Transcription failed: ${result.error ?? "unknown error"}`);
+          return null;
+        }
+        return result.text?.trim() || null;
+      } catch (err) {
+        setError(`Transcription failed: ${err instanceof Error ? err.message : String(err)}`);
+        return null;
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+
+    // OpenAI mode
     const recorder = mediaRecorderRef.current;
     const stream = mediaStreamRef.current;
     if (!recorder || recorder.state !== "recording") {
@@ -113,11 +168,7 @@ export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
         try {
           const arrayBuf = await blob.arrayBuffer();
           const bytes = new Uint8Array(arrayBuf);
-          let binary = "";
-          for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]!);
-          }
-          const base64 = btoa(binary);
+          const base64 = uint8ToBase64(bytes);
 
           const result = await gwRequest<{ text: string; model?: string }>("audio.transcribe", {
             audio: base64,
@@ -134,17 +185,31 @@ export function useVoiceInput(gwRequest: GatewayRequest): UseVoiceInputResult {
       };
       recorder.stop();
     });
-  }, [gwRequest]);
+  }, [gwRequest, wavRecorder]);
 
   const cancelRecording = useCallback(() => {
-    mediaRecorderRef.current?.stop();
-    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    mediaStreamRef.current = null;
-    mediaRecorderRef.current = null;
-    chunksRef.current = [];
+    if (providerRef.current === "local") {
+      wavRecorder.cancelRecording();
+    } else {
+      mediaRecorderRef.current?.stop();
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+      mediaRecorderRef.current = null;
+      chunksRef.current = [];
+    }
     setIsRecording(false);
     setIsProcessing(false);
-  }, []);
+  }, [wavRecorder]);
 
-  return { startRecording, stopRecording, cancelRecording, isRecording, error, isProcessing };
+  const combinedIsRecording = isRecording || wavRecorder.isRecording;
+  const combinedError = error ?? wavRecorder.error;
+
+  return {
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    isRecording: combinedIsRecording,
+    error: combinedError,
+    isProcessing,
+  };
 }

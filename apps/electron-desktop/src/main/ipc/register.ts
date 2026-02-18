@@ -5,6 +5,7 @@
  */
 import { registerGogIpcHandlers } from "../gog/ipc";
 import { registerResetAndCloseIpcHandler } from "../reset/ipc";
+import { registerWhisperIpcHandlers } from "../whisper/ipc";
 
 import type { RegisterParams } from "./types";
 import { registerFileHandlers } from "./files";
@@ -39,6 +40,13 @@ export function registerIpcHandlers(params: RegisterParams) {
     openclawDir: params.openclawDir,
     userData: params.userData,
     gogCredentialsPath: "",
+  });
+  registerWhisperIpcHandlers({
+    whisperCliBin: params.whisperCliBin,
+    getMainWindow: params.getMainWindow,
+    stateDir: params.stateDir,
+    stopGatewayChild: params.stopGatewayChild,
+    startGateway: params.startGateway,
   });
   registerResetAndCloseIpcHandler({
     userData: params.userData,

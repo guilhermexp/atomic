@@ -19,7 +19,7 @@ export function ProviderSelectPage(props: {
   const [selected, setSelected] = React.useState<Provider | null>(
     props.selectedProvider ? props.selectedProvider : null
   );
-  const totalSteps = 5;
+  const totalSteps = 6;
   const activeStep = 0;
 
   useEffect(() => {

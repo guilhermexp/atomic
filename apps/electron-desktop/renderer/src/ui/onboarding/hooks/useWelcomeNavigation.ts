@@ -69,6 +69,10 @@ export function useWelcomeNavigation(navigate: NavigateFunction) {
     void navigate(`${routes.welcome}/github`);
   }, [navigate]);
 
+  const goVoiceProvider = useCallback(() => {
+    void navigate(`${routes.welcome}/voice-provider`);
+  }, [navigate]);
+
   const goConnections = useCallback(() => {
     void navigate(`${routes.welcome}/connections`);
   }, [navigate]);
@@ -105,6 +109,7 @@ export function useWelcomeNavigation(navigate: NavigateFunction) {
     goAppleReminders,
     goConnections,
     goGitHub,
+    goVoiceProvider,
     goGog,
     goGogGoogleWorkspace,
     goModelSelect,

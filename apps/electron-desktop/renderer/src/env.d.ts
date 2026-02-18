@@ -114,6 +114,39 @@ declare global {
         skills: Array<{ name: string; description: string; emoji: string; dirName: string }>;
       }>;
       removeCustomSkill: (dirName: string) => Promise<{ ok: boolean; error?: string }>;
+      // Local Whisper voice transcription
+      whisperModelStatus: (params?: { model?: string }) => Promise<{
+        modelReady: boolean;
+        binReady: boolean;
+        modelPath: string;
+        size: number;
+        modelId: string;
+      }>;
+      whisperModelDownload: (params?: { model?: string }) => Promise<{
+        ok: boolean;
+        modelPath?: string;
+        error?: string;
+      }>;
+      whisperModelDownloadCancel: () => Promise<{ ok: boolean }>;
+      whisperSetGatewayModel: (modelId: string) => Promise<{ ok: boolean; error?: string }>;
+      onWhisperModelDownloadProgress: (
+        cb: (payload: { percent: number; transferred: number; total: number }) => void
+      ) => () => void;
+      whisperModelsList: () => Promise<
+        Array<{
+          id: string;
+          label: string;
+          description: string;
+          sizeLabel: string;
+          downloaded: boolean;
+          size: number;
+        }>
+      >;
+      whisperTranscribe: (params: {
+        audio: string;
+        language?: string;
+        model?: string;
+      }) => Promise<{ ok: boolean; text?: string; error?: string }>;
       // Embedded terminal (PTY) — multi-session
       terminalCreate: () => Promise<{ id: string }>;
       terminalWrite: (id: string, data: string) => Promise<void>;

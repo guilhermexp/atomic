@@ -295,6 +295,7 @@ void app.whenReady().then(async () => {
   const remindctlBin = resolveBin("remindctl", binOpts);
   const obsidianCliBin = resolveBin("obsidian-cli", binOpts);
   const ghBin = resolveBin("gh", binOpts);
+  const whisperCliBin = resolveBin("whisper-cli", binOpts);
 
   const port = await pickPort(DEFAULT_PORT);
   const url = `http://127.0.0.1:${port}/`;
@@ -328,12 +329,14 @@ void app.whenReady().then(async () => {
 
   const stderrTail = createTailBuffer(24_000);
 
-  const startGateway = async () => {
+  const startGateway = async (opts?: { silent?: boolean }) => {
     if (gateway) {
       return;
     }
     const nextWin = await ensureMainWindow();
-    broadcastGatewayState(nextWin, { kind: "starting", port, logsDir, token });
+    if (!opts?.silent) {
+      broadcastGatewayState(nextWin, { kind: "starting", port, logsDir, token });
+    }
     gateway = spawnGateway({
       port,
       logsDir,
@@ -348,6 +351,7 @@ void app.whenReady().then(async () => {
       remindctlBin,
       obsidianCliBin,
       ghBin,
+      whisperCliBin,
       electronRunAsNode: nodeBin === process.execPath,
       stderrTail,
     });
@@ -408,6 +412,7 @@ void app.whenReady().then(async () => {
     remindctlBin,
     obsidianCliBin,
     ghBin,
+    whisperCliBin,
     stopGatewayChild,
     getGatewayToken: () => token,
     setGatewayToken: (t: string) => {

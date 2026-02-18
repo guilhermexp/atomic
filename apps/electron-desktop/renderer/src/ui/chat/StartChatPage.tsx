@@ -5,7 +5,7 @@ import type { GatewayState } from "@main/types";
 import { dataUrlToBase64, type ChatAttachmentInput } from "@store/slices/chatSlice";
 import { getObject } from "@shared/utils/configHelpers";
 import { ChatComposer, type ChatComposerRef } from "./components/ChatComposer";
-import { useVoiceInput } from "./hooks/useVoiceInput";
+import { useVoiceInput, getVoiceProvider } from "./hooks/useVoiceInput";
 import { addToastError } from "@shared/toast";
 import { routes } from "../app/routes";
 import ct from "./ChatTranscript.module.css";
@@ -47,6 +47,11 @@ export function StartChatPage({
   const [voiceConfigured, setVoiceConfigured] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
+    const savedProvider = getVoiceProvider();
+    if (savedProvider === "local") {
+      setVoiceConfigured(true);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {

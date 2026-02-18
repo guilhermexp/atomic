@@ -110,7 +110,7 @@ export function RestoreFilePage() {
     void navigate(`${routes.welcome}/restore`);
   }, [navigate]);
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   const activeStep = 0;
 
   return (

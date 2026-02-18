@@ -3,6 +3,7 @@ import { chatReducer } from "./slices/chatSlice";
 import { configReducer } from "./slices/configSlice";
 import { gatewayReducer } from "./slices/gatewaySlice";
 import { onboardingReducer } from "./slices/onboardingSlice";
+import { whisperReducer } from "./slices/whisperSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     config: configReducer,
     gateway: gatewayReducer,
     onboarding: onboardingReducer,
+    whisper: whisperReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

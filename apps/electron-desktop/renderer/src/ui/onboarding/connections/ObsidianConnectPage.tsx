@@ -20,7 +20,7 @@ export function ObsidianConnectPage(props: {
   onRecheck: () => void;
   onBack: () => void;
 }) {
-  const totalSteps = 5;
+  const totalSteps = 6;
   const activeStep = 3;
   const selected = props.selectedVaultName;
 

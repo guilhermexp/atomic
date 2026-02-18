@@ -33,16 +33,16 @@ describe("FeatureCta", () => {
   // ---------- disabled ----------
 
   describe('status = "disabled"', () => {
-    it("renders a Disabled button", () => {
+    it("renders a Connect button", () => {
       render(<FeatureCta status="disabled" />);
-      const btn = screen.getByRole("button", { name: /disabled.*configure/i });
-      expect(btn.textContent).toBe("Disabled");
+      const btn = screen.getByRole("button", { name: "Connect" });
+      expect(btn.textContent).toBe("Connect");
     });
 
-    it("calls onSettings when Disabled is clicked", () => {
+    it("calls onSettings when Connect is clicked", () => {
       const onSettings = vi.fn();
       render(<FeatureCta status="disabled" onSettings={onSettings} />);
-      fireEvent.click(screen.getByRole("button", { name: /disabled.*configure/i }));
+      fireEvent.click(screen.getByRole("button", { name: "Connect" }));
       expect(onSettings).toHaveBeenCalledOnce();
     });
   });

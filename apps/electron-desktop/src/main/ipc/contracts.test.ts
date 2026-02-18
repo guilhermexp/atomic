@@ -69,6 +69,13 @@ const EXPECTED_CHANNELS = [
   "gog-auth-list",
   "gog-auth-add",
   "gog-auth-credentials",
+  // whisper (registered by registerWhisperIpcHandlers)
+  "whisper-model-status",
+  "whisper-model-download",
+  "whisper-model-download-cancel",
+  "whisper-set-gateway-model",
+  "whisper-models-list",
+  "whisper-transcribe",
   // reset (registered by registerResetAndCloseIpcHandler)
   "reset-and-close",
 ];
@@ -95,6 +102,7 @@ describe("IPC channel contracts", () => {
       remindctlBin: "/bin/remindctl",
       obsidianCliBin: "/bin/obsidian-cli",
       ghBin: "/bin/gh",
+      whisperCliBin: "/bin/whisper-cli",
       stopGatewayChild: vi.fn(async () => {}),
       getGatewayToken: vi.fn(() => "test-token"),
       setGatewayToken: vi.fn(),
@@ -126,6 +134,7 @@ describe("IPC channel contracts", () => {
       remindctlBin: "/bin/remindctl",
       obsidianCliBin: "/bin/obsidian-cli",
       ghBin: "/bin/gh",
+      whisperCliBin: "/bin/whisper-cli",
       stopGatewayChild: vi.fn(async () => {}),
       getGatewayToken: vi.fn(() => "test-token"),
       setGatewayToken: vi.fn(),

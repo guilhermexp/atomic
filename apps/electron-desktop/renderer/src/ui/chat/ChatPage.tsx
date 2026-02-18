@@ -21,7 +21,7 @@ import { ChatMessageList } from "./components/ChatMessageList";
 import { ScrollToBottomButton } from "./components/ScrollToBottomButton";
 import { useOptimisticSession } from "./hooks/optimisticSessionContext";
 import { useChatStream } from "./hooks/useChatStream";
-import { useVoiceInput } from "./hooks/useVoiceInput";
+import { useVoiceInput, getVoiceProvider } from "./hooks/useVoiceInput";
 import { addToastError } from "@shared/toast";
 import ct from "./ChatTranscript.module.css";
 
@@ -240,6 +240,11 @@ export function ChatPage({ state: _state }: { state: Extract<GatewayState, { kin
   const [voiceConfigured, setVoiceConfigured] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
+    const savedProvider = getVoiceProvider();
+    if (savedProvider === "local") {
+      setVoiceConfigured(true);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {

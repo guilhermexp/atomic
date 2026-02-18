@@ -168,13 +168,13 @@ describe("Restore flow smoke tests", () => {
     expect(screen.getByRole("button", { name: /back/i })).toBeTruthy();
   });
 
-  it("RestoreFilePage renders warning block", () => {
+  it("RestoreFilePage renders subtitle", () => {
     render(
       <TestShell>
         <RestoreFilePage />
       </TestShell>
     );
-    expect(screen.getByText(/replace your current configuration/i)).toBeTruthy();
+    expect(screen.getByText(/upload a backup archive/i)).toBeTruthy();
   });
 
   it("RestoreFilePage renders hidden file input", () => {

@@ -84,6 +84,13 @@ describe("preload API contract", () => {
       "terminalKill",
       "terminalList",
       "terminalGetBuffer",
+      "whisperModelStatus",
+      "whisperModelDownload",
+      "whisperModelDownloadCancel",
+      "whisperSetGatewayModel",
+      "onWhisperModelDownloadProgress",
+      "whisperModelsList",
+      "whisperTranscribe",
       "onTerminalData",
       "onTerminalExit",
     ];

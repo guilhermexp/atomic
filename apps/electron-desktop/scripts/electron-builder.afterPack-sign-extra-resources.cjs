@@ -202,6 +202,7 @@ module.exports = async function afterPack(context) {
     "remindctl",
     "obsidian-cli",
     "gh",
+    "whisper-cli",
     "openclaw",
   ].map((name) => path.join(resourcesDir, name));
   const roots = candidateRoots.filter((p) => fs.existsSync(p));

@@ -9,7 +9,7 @@ export function AppleRemindersConnectPage(props: {
   onAuthorizeAndEnable: () => void;
   onBack: () => void;
 }) {
-  const totalSteps = 5;
+  const totalSteps = 6;
   const activeStep = 3;
 
   return (

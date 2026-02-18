@@ -10,7 +10,7 @@ export type RegisterParams = {
   getLogsDir: () => string | null;
   getConsentAccepted: () => boolean;
   acceptConsent: () => Promise<void>;
-  startGateway: () => Promise<void>;
+  startGateway: (opts?: { silent?: boolean }) => Promise<void>;
   userData: string;
   stateDir: string;
   logsDir: string;
@@ -20,6 +20,7 @@ export type RegisterParams = {
   remindctlBin: string;
   obsidianCliBin: string;
   ghBin: string;
+  whisperCliBin: string;
   stopGatewayChild: () => Promise<void>;
   getGatewayToken: () => string;
   setGatewayToken: (token: string) => void;

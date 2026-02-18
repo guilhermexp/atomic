@@ -118,6 +118,37 @@ type OpenclawDesktopApi = {
     skills: Array<{ name: string; description: string; emoji: string; dirName: string }>;
   }>;
   removeCustomSkill: (dirName: string) => Promise<{ ok: boolean; error?: string }>;
+  // Local Whisper voice transcription
+  whisperModelStatus: (params?: { model?: string }) => Promise<{
+    modelReady: boolean;
+    binReady: boolean;
+    modelPath: string;
+    size: number;
+    modelId: string;
+  }>;
+  whisperModelDownload: (params?: {
+    model?: string;
+  }) => Promise<{ ok: boolean; modelPath?: string; error?: string }>;
+  whisperModelDownloadCancel: () => Promise<{ ok: boolean }>;
+  whisperSetGatewayModel: (modelId: string) => Promise<{ ok: boolean; error?: string }>;
+  onWhisperModelDownloadProgress: (
+    cb: (payload: { percent: number; transferred: number; total: number }) => void
+  ) => () => void;
+  whisperModelsList: () => Promise<
+    Array<{
+      id: string;
+      label: string;
+      description: string;
+      sizeLabel: string;
+      downloaded: boolean;
+      size: number;
+    }>
+  >;
+  whisperTranscribe: (params: {
+    audio: string;
+    language?: string;
+    model?: string;
+  }) => Promise<{ ok: boolean; text?: string; error?: string }>;
   // Embedded terminal (PTY) — multi-session
   terminalCreate: () => Promise<{ id: string }>;
   terminalWrite: (id: string, data: string) => Promise<void>;
@@ -211,6 +242,20 @@ const api: OpenclawDesktopApi = {
   listCustomSkills: async () => ipcRenderer.invoke("list-custom-skills"),
   removeCustomSkill: async (dirName: string) =>
     ipcRenderer.invoke("remove-custom-skill", { dirName }),
+  // Local Whisper voice transcription
+  whisperModelStatus: async (params?: { model?: string }) =>
+    ipcRenderer.invoke("whisper-model-status", params),
+  whisperModelDownload: async (params?: { model?: string }) =>
+    ipcRenderer.invoke("whisper-model-download", params),
+  whisperModelDownloadCancel: async () => ipcRenderer.invoke("whisper-model-download-cancel"),
+  whisperSetGatewayModel: async (modelId: string) =>
+    ipcRenderer.invoke("whisper-set-gateway-model", modelId),
+  onWhisperModelDownloadProgress: (
+    cb: (payload: { percent: number; transferred: number; total: number }) => void
+  ) => onIpc("whisper-model-download-progress", cb),
+  whisperModelsList: async () => ipcRenderer.invoke("whisper-models-list"),
+  whisperTranscribe: async (params: { audio: string; language?: string; model?: string }) =>
+    ipcRenderer.invoke("whisper-transcribe", params),
   // Embedded terminal (PTY) — multi-session
   terminalCreate: async () => ipcRenderer.invoke("terminal:create"),
   terminalWrite: async (id: string, data: string) =>

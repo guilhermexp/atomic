@@ -4,6 +4,35 @@ import * as path from "node:path";
 
 import { ensureDir } from "../util/fs";
 import type { TailBuffer } from "../util/net";
+import {
+  DEFAULT_MODEL_ID,
+  getModelDef,
+  resolveModelPath,
+  type WhisperModelId,
+} from "../whisper/ipc";
+
+const WHISPER_MODEL_FILE = "whisper-model-id";
+
+export function readSelectedWhisperModel(stateDir: string): WhisperModelId | "openai" {
+  try {
+    const raw = fs.readFileSync(path.join(stateDir, WHISPER_MODEL_FILE), "utf-8").trim();
+    if (
+      raw === "openai" ||
+      raw === "small" ||
+      raw === "large-v3-turbo-q8" ||
+      raw === "large-v3-turbo"
+    ) {
+      return raw;
+    }
+  } catch {
+    // File doesn't exist yet — use default
+  }
+  return DEFAULT_MODEL_ID;
+}
+
+export function writeSelectedWhisperModel(stateDir: string, modelId: string): void {
+  fs.writeFileSync(path.join(stateDir, WHISPER_MODEL_FILE), modelId, "utf-8");
+}
 
 export function spawnGateway(params: {
   port: number;
@@ -19,6 +48,7 @@ export function spawnGateway(params: {
   remindctlBin?: string;
   obsidianCliBin?: string;
   ghBin?: string;
+  whisperCliBin?: string;
   electronRunAsNode?: boolean;
   stderrTail: TailBuffer;
 }): ChildProcess {
@@ -36,6 +66,7 @@ export function spawnGateway(params: {
     remindctlBin,
     obsidianCliBin,
     ghBin,
+    whisperCliBin,
     electronRunAsNode,
     stderrTail,
   } = params;
@@ -67,7 +98,7 @@ export function spawnGateway(params: {
   ];
 
   const envPath = typeof process.env.PATH === "string" ? process.env.PATH : "";
-  const extraBinDirs = [jqBin, gogBin, memoBin, remindctlBin, obsidianCliBin, ghBin]
+  const extraBinDirs = [jqBin, gogBin, memoBin, remindctlBin, obsidianCliBin, ghBin, whisperCliBin]
     .map((bin) => (bin ? path.dirname(bin) : ""))
     .filter(Boolean);
   const uniqueExtraBinDirs = Array.from(new Set(extraBinDirs));
@@ -90,6 +121,14 @@ export function spawnGateway(params: {
     PATH: mergedPath,
     // Ensure `gh` uses the app's own config storage.
     GH_CONFIG_DIR: ghConfigDir,
+    // Point the gateway's whisper-cli media-understanding runner at the user's selected model.
+    // When "openai" is selected, omit WHISPER_CPP_MODEL so the gateway uses the OpenAI API.
+    ...(() => {
+      if (!whisperCliBin) return {};
+      const selected = readSelectedWhisperModel(stateDir);
+      if (selected === "openai") return {};
+      return { WHISPER_CPP_MODEL: resolveModelPath(whisperCliBin, getModelDef(selected)) };
+    })(),
     // Reduce noise in embedded contexts.
     NO_COLOR: "1",
     FORCE_COLOR: "0",
