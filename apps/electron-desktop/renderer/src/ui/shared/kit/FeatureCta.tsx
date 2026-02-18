@@ -37,12 +37,12 @@ export function FeatureCta({
   if (status === "disabled") {
     return (
       <button
+        className="UiSkillConnectButton"
         type="button"
-        className="UiSkillStatus UiSkillStatus--disabled UiSkillStatus--clickable"
-        aria-label="Disabled — click to configure"
+        aria-label="Connect"
         onClick={onSettings}
       >
-        Disabled
+        Connect
       </button>
     );
   }

@@ -164,13 +164,6 @@ export function ConnectorsTab(props: {
     [loadConfig, markDisabled, props, refresh]
   );
 
-  const tileClass = (status: ConnectorStatus) => {
-    if (status === "disabled") {
-      return "UiSkillCard UiSkillCard--disabled";
-    }
-    return "UiSkillCard";
-  };
-
   return (
     <div className={ps.UiSettingsContentInner}>
       <div className={ps.UiSettingsTabTitle}>Messengers</div>
@@ -183,7 +176,7 @@ export function ConnectorsTab(props: {
             return (
               <div
                 key={connector.id}
-                className={tileClass(status)}
+                className="UiSkillCard"
                 role="group"
                 aria-label={connector.name}
               >
