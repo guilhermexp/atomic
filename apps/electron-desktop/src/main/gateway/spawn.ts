@@ -7,6 +7,7 @@ import type { TailBuffer } from "../util/net";
 import {
   DEFAULT_MODEL_ID,
   getModelDef,
+  resolveFfmpegPath,
   resolveModelPath,
   type WhisperModelId,
 } from "../whisper/ipc";
@@ -49,6 +50,7 @@ export function spawnGateway(params: {
   obsidianCliBin?: string;
   ghBin?: string;
   whisperCliBin?: string;
+  whisperDataDir?: string;
   electronRunAsNode?: boolean;
   stderrTail: TailBuffer;
 }): ChildProcess {
@@ -67,6 +69,7 @@ export function spawnGateway(params: {
     obsidianCliBin,
     ghBin,
     whisperCliBin,
+    whisperDataDir,
     electronRunAsNode,
     stderrTail,
   } = params;
@@ -96,9 +99,18 @@ export function spawnGateway(params: {
     // Covers orphans from crashes, force-quit, or previous app versions.
     "--force",
   ];
-
   const envPath = typeof process.env.PATH === "string" ? process.env.PATH : "";
-  const extraBinDirs = [jqBin, gogBin, memoBin, remindctlBin, obsidianCliBin, ghBin, whisperCliBin]
+  const ffmpegBin = whisperDataDir ? resolveFfmpegPath(whisperDataDir) : undefined;
+  const extraBinDirs = [
+    jqBin,
+    gogBin,
+    memoBin,
+    remindctlBin,
+    obsidianCliBin,
+    ghBin,
+    whisperCliBin,
+    ffmpegBin,
+  ]
     .map((bin) => (bin ? path.dirname(bin) : ""))
     .filter(Boolean);
   const uniqueExtraBinDirs = Array.from(new Set(extraBinDirs));
@@ -109,7 +121,6 @@ export function spawnGateway(params: {
 
   const ghConfigDir = path.join(stateDir, "gh");
   ensureDir(ghConfigDir);
-
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     // Keep all OpenClaw state inside the Electron app's userData directory.
@@ -124,10 +135,12 @@ export function spawnGateway(params: {
     // Point the gateway's whisper-cli media-understanding runner at the user's selected model.
     // When "openai" is selected, omit WHISPER_CPP_MODEL so the gateway uses the OpenAI API.
     ...(() => {
-      if (!whisperCliBin) return {};
+      if (!whisperDataDir) return {};
       const selected = readSelectedWhisperModel(stateDir);
       if (selected === "openai") return {};
-      return { WHISPER_CPP_MODEL: resolveModelPath(whisperCliBin, getModelDef(selected)) };
+      const modelPath = resolveModelPath(whisperDataDir, getModelDef(selected));
+      console.log("[gateway] WHISPER_CPP_MODEL =", modelPath);
+      return { WHISPER_CPP_MODEL: modelPath };
     })(),
     // Reduce noise in embedded contexts.
     NO_COLOR: "1",

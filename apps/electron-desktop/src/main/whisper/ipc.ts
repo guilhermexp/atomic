@@ -56,17 +56,16 @@ export function getModelDef(id: WhisperModelId): WhisperModelDef {
 }
 
 /**
- * Model is stored in a `models/` subdirectory next to the whisper-cli binary.
- * e.g. `vendor/whisper-cli/darwin-arm64/models/ggml-small.bin` (dev)
- *   or `resources/whisper-cli/darwin-arm64/models/ggml-small.bin` (packaged)
+ * Model is stored in a persistent `models/` subdirectory inside the whisper
+ * data directory (userData/whisper) so it survives app updates.
  */
-export function resolveModelPath(whisperCliBin: string, model: WhisperModelDef): string {
-  return path.join(path.dirname(whisperCliBin), "models", model.filename);
+export function resolveModelPath(whisperDataDir: string, model: WhisperModelDef): string {
+  return path.join(whisperDataDir, "models", model.filename);
 }
 
-/** ffmpeg binary lives next to whisper-cli */
-export function resolveFfmpegPath(whisperCliBin: string): string {
-  return path.join(path.dirname(whisperCliBin), "ffmpeg");
+/** ffmpeg binary lives inside the persistent whisper data directory. */
+export function resolveFfmpegPath(whisperDataDir: string): string {
+  return path.join(whisperDataDir, "ffmpeg");
 }
 
 function ensureDir(p: string): void {
@@ -133,24 +132,23 @@ async function downloadFile(
 }
 
 /**
- * Download and extract ffmpeg if not already present next to whisper-cli.
+ * Download and extract ffmpeg if not already present in the whisper data dir.
  * Returns the path to the ffmpeg binary.
  */
-async function ensureFfmpeg(whisperCliBin: string): Promise<string> {
-  const ffmpegPath = resolveFfmpegPath(whisperCliBin);
+async function ensureFfmpeg(whisperDataDir: string): Promise<string> {
+  const ffmpegPath = resolveFfmpegPath(whisperDataDir);
   if (fs.existsSync(ffmpegPath)) {
     return ffmpegPath;
   }
 
   console.log("[whisper] ffmpeg not found, downloading…");
-  const binDir = path.dirname(whisperCliBin);
-  ensureDir(binDir);
+  ensureDir(whisperDataDir);
 
-  const zipPath = path.join(binDir, "ffmpeg-download.zip");
+  const zipPath = path.join(whisperDataDir, "ffmpeg-download.zip");
   try {
     await downloadFile(FFMPEG_ZIP_URL, zipPath);
 
-    const extractDir = path.join(binDir, "_ffmpeg_extract");
+    const extractDir = path.join(whisperDataDir, "_ffmpeg_extract");
     try {
       fs.rmSync(extractDir, { recursive: true, force: true });
     } catch {
@@ -200,19 +198,20 @@ async function ensureFfmpeg(whisperCliBin: string): Promise<string> {
 
 export function registerWhisperIpcHandlers(params: {
   whisperCliBin: string;
+  whisperDataDir: string;
   getMainWindow: () => BrowserWindow | null;
   stateDir: string;
   stopGatewayChild: () => Promise<void>;
   startGateway: (opts?: { silent?: boolean }) => Promise<void>;
 }): void {
-  const { whisperCliBin } = params;
+  const { whisperCliBin, whisperDataDir } = params;
 
   let downloadAbort: AbortController | null = null;
 
   ipcMain.handle("whisper-model-status", (_evt, p?: { model?: string }) => {
     const modelId = (typeof p?.model === "string" ? p.model : DEFAULT_MODEL_ID) as WhisperModelId;
     const model = getModelDef(modelId);
-    const modelPath = resolveModelPath(whisperCliBin, model);
+    const modelPath = resolveModelPath(whisperDataDir, model);
     const exists = fs.existsSync(modelPath);
     let size = 0;
     if (exists) {
@@ -223,7 +222,7 @@ export function registerWhisperIpcHandlers(params: {
       }
     }
     const binExists = fs.existsSync(whisperCliBin);
-    const ffmpegPath = resolveFfmpegPath(whisperCliBin);
+    const ffmpegPath = resolveFfmpegPath(whisperDataDir);
     const ffmpegReady = fs.existsSync(ffmpegPath);
     return {
       modelReady: exists && size > 0,
@@ -238,7 +237,7 @@ export function registerWhisperIpcHandlers(params: {
   ipcMain.handle("whisper-model-download", async (_evt, p?: { model?: string }) => {
     const modelId = (typeof p?.model === "string" ? p.model : DEFAULT_MODEL_ID) as WhisperModelId;
     const model = getModelDef(modelId);
-    const modelPath = resolveModelPath(whisperCliBin, model);
+    const modelPath = resolveModelPath(whisperDataDir, model);
     ensureDir(path.dirname(modelPath));
 
     downloadAbort?.abort();
@@ -247,7 +246,7 @@ export function registerWhisperIpcHandlers(params: {
 
     try {
       // Step 1: ensure ffmpeg is available before downloading the model
-      await ensureFfmpeg(whisperCliBin);
+      await ensureFfmpeg(whisperDataDir);
     } catch (err) {
       downloadAbort = null;
       return { ok: false, error: `Failed to download ffmpeg: ${String(err)}` };
@@ -288,10 +287,10 @@ export function registerWhisperIpcHandlers(params: {
   });
 
   ipcMain.handle("whisper-models-list", () => {
-    const ffmpegPath = resolveFfmpegPath(whisperCliBin);
+    const ffmpegPath = resolveFfmpegPath(whisperDataDir);
     const ffmpegReady = fs.existsSync(ffmpegPath);
     return WHISPER_MODELS.map((m) => {
-      const modelPath = resolveModelPath(whisperCliBin, m);
+      const modelPath = resolveModelPath(whisperDataDir, m);
       const exists = fs.existsSync(modelPath);
       let size = 0;
       if (exists) {
@@ -327,7 +326,7 @@ export function registerWhisperIpcHandlers(params: {
 
       const modelId = (typeof p?.model === "string" ? p.model : DEFAULT_MODEL_ID) as WhisperModelId;
       const model = getModelDef(modelId);
-      const modelPath = resolveModelPath(whisperCliBin, model);
+      const modelPath = resolveModelPath(whisperDataDir, model);
       if (!fs.existsSync(modelPath)) {
         return {
           ok: false,

@@ -258,6 +258,7 @@ void app.whenReady().then(async () => {
   const userData = app.getPath("userData");
   const stateDir = path.join(userData, "openclaw");
   gatewayStateDir = stateDir;
+  const whisperDataDir = path.join(userData, "whisper");
   const logsDir = path.join(userData, "logs");
   logsDirForUi = logsDir;
 
@@ -352,6 +353,7 @@ void app.whenReady().then(async () => {
       obsidianCliBin,
       ghBin,
       whisperCliBin,
+      whisperDataDir,
       electronRunAsNode: nodeBin === process.execPath,
       stderrTail,
     });
@@ -413,6 +415,7 @@ void app.whenReady().then(async () => {
     obsidianCliBin,
     ghBin,
     whisperCliBin,
+    whisperDataDir,
     stopGatewayChild,
     getGatewayToken: () => token,
     setGatewayToken: (t: string) => {

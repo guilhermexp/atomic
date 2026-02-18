@@ -512,6 +512,38 @@ export async function runProviderEntry(params: {
   };
 }
 
+const WAV_EXTENSIONS = new Set([".wav"]);
+
+/**
+ * whisper-cli only accepts WAV input. When the media file is in another format
+ * (e.g. OGG from Telegram voice messages), convert it to 16 kHz mono WAV via
+ * ffmpeg. Returns the path to the converted file, or the original path if no
+ * conversion was needed. The caller must clean up `outputDir` which may contain
+ * the converted file.
+ */
+async function ensureWavForWhisper(
+  mediaPath: string,
+  outputDir: string,
+): Promise<{ path: string; converted: boolean }> {
+  if (WAV_EXTENSIONS.has(path.extname(mediaPath).toLowerCase())) {
+    return { path: mediaPath, converted: false };
+  }
+  const wavPath = path.join(outputDir, `${path.parse(mediaPath).name}.wav`);
+  try {
+    await runExec(
+      "ffmpeg",
+      ["-y", "-i", mediaPath, "-ar", "16000", "-ac", "1", "-f", "wav", wavPath],
+      {
+        timeoutMs: 30_000,
+      },
+    );
+    logVerbose(`[media] Converted ${path.basename(mediaPath)} → WAV for whisper-cli`);
+    return { path: wavPath, converted: true };
+  } catch {
+    return { path: mediaPath, converted: false };
+  }
+}
+
 export async function runCliEntry(params: {
   capability: MediaUnderstandingCapability;
   entry: MediaUnderstandingModelConfig;
@@ -539,7 +571,14 @@ export async function runCliEntry(params: {
     timeoutMs,
   });
   const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-cli-"));
-  const mediaPath = pathResult.path;
+  let mediaPath = pathResult.path;
+
+  // whisper-cli and sherpa-onnx-offline only read WAV; pre-convert other formats via ffmpeg.
+  if (capability === "audio" && command && /^(whisper-cli|sherpa-onnx-offline)$/.test(command)) {
+    const wav = await ensureWavForWhisper(mediaPath, outputDir);
+    mediaPath = wav.path;
+  }
+
   const outputBase = path.join(outputDir, path.parse(mediaPath).name);
 
   const templCtx: MsgContext = {

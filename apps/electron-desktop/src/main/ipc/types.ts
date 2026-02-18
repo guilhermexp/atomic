@@ -21,6 +21,7 @@ export type RegisterParams = {
   obsidianCliBin: string;
   ghBin: string;
   whisperCliBin: string;
+  whisperDataDir: string;
   stopGatewayChild: () => Promise<void>;
   getGatewayToken: () => string;
   setGatewayToken: (token: string) => void;

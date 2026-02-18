@@ -9,11 +9,13 @@ export function registerResetAndCloseIpcHandler(params: {
   userData: string;
   stateDir: string;
   logsDir: string;
+  whisperDataDir: string;
   gogBin: string;
   openclawDir: string;
   stopGatewayChild: () => Promise<void>;
 }) {
-  const { userData, stateDir, logsDir, gogBin, openclawDir, stopGatewayChild } = params;
+  const { userData, stateDir, logsDir, whisperDataDir, gogBin, openclawDir, stopGatewayChild } =
+    params;
 
   ipcMain.handle("reset-and-close", async () => {
     const warnings: string[] = [];
@@ -30,9 +32,10 @@ export function registerResetAndCloseIpcHandler(params: {
       warnings.push(`failed to clear gog auth tokens: ${String(err)}`);
     }
 
-    // Clear the embedded OpenClaw state/logs plus any temp files we created under userData.
+    // Clear the embedded OpenClaw state/logs, downloaded whisper models/ffmpeg,
+    // and any temp files we created under userData.
     const tmpDir = path.join(userData, "tmp");
-    for (const dir of [stateDir, logsDir, tmpDir]) {
+    for (const dir of [stateDir, logsDir, whisperDataDir, tmpDir]) {
       try {
         fs.rmSync(dir, { recursive: true, force: true });
       } catch (err) {

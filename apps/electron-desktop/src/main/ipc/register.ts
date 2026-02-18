@@ -43,6 +43,7 @@ export function registerIpcHandlers(params: RegisterParams) {
   });
   registerWhisperIpcHandlers({
     whisperCliBin: params.whisperCliBin,
+    whisperDataDir: params.whisperDataDir,
     getMainWindow: params.getMainWindow,
     stateDir: params.stateDir,
     stopGatewayChild: params.stopGatewayChild,
@@ -52,6 +53,7 @@ export function registerIpcHandlers(params: RegisterParams) {
     userData: params.userData,
     stateDir: params.stateDir,
     logsDir: params.logsDir,
+    whisperDataDir: params.whisperDataDir,
     gogBin: params.gogBin,
     openclawDir: params.openclawDir,
     stopGatewayChild: params.stopGatewayChild,

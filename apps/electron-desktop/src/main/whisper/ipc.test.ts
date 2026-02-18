@@ -38,6 +38,7 @@ function getHandler(channel: string): ((...args: unknown[]) => unknown) | undefi
 
 describe("whisper IPC handlers", () => {
   const whisperCliBin = "/mock/bin/whisper-cli";
+  const whisperDataDir = "/mock/data/whisper";
   let mockWindow: InstanceType<typeof BrowserWindow>;
 
   beforeEach(() => {
@@ -56,6 +57,7 @@ describe("whisper IPC handlers", () => {
 
     registerWhisperIpcHandlers({
       whisperCliBin,
+      whisperDataDir,
       getMainWindow: () => mockWindow,
     });
   });
