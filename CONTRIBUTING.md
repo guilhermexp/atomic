@@ -5,6 +5,7 @@ Welcome to the lobster tank! 🦞
 ## Quick Links
 
 - **GitHub:** https://github.com/openclaw/openclaw
+- **Vision:** [`VISION.md`](VISION.md)
 - **Discord:** https://discord.gg/qkhbAGHRBT
 - **X/Twitter:** [@steipete](https://x.com/steipete) / [@openclaw](https://x.com/openclaw)
 
@@ -13,7 +14,7 @@ Welcome to the lobster tank! 🦞
 - **Peter Steinberger** - Benevolent Dictator
   - GitHub: [@steipete](https://github.com/steipete) · X: [@steipete](https://x.com/steipete)
 
-- **Shadow** - Discord subsystem, Discord admin
+- **Shadow** - Discord subsystem, Discord admin, Clawhub, all community moderation
   - GitHub: [@thewilloftheshadow](https://github.com/thewilloftheshadow) · X: [@4shad0wed](https://x.com/4shad0wed)
 
 - **Vignesh** - Memory (QMD), formal modeling, TUI, IRC, and Lobster
@@ -51,7 +52,7 @@ Welcome to the lobster tank! 🦞
 - Test locally with your OpenClaw instance
 - Run tests: `pnpm build && pnpm check && pnpm test`
 - Ensure CI checks pass
-- Keep PRs focused (one thing per PR)
+- Keep PRs focused (one thing per PR; do not mix unrelated concerns)
 - Describe what & why
 
 ## Control UI Decorators
