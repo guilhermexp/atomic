@@ -52,7 +52,7 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:coverage": "vitest run --config vitest.config.ts --coverage",
-    "test:e2e": "npx playwright test --config playwright.config.ts"
+    "test:e2e": "npm run build:all && npx playwright test --config playwright.config.ts"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
