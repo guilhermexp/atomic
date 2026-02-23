@@ -43,6 +43,10 @@ export type PluginLoadOptions = {
 
 const registryCache = new Map<string, PluginRegistry>();
 
+export function clearPluginRegistryCache(): void {
+  registryCache.clear();
+}
+
 const defaultLogger = () => createSubsystemLogger("plugins");
 
 const resolvePluginSdkAliasFile = (params: {
@@ -363,6 +367,23 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
   const logger = options.logger ?? defaultLogger();
   const validateOnly = options.mode === "validate";
   const normalized = normalizePluginsConfig(cfg.plugins);
+
+  // Merge enabled state from channels.<id>.enabled for built-in channel plugins.
+  // applyPluginAutoEnable / registerPluginEntry writes enabled=true there,
+  // but normalizePluginsConfig only reads plugins.entries.
+  const channels = cfg.channels as Record<string, unknown> | undefined;
+  if (channels) {
+    for (const [key, value] of Object.entries(channels)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        continue;
+      }
+      const enabled = (value as { enabled?: unknown }).enabled;
+      if (typeof enabled === "boolean" && normalized.entries[key]?.enabled === undefined) {
+        normalized.entries[key] = { ...normalized.entries[key], enabled };
+      }
+    }
+  }
+
   const cacheKey = buildCacheKey({
     workspaceDir: options.workspaceDir,
     plugins: normalized,
