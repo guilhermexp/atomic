@@ -6,6 +6,10 @@ import { errorToMessage } from "@shared/toast";
 import { routes } from "../app/routes";
 import { settingsStyles as ps } from "./SettingsPage";
 import { RestoreBackupModal } from "./RestoreBackupModal";
+import {
+  getActionLogExpandedDefault,
+  setActionLogExpandedDefault,
+} from "../chat/components/ActionLog";
 import s from "./OtherTab.module.css";
 import pkg from "../../../../package.json";
 
@@ -38,6 +42,7 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
   const [launchAtStartup, setLaunchAtStartup] = React.useState(false);
   const [resetBusy, setResetBusy] = React.useState(false);
   const [terminalSidebar, setTerminalSidebar] = useTerminalSidebarVisible();
+  const [actionLogExpanded, setActionLogExpanded] = React.useState(getActionLogExpandedDefault);
   const [backupBusy, setBackupBusy] = React.useState(false);
   const [restoreModalOpen, setRestoreModalOpen] = React.useState(false);
   const navigate = useNavigate();
@@ -279,6 +284,35 @@ export function OtherTab({ onError }: { onError: (msg: string | null) => void })
         <p className={s.UiSettingsOtherHint}>
           Contains your local OpenClaw state and app data. Workspace contains editable .md files
           (AGENTS, SOUL, USER, IDENTITY, TOOLS, HEARTBEAT, BOOTSTRAP) that shape the agent.
+        </p>
+      </section>
+
+      {/* Chat */}
+      <section className={s.UiSettingsOtherSection}>
+        <h3 className={s.UiSettingsOtherSectionTitle}>Chat</h3>
+        <div className={s.UiSettingsOtherCard}>
+          <div className={s.UiSettingsOtherRow}>
+            <span className={s.UiSettingsOtherRowLabel}>Expand Action Logs</span>
+            <span className={s.UiSettingsOtherAppRowValue}>
+              <label className={s.UiSettingsOtherToggle} aria-label="Expand action logs by default">
+                <input
+                  type="checkbox"
+                  checked={actionLogExpanded}
+                  onChange={(e) => {
+                    setActionLogExpanded(e.target.checked);
+                    setActionLogExpandedDefault(e.target.checked);
+                  }}
+                />
+                <span className={s.UiSettingsOtherToggleTrack}>
+                  <span className={s.UiSettingsOtherToggleThumb} />
+                </span>
+              </label>
+            </span>
+          </div>
+        </div>
+        <p className={s.UiSettingsOtherHint}>
+          When enabled, Action Logs in chat messages start expanded so you can see tool calls and
+          results.
         </p>
       </section>
 

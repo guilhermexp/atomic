@@ -7,6 +7,24 @@ import al from "./ActionLog.module.css";
 
 export type ActionLogCard = { toolCall: UiToolCall; result?: UiToolResult };
 
+const ACTION_LOG_EXPANDED_KEY = "action-log-expanded-default";
+
+export function getActionLogExpandedDefault(): boolean {
+  try {
+    return localStorage.getItem(ACTION_LOG_EXPANDED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setActionLogExpandedDefault(v: boolean): void {
+  try {
+    localStorage.setItem(ACTION_LOG_EXPANDED_KEY, v ? "1" : "0");
+  } catch {
+    // ignore
+  }
+}
+
 export function ActionLog({
   cards = [],
   liveToolCalls = [],
@@ -16,7 +34,7 @@ export function ActionLog({
 }) {
   const visibleLive = liveToolCalls.filter((tc) => !HIDDEN_TOOL_NAMES.has(tc.name));
   const hasLive = visibleLive.length > 0;
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(getActionLogExpandedDefault);
   const title = hasLive ? getToolLabel(visibleLive[visibleLive.length - 1].name) : "Action Log";
 
   return (
