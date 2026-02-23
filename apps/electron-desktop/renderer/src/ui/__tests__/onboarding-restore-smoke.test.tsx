@@ -115,7 +115,7 @@ describe("Restore flow smoke tests", () => {
       </TestShell>
     );
     expect(screen.getByRole("button", { name: /back/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /continue/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /restore now/i })).toBeTruthy();
   });
 
   it("RestoreOptionPage renders onboarding progress dots", () => {
@@ -125,7 +125,7 @@ describe("Restore flow smoke tests", () => {
       </TestShell>
     );
     const dots = container.querySelectorAll("[class*='OnboardingDot']");
-    expect(dots.length).toBeGreaterThanOrEqual(5);
+    expect(dots.length).toBe(3);
   });
 
   it("RestoreOptionPage shows subtitle text", () => {
@@ -146,8 +146,8 @@ describe("Restore flow smoke tests", () => {
       </TestShell>
     );
     expectRendered(container);
-    expect(screen.getByText(/restore from backup/i)).toBeTruthy();
-    expect(screen.getByText(/drag backup archive here/i)).toBeTruthy();
+    expect(screen.getByText(/upload backup file/i)).toBeTruthy();
+    expect(screen.getByText(/drag zip folder here/i)).toBeTruthy();
   });
 
   it("RestoreFilePage renders 'choose a file' button", () => {
@@ -174,7 +174,7 @@ describe("Restore flow smoke tests", () => {
         <RestoreFilePage />
       </TestShell>
     );
-    expect(screen.getByText(/upload a backup archive/i)).toBeTruthy();
+    expect(screen.getByText(/choose how you want to set up/i)).toBeTruthy();
   });
 
   it("RestoreFilePage renders hidden file input", () => {
@@ -195,6 +195,6 @@ describe("Restore flow smoke tests", () => {
       </TestShell>
     );
     const dots = container.querySelectorAll("[class*='OnboardingDot']");
-    expect(dots.length).toBeGreaterThanOrEqual(5);
+    expect(dots.length).toBe(3);
   });
 });
