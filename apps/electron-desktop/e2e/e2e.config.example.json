@@ -1,0 +1,28 @@
+{
+  "$schema": "./e2e.config.schema.json",
+  "defaultProvider": "moonshot",
+  "providers": {
+    "anthropic": { "key": "" },
+    "openai": { "key": "" },
+    "openrouter": { "key": "" },
+    "google": { "key": "" },
+    "nvidia": { "key": "" },
+    "xai": { "key": "" },
+    "zai": { "key": "" },
+    "minimax": { "key": "" },
+    "moonshot": { "key": "" },
+    "kimi-coding": { "key": "" }
+  },
+  "telegram": {
+    "botToken": "",
+    "userId": ""
+  },
+  "skills": {
+    "notion": { "token": "" },
+    "github": { "token": "" },
+    "google": { "oauthRefresh": "" },
+    "trello": { "key": "", "token": "" },
+    "slack": { "token": "" },
+    "obsidian": { "vaultPath": "" }
+  }
+}

@@ -12,4 +12,5 @@ vendor/
 .env
 .env.*
 .DS_Store
-
+test-results/
+e2e/e2e.config.json

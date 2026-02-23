@@ -29,6 +29,10 @@ import { createTailBuffer, pickPort, waitForPortOpen } from "./main/util/net";
 import { createMainWindow } from "./main/window/mainWindow";
 import type { GatewayState } from "./main/types";
 
+if (process.env.ATOMICBOT_E2E_USER_DATA) {
+  app.setPath("userData", process.env.ATOMICBOT_E2E_USER_DATA);
+}
+
 const MAIN_DIR = __dirname;
 
 let mainWindow: BrowserWindow | null = null;

@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "description": "E2E test credentials for the Electron desktop app",
+  "properties": {
+    "$schema": { "type": "string" },
+    "defaultProvider": {
+      "type": "string",
+      "description": "Provider ID to use as the primary provider for tests (e.g. 'moonshot', 'anthropic'). If not set, the first provider with a valid key is used."
+    },
+    "providers": {
+      "type": "object",
+      "description": "AI provider API keys. Fill in at least one to run onboarding tests.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "description": "API key for the provider" }
+        },
+        "required": ["key"]
+      }
+    },
+    "telegram": {
+      "type": "object",
+      "description": "Telegram bot credentials for connection tests",
+      "properties": {
+        "botToken": { "type": "string" },
+        "userId": { "type": "string" }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "description": "Third-party skill credentials for live skill tests",
+      "properties": {
+        "notion": {
+          "type": "object",
+          "properties": { "token": { "type": "string" } }
+        },
+        "github": {
+          "type": "object",
+          "properties": { "token": { "type": "string" } }
+        },
+        "google": {
+          "type": "object",
+          "properties": { "oauthRefresh": { "type": "string" } }
+        },
+        "trello": {
+          "type": "object",
+          "properties": {
+            "key": { "type": "string" },
+            "token": { "type": "string" }
+          }
+        },
+        "slack": {
+          "type": "object",
+          "properties": { "token": { "type": "string" } }
+        },
+        "obsidian": {
+          "type": "object",
+          "properties": { "vaultPath": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
