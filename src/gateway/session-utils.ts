@@ -67,7 +67,6 @@ export type {
 } from "./session-utils.types.js";
 
 // const DERIVED_TITLE_MAX_LEN = 60;
-const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
 function tryResolveExistingPath(value: string): string | null {
   try {
