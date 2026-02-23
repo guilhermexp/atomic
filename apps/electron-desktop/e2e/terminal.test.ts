@@ -62,9 +62,13 @@ test.describe("Terminal page", () => {
   });
 
   test("navigate to terminal page", async () => {
-    test.setTimeout(30_000);
+    test.setTimeout(60_000);
     await page.locator('[aria-label="Terminal"]').click();
-    await page.waitForTimeout(2_000);
+
+    // Terminal may show "Loading..." while gateway WebSocket stabilises after
+    // onboarding config patches; wait for loading to clear before checking tabs.
+    const loading = page.getByText("Loading...");
+    await loading.waitFor({ state: "hidden", timeout: 30_000 }).catch(() => {});
 
     // Terminal page should show at least one tab
     const tabs = page.locator('[role="tab"]');

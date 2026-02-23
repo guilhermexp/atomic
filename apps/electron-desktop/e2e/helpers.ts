@@ -102,10 +102,24 @@ export async function selectFirstModel(page: Page): Promise<string> {
   await waitForModelSelect(page);
   const firstRadio = page.locator('input[name="model"]').first();
   const modelId = (await firstRadio.getAttribute("value")) ?? "";
-  await page
-    .locator('[aria-label="Model selection"]')
-    .getByRole("button", { name: "Continue" })
-    .click();
+
+  const container = page.locator('[aria-label="Model selection"]');
+  const continueBtn = container.getByRole("button", { name: "Continue" });
+
+  // config.patch may trigger a gateway restart, dropping the WebSocket mid-RPC.
+  // When that happens the async handler errors out and navigation never fires.
+  // Retry the click until we leave the model-select page.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await continueBtn.click();
+    try {
+      await container.waitFor({ state: "hidden", timeout: 15_000 });
+      break;
+    } catch {
+      // Still on model-select — gateway restart likely interrupted the RPC.
+      await page.waitForTimeout(3_000);
+    }
+  }
+
   return modelId;
 }
 

@@ -60,4 +60,4 @@ if $has_electron_files; then
   npm run format:fix --prefix "$ROOT_DIR/$electron_prefix"
 fi
 
-git add -- "${files[@]}"
+git add -f -- "${files[@]}"
