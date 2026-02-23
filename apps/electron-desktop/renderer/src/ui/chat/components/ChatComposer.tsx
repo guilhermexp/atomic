@@ -78,6 +78,13 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
     const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
     const [showMicTooltip, setShowMicTooltip] = React.useState(false);
     const micTooltipRef = React.useRef<HTMLDivElement | null>(null);
+
+    React.useEffect(() => {
+      if (!isVoiceRecording || voiceNotConfigured) return;
+      const handleGlobalMouseUp = () => onVoiceStop?.();
+      window.addEventListener("mouseup", handleGlobalMouseUp);
+      return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+    }, [isVoiceRecording, voiceNotConfigured, onVoiceStop]);
     const prevDownloadKindRef = React.useRef(whisperDownload?.kind);
 
     React.useEffect(() => {
@@ -341,19 +348,6 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
                       }
                       if (!isVoiceRecording && !isVoiceProcessing) {
                         onVoiceStart();
-                      }
-                    }}
-                    onMouseUp={(e) => {
-                      e.preventDefault();
-                      if (voiceNotConfigured) return;
-                      if (isVoiceRecording) {
-                        onVoiceStop?.();
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (voiceNotConfigured) return;
-                      if (isVoiceRecording) {
-                        onVoiceStop?.();
                       }
                     }}
                     disabled={disabled || isVoiceProcessing}
