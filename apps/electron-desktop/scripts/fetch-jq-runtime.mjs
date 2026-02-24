@@ -151,7 +151,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `fetch-jq-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `fetch-jq-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
 
@@ -184,7 +184,7 @@ async function main() {
       .slice(0, 60)
       .join(", ");
     throw new Error(
-      `jq asset not found for ${platform}/${arch}. Known assets (first 60): ${known || "<none>"}`,
+      `jq asset not found for ${platform}/${arch}. Known assets (first 60): ${known || "<none>"}`
     );
   }
 

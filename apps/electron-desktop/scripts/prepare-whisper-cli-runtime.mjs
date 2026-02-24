@@ -3,7 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { rmrf, ensureDir, copyExecutable, binName, targetPlatform, targetArch, isCrossCompiling } from "./lib/script-platform.mjs";
+import {
+  rmrf,
+  ensureDir,
+  copyExecutable,
+  binName,
+  targetPlatform,
+  targetArch,
+  isCrossCompiling,
+} from "./lib/script-platform.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(here, "..");
@@ -18,7 +26,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `prepare-whisper-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `prepare-whisper-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
   const whisperBin = binName("whisper-cli");
@@ -35,7 +43,7 @@ async function main() {
         "downloaded whisper-cli binary not found.",
         `Expected: ${downloadedBin}`,
         "Run: cd apps/electron-desktop && npm run fetch:whisper-cli",
-      ].join("\n"),
+      ].join("\n")
     );
   }
 

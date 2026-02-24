@@ -127,7 +127,8 @@ async function main() {
     ensureDir(extractDir);
     if (process.platform === "win32") {
       run("powershell", [
-        "-NoProfile", "-Command",
+        "-NoProfile",
+        "-Command",
         `Expand-Archive -LiteralPath '${archivePath}' -DestinationPath '${extractDir}' -Force`,
       ]);
     } else {

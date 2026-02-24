@@ -105,7 +105,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `fetch-whisper-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `fetch-whisper-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
   const assetArch = resolveAssetArch(arch);
@@ -126,7 +126,7 @@ async function main() {
   const version = tagName && tagName.startsWith("v") ? tagName.slice(1) : tagName;
   if (!version) {
     throw new Error(
-      `failed to resolve whisper-cli version from GitHub release tag: ${tagName || "<missing>"}`,
+      `failed to resolve whisper-cli version from GitHub release tag: ${tagName || "<missing>"}`
     );
   }
 
@@ -144,16 +144,11 @@ async function main() {
       .join(", ");
 
     throw new Error(
-      `whisper-cli asset not found for ${platform}/${arch}. Expected ${assetName}. Known assets (first 40): ${known || "<none>"}`,
+      `whisper-cli asset not found for ${platform}/${arch}. Expected ${assetName}. Known assets (first 40): ${known || "<none>"}`
     );
   }
 
-  const cacheDir = path.join(
-    runtimeRoot,
-    "_cache",
-    `${tagName || tag}`,
-    `${osToken}-${assetArch}`,
-  );
+  const cacheDir = path.join(runtimeRoot, "_cache", `${tagName || tag}`, `${osToken}-${assetArch}`);
   const archivePath = path.join(cacheDir, assetName);
   const extractDir = path.join(cacheDir, "extract");
 
@@ -168,9 +163,7 @@ async function main() {
   const whisperBinName = binName("whisper-cli");
   const extracted = findFileRecursive(extractDir, whisperBinName);
   if (!extracted) {
-    throw new Error(
-      `failed to locate ${whisperBinName} in extracted archive (dir: ${extractDir})`,
-    );
+    throw new Error(`failed to locate ${whisperBinName} in extracted archive (dir: ${extractDir})`);
   }
 
   const targetDir = path.join(runtimeRoot, `${platform}-${arch}`);
@@ -194,7 +187,9 @@ async function main() {
     if (res.status !== 0 && res.status !== null) {
       const stderr = String(res.stderr || "").trim();
       const stdout = String(res.stdout || "").trim();
-      throw new Error(`downloaded whisper-cli failed to run: ${stderr || stdout || "unknown error"}`);
+      throw new Error(
+        `downloaded whisper-cli failed to run: ${stderr || stdout || "unknown error"}`
+      );
     }
   }
 

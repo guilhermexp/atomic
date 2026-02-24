@@ -103,9 +103,7 @@ function pickAsset(assets, platform, arch) {
   const normArch = normalizeArch(arch);
 
   const platformKeywords =
-    platform === "win32"
-      ? ["windows", "win", "win32", "win64"]
-      : ["darwin", "mac", "macos", "osx"];
+    platform === "win32" ? ["windows", "win", "win32", "win64"] : ["darwin", "mac", "macos", "osx"];
 
   const scored = known
     .map((name) => {
@@ -158,7 +156,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `fetch-obsidian-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `fetch-obsidian-cli-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
 
@@ -182,7 +180,7 @@ async function main() {
   const picked = pickAsset(assets, platform, arch);
   if (!picked.downloadUrl) {
     throw new Error(
-      `obsidian-cli asset not found for ${platform}/${arch}. Known assets: ${picked.known.slice(0, 40).join(", ") || "<none>"}`,
+      `obsidian-cli asset not found for ${platform}/${arch}. Known assets: ${picked.known.slice(0, 40).join(", ") || "<none>"}`
     );
   }
 
@@ -216,7 +214,7 @@ async function main() {
   });
   if (!extractedBin) {
     throw new Error(
-      `failed to locate obsidian-cli binary in extracted archive (dir: ${extractDir})`,
+      `failed to locate obsidian-cli binary in extracted archive (dir: ${extractDir})`
     );
   }
 
@@ -231,7 +229,7 @@ async function main() {
       const stderr = String(res.stderr || "").trim();
       const stdout = String(res.stdout || "").trim();
       throw new Error(
-        `downloaded obsidian-cli failed to run: ${stderr || stdout || "unknown error"}`,
+        `downloaded obsidian-cli failed to run: ${stderr || stdout || "unknown error"}`
       );
     }
   }

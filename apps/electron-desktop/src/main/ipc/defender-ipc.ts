@@ -48,7 +48,7 @@ function readDefenderState(stateDir: string): { applied: boolean; dismissed: boo
 
 function writeDefenderState(
   stateDir: string,
-  state: { applied: boolean; dismissed: boolean },
+  state: { applied: boolean; dismissed: boolean }
 ): void {
   try {
     const filePath = path.join(stateDir, DEFENDER_STATE_FILE);
@@ -92,7 +92,7 @@ export function registerDefenderHandlers(params: RegisterParams) {
     }));
     ipcMain.handle(
       "defender-apply-exclusions",
-      async (): Promise<DefenderApplyResult> => ({ ok: true }),
+      async (): Promise<DefenderApplyResult> => ({ ok: true })
     );
     ipcMain.handle("defender-dismiss", async () => ({ ok: true }));
     return;
@@ -122,25 +122,30 @@ export function registerDefenderHandlers(params: RegisterParams) {
         `$p = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','${tmpScript.replace(/'/g, "''")}' -Verb RunAs -Wait -PassThru; exit $p.ExitCode`,
       ];
 
-      execFile("powershell.exe", cmd, { windowsHide: true, timeout: 60_000 }, (err, _stdout, stderr) => {
-        // Clean up temp file.
-        try {
-          fs.unlinkSync(tmpScript);
-        } catch {
-          // best-effort
-        }
+      execFile(
+        "powershell.exe",
+        cmd,
+        { windowsHide: true, timeout: 60_000 },
+        (err, _stdout, stderr) => {
+          // Clean up temp file.
+          try {
+            fs.unlinkSync(tmpScript);
+          } catch {
+            // best-effort
+          }
 
-        if (err) {
-          const msg = stderr?.trim() || (err as NodeJS.ErrnoException).message || "Unknown error";
-          // Exit code 1 from the inner script, or user cancelled UAC.
-          console.warn("[defender-ipc] apply exclusions failed:", msg);
-          resolve({ ok: false, error: msg });
-          return;
-        }
+          if (err) {
+            const msg = stderr?.trim() || (err as NodeJS.ErrnoException).message || "Unknown error";
+            // Exit code 1 from the inner script, or user cancelled UAC.
+            console.warn("[defender-ipc] apply exclusions failed:", msg);
+            resolve({ ok: false, error: msg });
+            return;
+          }
 
-        writeDefenderState(params.stateDir, { applied: true, dismissed: false });
-        resolve({ ok: true });
-      });
+          writeDefenderState(params.stateDir, { applied: true, dismissed: false });
+          resolve({ ok: true });
+        }
+      );
     });
   });
 

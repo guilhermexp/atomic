@@ -19,7 +19,7 @@ export function isSkillAvailable(skillId: SkillId, platform: NodeJS.Platform): b
 
 export function filterSkillsForPlatform<T extends { id: SkillId }>(
   skills: T[],
-  platform: NodeJS.Platform,
+  platform: NodeJS.Platform
 ): T[] {
   return skills.filter((s) => isSkillAvailable(s.id, platform));
 }

@@ -19,7 +19,12 @@ export function errorToMessage(error: unknown): string {
     return error.message || "Unknown error";
   }
 
-  if (error && typeof error === "object" && "message" in error && typeof (error as { message: unknown }).message === "string") {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  ) {
     return (error as { message: string }).message || "Unknown error";
   }
 

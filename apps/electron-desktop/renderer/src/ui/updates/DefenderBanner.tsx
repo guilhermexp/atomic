@@ -94,8 +94,8 @@ export function DefenderBanner() {
       <div className={s["DefenderBanner-body"]}>
         <span className={s["DefenderBanner-title"]}>Improve performance</span>
         <span className={s["DefenderBanner-text"]}>
-          Windows Defender real-time scanning can slow down the app.
-          Add an exclusion to speed things up.
+          Windows Defender real-time scanning can slow down the app. Add an exclusion to speed
+          things up.
         </span>
 
         {error && <span className={s["DefenderBanner-error"]}>{error}</span>}
