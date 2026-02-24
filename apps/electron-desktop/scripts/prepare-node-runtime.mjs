@@ -131,7 +131,20 @@ async function main() {
     ensureDir(extractDir);
     const a = archivePath.replaceAll("\\", "/");
     const d = extractDir.replaceAll("\\", "/");
-    run("tar", ["-xJf", a, "-C", d]);
+    const baseArgs = ["-xJf", a, "-C", d];
+    const firstArgs = process.platform === "win32" ? ["--force-local", ...baseArgs] : baseArgs;
+    let result = spawnSync("tar", firstArgs, { encoding: "utf-8" });
+    if (
+      process.platform === "win32" &&
+      result.status !== 0 &&
+      /unrecognized option|unknown option/i.test(String(result.stderr || ""))
+    ) {
+      result = spawnSync("tar", baseArgs, { encoding: "utf-8" });
+    }
+    if (result.status !== 0) {
+      const stderr = String(result.stderr || "").trim();
+      throw new Error(`tar ${baseArgs.join(" ")} failed: ${stderr || `exit ${result.status}`}`);
+    }
     const entries = fs.readdirSync(extractDir);
     const root = entries.find((e) => e.startsWith("node-v"));
     if (!root) {
