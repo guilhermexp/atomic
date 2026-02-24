@@ -17,6 +17,8 @@ import { UserMessageBubble } from "./UserMessageBubble";
 import { AssistantStreamBubble, TypingIndicator } from "./AssistantStreamBubble";
 import { HIDDEN_TOOL_NAMES } from "./ToolCallCard";
 import { ActionLog } from "./ActionLog";
+import { AudioPlayer } from "./AudioPlayer";
+import { extractAudioFiles, isNoReplyMessage } from "../hooks/messageParser";
 import am from "./AssistantMessage.module.css";
 import ct from "../ChatTranscript.module.css";
 
@@ -92,7 +94,7 @@ export function ChatMessageList(props: {
   }
 
   const streamBubbles = Object.values(streamByRun).filter(
-    (m) => !isHeartbeatMessage(m.role, m.text)
+    (m) => !isHeartbeatMessage(m.role, m.text) && !isNoReplyMessage(m.text)
   );
   const hasStreamBubbles = streamBubbles.length > 0;
   const lastAssistantRenderIndex =
@@ -151,6 +153,18 @@ export function ChatMessageList(props: {
               }
             }
 
+            // Extract audio from tool results in tool-group messages.
+            const toolGroupAudio: string[] = [];
+            for (const m of item.msgs) {
+              for (const r of m.toolResults ?? []) {
+                if (r.text) {
+                  for (const src of extractAudioFiles(r.text)) {
+                    toolGroupAudio.push(src);
+                  }
+                }
+              }
+            }
+
             return (
               <div
                 key={key}
@@ -158,6 +172,9 @@ export function ChatMessageList(props: {
               >
                 <div className={am["UiChatBubble-assistant"]}>
                   <ActionLog cards={flatCards} />
+                  {toolGroupAudio.map((src, i) => (
+                    <AudioPlayer key={`tg-audio-${i}`} src={src} />
+                  ))}
                 </div>
               </div>
             );
@@ -177,6 +194,25 @@ export function ChatMessageList(props: {
               result: m.toolResults?.[index],
             })) ?? [];
 
+          // Extract audio files from tool results (e.g. TTS tool output).
+          const audioSrcs: string[] = [];
+          for (const r of m.toolResults ?? []) {
+            if (r.text) {
+              for (const src of extractAudioFiles(r.text)) {
+                audioSrcs.push(src);
+              }
+            }
+          }
+          // Also check message text itself for inline MEDIA: audio references.
+          if (m.text) {
+            for (const src of extractAudioFiles(m.text)) {
+              audioSrcs.push(src);
+            }
+          }
+
+          const hasAudio = audioSrcs.length > 0;
+          const showText = m.text && !isNoReplyMessage(m.text);
+
           return (
             <div
               key={getMessageKey(m)}
@@ -185,7 +221,11 @@ export function ChatMessageList(props: {
               <div className={am["UiChatBubble-assistant"]}>
                 {flatCards.length > 0 ? <ActionLog cards={flatCards} /> : null}
 
-                {m.text ? (
+                {hasAudio
+                  ? audioSrcs.map((src, i) => <AudioPlayer key={`audio-${i}`} src={src} />)
+                  : null}
+
+                {showText ? (
                   <div className="UiChatText UiMarkdown">
                     <Markdown
                       remarkPlugins={[remarkGfm, remarkMath]}
@@ -197,7 +237,7 @@ export function ChatMessageList(props: {
                   </div>
                 ) : null}
 
-                {m.text ? (
+                {showText ? (
                   <div className={am.UiChatMessageActions}>
                     <CopyMessageButton text={m.text} />
                   </div>

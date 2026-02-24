@@ -105,3 +105,39 @@
   width: 20px;
   height: 20px;
 }
+
+/* ── Health status pill ───────────────────────── */
+
+.UiChatSidebarHealth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+}
+
+.UiChatSidebarHealthDot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.UiChatSidebarHealth--ok .UiChatSidebarHealthDot {
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+}
+
+.UiChatSidebarHealth--off .UiChatSidebarHealthDot {
+  background: #f87171;
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+}

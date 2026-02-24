@@ -6,6 +6,7 @@ import { useOptimisticSession } from "../chat/hooks/optimisticSessionContext";
 import { routes } from "../app/routes";
 import { addToastError } from "@shared/toast";
 import { SplashLogo } from "@shared/kit";
+import { useAppSelector } from "@store/hooks";
 import { SessionSidebarItem } from "./SessionSidebarItem";
 import { cleanDerivedTitle } from "../chat/hooks/messageParser";
 import css from "./Sidebar.module.css";
@@ -96,6 +97,18 @@ export function Sidebar() {
   const gw = useGatewayRpc();
   const { optimistic: optimisticFromContext, setOptimistic } = useOptimisticSession();
   const showTerminal = useTerminalSidebarVisible();
+
+  // Detect which session has an actively working agent.
+  const workingSessionKey = useAppSelector((state) => {
+    const chat = state.chat;
+    const hasStream = Object.keys(chat.streamByRun).length > 0;
+    const hasLiveTools = Object.keys(chat.liveToolCalls).length > 0;
+    if (chat.sending || hasStream || hasLiveTools || chat.awaitingContinuation) {
+      return chat.activeSessionKey ?? null;
+    }
+    return null;
+  });
+
   const optimisticFromState =
     (location.state as { optimisticNewSession?: OptimisticSession } | null)?.optimisticNewSession ??
     null;
@@ -223,6 +236,7 @@ export function Sidebar() {
                 sessionKey={s.key}
                 title={s.title}
                 isActive={currentSessionKey != null && currentSessionKey === s.key}
+                isWorking={workingSessionKey === s.key}
                 onSelect={() => handleSelectSession(s.key)}
                 onDelete={handleDeleteSession}
               />
@@ -232,6 +246,12 @@ export function Sidebar() {
       </div>
 
       <div className={css.UiChatSidebarFooter}>
+        <div
+          className={`${css.UiChatSidebarHealth} ${gw.connected ? css["UiChatSidebarHealth--ok"] : css["UiChatSidebarHealth--off"]}`}
+        >
+          <span className={css.UiChatSidebarHealthDot} />
+          {gw.connected ? "Health OK" : "Offline"}
+        </div>
         {showTerminal && (
           <NavLink to={routes.terminal} className={css.UiChatSidebarSettings} aria-label="Terminal">
             <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">

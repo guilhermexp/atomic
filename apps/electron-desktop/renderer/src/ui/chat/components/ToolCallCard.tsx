@@ -6,6 +6,7 @@ import type {
   UiMessageAttachment,
 } from "@store/slices/chatSlice";
 import { ChatAttachmentCard, getFileTypeLabel } from "./ChatAttachmentCard";
+import { stripAudioMarkers } from "../hooks/messageParser";
 import s from "./ToolCallCard.module.css";
 
 /** Tool names that should be hidden from the chat UI. */
@@ -64,7 +65,8 @@ function ToolResultAttachments({ attachments }: { attachments: UiMessageAttachme
 
 function ToolCallCardBody({ toolCall, result }: { toolCall: UiToolCall; result?: UiToolResult }) {
   const argEntries = getArgEntries(toolCall.arguments);
-  const hasResult = Boolean(result?.text);
+  const cleanedResultText = result?.text ? stripAudioMarkers(result.text) : "";
+  const hasResult = Boolean(cleanedResultText);
   const hasAttachments = Boolean(result?.attachments?.length);
 
   return (
@@ -76,7 +78,7 @@ function ToolCallCardBody({ toolCall, result }: { toolCall: UiToolCall; result?:
         </div>
       ))}
 
-      {hasResult ? <div className={s.ToolCallResultText}>{result!.text}</div> : null}
+      {hasResult ? <div className={s.ToolCallResultText}>{cleanedResultText}</div> : null}
 
       {result?.status ? (
         <div

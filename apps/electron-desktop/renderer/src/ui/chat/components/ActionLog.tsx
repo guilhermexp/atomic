@@ -11,9 +11,11 @@ const ACTION_LOG_EXPANDED_KEY = "action-log-expanded-default";
 
 export function getActionLogExpandedDefault(): boolean {
   try {
-    return localStorage.getItem(ACTION_LOG_EXPANDED_KEY) === "1";
+    const stored = localStorage.getItem(ACTION_LOG_EXPANDED_KEY);
+    // Default to expanded when no preference has been saved yet.
+    return stored === null ? true : stored === "1";
   } catch {
-    return false;
+    return true;
   }
 }
 

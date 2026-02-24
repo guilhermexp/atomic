@@ -152,6 +152,7 @@ export class OpenClawApp extends LitElement {
   @state() chatManualRefreshInFlight = false;
   // Sidebar state for tool output viewing
   @state() sidebarOpen = false;
+  @state() sidebarMode: "tool" | "workflows" = "tool";
   @state() sidebarContent: string | null = null;
   @state() sidebarError: string | null = null;
   @state() splitRatio = this.settings.splitRatio;
@@ -555,7 +556,19 @@ export class OpenClawApp extends LitElement {
       window.clearTimeout(this.sidebarCloseTimer);
       this.sidebarCloseTimer = null;
     }
+    this.sidebarMode = "tool";
     this.sidebarContent = content;
+    this.sidebarError = null;
+    this.sidebarOpen = true;
+  }
+
+  handleOpenWorkflowSidebar() {
+    if (this.sidebarCloseTimer != null) {
+      window.clearTimeout(this.sidebarCloseTimer);
+      this.sidebarCloseTimer = null;
+    }
+    this.sidebarMode = "workflows";
+    this.sidebarContent = null;
     this.sidebarError = null;
     this.sidebarOpen = true;
   }
@@ -570,6 +583,7 @@ export class OpenClawApp extends LitElement {
       if (this.sidebarOpen) {
         return;
       }
+      this.sidebarMode = "tool";
       this.sidebarContent = null;
       this.sidebarError = null;
       this.sidebarCloseTimer = null;

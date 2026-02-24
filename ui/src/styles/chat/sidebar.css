@@ -94,6 +94,50 @@
   font-size: 13px;
 }
 
+.workflow-sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+.workflow-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-section {
+  display: grid;
+  gap: 10px;
+}
+
+.workflow-section__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.workflow-item {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.workflow-item--session {
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 180px);
+  align-items: center;
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-actions .btn {
+  padding: 6px 10px;
+}
+
 /* Mobile: Full-screen modal */
 @media (max-width: 768px) {
   .chat-split-container--open {

@@ -71,6 +71,7 @@ export type AppViewState = {
   nodes: Array<Record<string, unknown>>;
   chatNewMessagesBelow: boolean;
   sidebarOpen: boolean;
+  sidebarMode: "tool" | "workflows";
   sidebarContent: string | null;
   sidebarError: string | null;
   splitRatio: number;
@@ -285,6 +286,7 @@ export type AppViewState = {
   exportLogs: (lines: string[], label: string) => void;
   handleLogsScroll: (event: Event) => void;
   handleOpenSidebar: (content: string) => void;
+  handleOpenWorkflowSidebar: () => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
 };

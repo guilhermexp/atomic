@@ -1,0 +1,284 @@
+.CronToggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 96;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: #1f2126;
+  color: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.CronToggle:hover,
+.CronToggleOpen {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: #2a2d34;
+}
+
+.CronPanel {
+  position: fixed;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  background: #1f2126;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.62);
+}
+
+.CronPanelRight {
+  right: 12px;
+  bottom: 98px;
+  width: min(380px, calc(100vw - 24px));
+  height: min(72vh, 760px);
+  border-radius: 16px;
+}
+
+.CronPanelBottom {
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: min(48vh, 520px);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.CronPanelHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.SearchInput {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #2a2d34;
+  color: rgba(255, 255, 255, 0.74);
+  padding: 6px 8px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  font-size: 12px;
+  outline: none;
+}
+
+.SearchInput:focus {
+  border-color: rgba(255, 255, 255, 0.46);
+}
+
+.TopAction,
+.CronPanelClose {
+  height: 28px;
+  min-width: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: #2b2e35;
+  color: rgba(255, 255, 255, 0.74);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+.TopAction:hover,
+.CronPanelClose:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.Tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.Tab {
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  background: #25282f;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.TabActive {
+  color: #fff;
+  background: #32353d;
+}
+
+.TableWrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.TableHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.7fr) 88px;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 11px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  text-transform: uppercase;
+}
+
+.TableBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.TableRow {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.7fr) 88px;
+  gap: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.TableRow:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.TableRowSelected {
+  background: rgba(74, 222, 128, 0.08);
+  box-shadow: inset 2px 0 0 #4ade80;
+}
+
+.EventText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.EventTime {
+  text-align: right;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.AgentCanvas {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+  background-color: #24272e;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.7px, transparent 0.7px);
+  background-size: 12px 12px;
+}
+
+.AgentCard {
+  max-width: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2f333b;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.AgentLabel {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  margin-bottom: 6px;
+}
+
+.AgentName {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.AgentMeta {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.AgentDuration {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.StatePane {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+}
+
+.StatePane pre {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.4;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+}
+
+.Empty {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 12px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+}
+
+.Footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+}
+
+@media (max-width: 980px) {
+  .CronToggle {
+    width: 46px;
+    height: 46px;
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .CronPanelRight {
+    right: 8px;
+    bottom: 86px;
+    width: min(96vw, 360px);
+    height: min(70vh, 680px);
+  }
+
+  .CronPanelBottom {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: min(54vh, 460px);
+  }
+}

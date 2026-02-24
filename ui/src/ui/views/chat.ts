@@ -9,10 +9,11 @@ import {
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { icons } from "../icons.ts";
 import { detectTextDirection } from "../text-direction.ts";
-import type { SessionsListResult } from "../types.ts";
+import type { CronJob, SessionsListResult } from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
+import { renderWorkflowSidebar } from "./workflow-sidebar.ts";
 import "../components/resizable-divider.ts";
 
 export type CompactionIndicatorStatus = {
@@ -57,11 +58,25 @@ export type ChatProps = {
   focusMode: boolean;
   // Sidebar state
   sidebarOpen?: boolean;
+  sidebarMode?: "tool" | "workflows";
   sidebarContent?: string | null;
   sidebarError?: string | null;
   splitRatio?: number;
+  cronJobs?: CronJob[];
+  cronBusy?: boolean;
+  cronLoading?: boolean;
+  cronError?: string | null;
+  sessionsLoading?: boolean;
+  sessionsError?: string | null;
   assistantName: string;
   assistantAvatar: string | null;
+  onOpenWorkflows?: () => void;
+  onWorkflowsRefresh?: () => void;
+  onWorkflowCronRun?: (job: CronJob) => void;
+  onWorkflowCronToggle?: (job: CronJob, enabled: boolean) => void;
+  onWorkflowCronRemove?: (job: CronJob) => void;
+  onWorkflowOpenCronTab?: () => void;
+  onWorkflowOpenSessionsTab?: () => void;
   // Image attachments
   attachments?: ChatAttachment[];
   onAttachmentsChange?: (attachments: ChatAttachment[]) => void;
@@ -258,6 +273,10 @@ export function renderChat(props: ChatProps) {
 
   const splitRatio = props.splitRatio ?? 0.6;
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
+  const sidebarMode = props.sidebarMode ?? "tool";
+  const workflowActive = sidebarOpen && sidebarMode === "workflows";
+  const workflowJobCount = props.cronJobs?.length ?? 0;
+  const workflowSessionCount = props.sessions?.count ?? 0;
   const thread = html`
     <div
       class="chat-thread"
@@ -335,6 +354,22 @@ export function renderChat(props: ChatProps) {
           `
           : nothing
       }
+      ${
+        props.onOpenWorkflows
+          ? html`
+              <button
+                class="chat-workflow-toggle ${workflowActive ? "chat-workflow-toggle--active" : ""}"
+                type="button"
+                @click=${props.onOpenWorkflows}
+                aria-label="Open workflow manager"
+                title="Workflows: cron jobs and subagents"
+              >
+                ${icons.puzzle}
+                <span class="chat-workflow-toggle__count">${workflowJobCount}/${workflowSessionCount}</span>
+              </button>
+            `
+          : nothing
+      }
 
       <div
         class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}"
@@ -354,17 +389,36 @@ export function renderChat(props: ChatProps) {
                 @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
               ></resizable-divider>
               <div class="chat-sidebar">
-                ${renderMarkdownSidebar({
-                  content: props.sidebarContent ?? null,
-                  error: props.sidebarError ?? null,
-                  onClose: props.onCloseSidebar!,
-                  onViewRawText: () => {
-                    if (!props.sidebarContent || !props.onOpenSidebar) {
-                      return;
-                    }
-                    props.onOpenSidebar(`\`\`\`\n${props.sidebarContent}\n\`\`\``);
-                  },
-                })}
+                ${
+                  sidebarMode === "workflows"
+                    ? renderWorkflowSidebar({
+                        loading: Boolean(props.cronLoading || props.sessionsLoading),
+                        cronBusy: Boolean(props.cronBusy),
+                        cronJobs: props.cronJobs ?? [],
+                        cronError: props.cronError ?? null,
+                        sessions: props.sessions ?? null,
+                        sessionsLoading: Boolean(props.sessionsLoading),
+                        sessionsError: props.sessionsError ?? null,
+                        onRefresh: () => props.onWorkflowsRefresh?.(),
+                        onClose: props.onCloseSidebar!,
+                        onCronRun: (job) => props.onWorkflowCronRun?.(job),
+                        onCronToggle: (job, enabled) => props.onWorkflowCronToggle?.(job, enabled),
+                        onCronRemove: (job) => props.onWorkflowCronRemove?.(job),
+                        onOpenCronTab: () => props.onWorkflowOpenCronTab?.(),
+                        onOpenSessionsTab: () => props.onWorkflowOpenSessionsTab?.(),
+                      })
+                    : renderMarkdownSidebar({
+                        content: props.sidebarContent ?? null,
+                        error: props.sidebarError ?? null,
+                        onClose: props.onCloseSidebar!,
+                        onViewRawText: () => {
+                          if (!props.sidebarContent || !props.onOpenSidebar) {
+                            return;
+                          }
+                          props.onOpenSidebar(`\`\`\`\n${props.sidebarContent}\n\`\`\``);
+                        },
+                      })
+                }
               </div>
             `
             : nothing

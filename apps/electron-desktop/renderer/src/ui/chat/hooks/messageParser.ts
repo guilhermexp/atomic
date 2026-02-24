@@ -75,6 +75,38 @@ export function parseUserMessageWithAttachments(text: string): {
   return { displayText, fileAttachments };
 }
 
+/* ── Audio / voice message helpers ──────────────────────────────── */
+
+const AUDIO_EXTS_RE = /\.(mp3|wav|ogg|m4a|aac|webm|flac)$/i;
+const MEDIA_PATH_RE = /MEDIA:(\S+)/g;
+const AUDIO_VOICE_RE = /\[\[audio_as_voice\]\]\s*/g;
+
+/** Extract audio file sources from text containing `MEDIA:path` references. */
+export function extractAudioFiles(text: string): string[] {
+  const files: string[] = [];
+  const re = new RegExp(MEDIA_PATH_RE.source, "g");
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(text)) !== null) {
+    const path = match[1];
+    if (AUDIO_EXTS_RE.test(path)) {
+      const src =
+        path.startsWith("http://") || path.startsWith("https://") ? path : `file://${path}`;
+      files.push(src);
+    }
+  }
+  return files;
+}
+
+/** Strip `[[audio_as_voice]]` and `MEDIA:path` markers from text for display. */
+export function stripAudioMarkers(text: string): string {
+  return text.replace(MEDIA_PATH_RE, "").replace(AUDIO_VOICE_RE, "").trim();
+}
+
+/** Detect agent "no reply" placeholder messages that should be hidden. */
+export function isNoReplyMessage(text: string): boolean {
+  return /^\s*NO_REPLY\s*$/.test(text);
+}
+
 /**
  * Sanitize raw derivedTitle: strip inbound-meta untrusted context blocks,
  * envelope date headers, attachment markers, media hints, file tags,

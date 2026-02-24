@@ -25,7 +25,7 @@
   min-width: var(--content-min-width);
   max-width: var(--content-max-width);
   padding: 0 24px;
-  margin: 0 auto;
+  margin: auto auto 0;
 }
 
 .UiChatEmpty {
@@ -74,9 +74,10 @@
   margin-top: 0;
 }
 
-/* Last assistant message row: minimum height so content area fills the viewport above the input. */
+/* Last assistant message row: no longer needs min-height; margin-top:auto on the
+   inner wrapper pushes the conversation to the bottom of the viewport. */
 .UiChatRowLastAssistant {
-  min-height: calc(-460px + 100dvh);
+  /* kept as a hook for JS class-name logic */
 }
 
 @keyframes uiChatBubbleEnter {

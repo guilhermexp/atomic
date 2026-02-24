@@ -1,0 +1,129 @@
+/* ── Voice message bubble ─────────────────────── */
+
+.AudioPlayer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  min-width: 260px;
+  max-width: 420px;
+  margin: 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Play / Pause button ──────────────────────── */
+
+.AudioPlayerBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: var(--lime, #b8f846);
+  color: #111;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease,
+    box-shadow 120ms ease;
+  box-shadow: 0 2px 8px rgba(184, 248, 70, 0.25);
+}
+
+.AudioPlayerBtn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 3px 12px rgba(184, 248, 70, 0.35);
+}
+
+.AudioPlayerBtn:active {
+  transform: scale(0.94);
+  opacity: 0.85;
+}
+
+/* ── Waveform area ────────────────────────────── */
+
+.AudioPlayerWave {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.AudioPlayerBars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1px;
+}
+
+.AudioPlayerBar {
+  width: 2.5px;
+  border-radius: 1.5px;
+  background: rgba(255, 255, 255, 0.25);
+  transition: background 180ms ease;
+}
+
+/* Progress overlay — tints played bars with accent color */
+.AudioPlayerProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--lime, #b8f846);
+  opacity: 0.2;
+  pointer-events: none;
+  transition: width 80ms linear;
+}
+
+/* Played bars get the accent color via a clip-path trick.
+   We overlay a duplicate set of bars that are accent-colored
+   and clip to the progress %. Since CSS modules can't duplicate
+   the DOM, we use the simpler overlay approach above. */
+
+/* ── Time display ─────────────────────────────── */
+
+.AudioPlayerTime {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  color: rgba(255, 255, 255, 0.45);
+  min-width: 36px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Error / muted state ──────────────────────── */
+
+.AudioPlayerIconMuted {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.AudioPlayerError {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Reduced motion ───────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .AudioPlayerBtn {
+    transition: none;
+  }
+  .AudioPlayerProgress {
+    transition: none;
+  }
+}

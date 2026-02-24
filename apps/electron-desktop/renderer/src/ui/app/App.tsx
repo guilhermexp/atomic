@@ -29,6 +29,7 @@ import {
   OptimisticSessionSync,
 } from "../chat/hooks/optimisticSessionContext";
 import { ExecApprovalOverlay } from "./ExecApprovalModal";
+import { CronToggleButton, CronPanel } from "../cron/CronPanel";
 import a from "./App.module.css";
 
 function ChatRoute({ state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
@@ -41,6 +42,7 @@ function ChatRoute({ state }: { state: Extract<GatewayState, { kind: "ready" }> 
 }
 
 function SidebarLayout({ state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
+  const [cronOpen, setCronOpen] = React.useState(false);
   return (
     <GatewayRpcProvider url={state.url} token={state.token}>
       <OptimisticSessionProvider>
@@ -53,6 +55,8 @@ function SidebarLayout({ state }: { state: Extract<GatewayState, { kind: "ready"
               <Outlet />
             </div>
           </div>
+          <CronToggleButton open={cronOpen} onClick={() => setCronOpen((v) => !v)} />
+          {cronOpen && <CronPanel onClose={() => setCronOpen(false)} />}
         </div>
       </OptimisticSessionProvider>
     </GatewayRpcProvider>

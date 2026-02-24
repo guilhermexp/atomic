@@ -865,12 +865,31 @@ export function renderApp(state: AppViewState) {
                 onScrollToBottom: () => state.scrollToBottom(),
                 // Sidebar props for tool output viewing
                 sidebarOpen: state.sidebarOpen,
+                sidebarMode: state.sidebarMode,
                 sidebarContent: state.sidebarContent,
                 sidebarError: state.sidebarError,
                 splitRatio: state.splitRatio,
                 onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
+                onOpenWorkflows: () => {
+                  state.handleOpenWorkflowSidebar();
+                  void Promise.all([state.loadCron(), loadSessions(state)]);
+                },
                 onCloseSidebar: () => state.handleCloseSidebar(),
                 onSplitRatioChange: (ratio: number) => state.handleSplitRatioChange(ratio),
+                cronJobs: state.cronJobs,
+                cronBusy: state.cronBusy,
+                cronLoading: state.cronLoading,
+                cronError: state.cronError,
+                sessionsLoading: state.sessionsLoading,
+                sessionsError: state.sessionsError,
+                onWorkflowsRefresh: () => {
+                  void Promise.all([state.loadCron(), loadSessions(state)]);
+                },
+                onWorkflowCronRun: (job) => runCronJob(state, job),
+                onWorkflowCronToggle: (job, enabled) => toggleCronJob(state, job, enabled),
+                onWorkflowCronRemove: (job) => removeCronJob(state, job),
+                onWorkflowOpenCronTab: () => state.setTab("cron"),
+                onWorkflowOpenSessionsTab: () => state.setTab("sessions"),
                 assistantName: state.assistantName,
                 assistantAvatar: state.assistantAvatar,
               })

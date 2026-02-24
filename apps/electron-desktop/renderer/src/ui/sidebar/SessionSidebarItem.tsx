@@ -6,6 +6,7 @@ export type SessionSidebarItemProps = {
   sessionKey: string;
   title: string;
   isActive: boolean;
+  isWorking?: boolean;
   onSelect: () => void;
   onDelete: (key: string) => void;
 };
@@ -52,6 +53,7 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
   sessionKey,
   title,
   isActive,
+  isWorking,
   onSelect,
   onDelete,
 }: SessionSidebarItemProps) {
@@ -121,6 +123,7 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
         onClick={onSelect}
         title={sessionKey}
       >
+        {isWorking && <span className={s.SessionSidebarItem__spinner} />}
         <span className={s.SessionSidebarItem__titleText}>{title}</span>
         <div className={s.SessionSidebarItem__actions}>
           <span
