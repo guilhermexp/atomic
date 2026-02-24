@@ -222,7 +222,7 @@
 .UiBanner {
   background: var(--surface-secondary);
   border-radius: var(--radius-lg);
-  padding: 12px;
+  padding: 12px 12px 8px;
   display: flex;
   gap: 14px;
   flex-direction: column;
@@ -250,10 +250,9 @@
 
 .UiBannerImageContainer {
   width: 100%;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
 }
 
 .UiBannerImageContainer > img {
   width: 100%;
+  border-radius: var(--radius-xl);
 }

@@ -5,6 +5,7 @@
   flex-direction: column;
   min-height: 472px;
   justify-content: space-between;
+  position: relative;
 }
 
 .connected {
