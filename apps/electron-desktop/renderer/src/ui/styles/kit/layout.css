@@ -224,16 +224,28 @@
   border-radius: var(--radius-lg);
   padding: 12px;
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  flex-direction: column;
 }
 
 .UiBannerTitle {
   font-weight: 500;
   font-size: 14px;
-  padding-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .UiBannerSubtitle {
-  color: #8e8e8e;
-  font-size: 12px;
+  color: #ffffffb2;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.UiBannerImageContainer {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.UiBannerImageContainer > img {
+  width: 100%;
 }

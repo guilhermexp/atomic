@@ -3,6 +3,7 @@ import React from "react";
 import sm from "./SkillModal.module.css";
 import { getDesktopApiOrNull } from "@ipc/desktopApi";
 import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import connectGoogleImage from "@assets/connect-google.png";
 
 const DEFAULT_GOG_SERVICES = "gmail,calendar,drive,docs,sheets,contacts";
 
@@ -138,6 +139,20 @@ export function GoogleWorkspaceModalContent(props: {
           spellCheck={false}
           isError={error}
         />
+      </div>
+
+      <div className="UiBanner">
+        <div>
+          <div className="UiBannerTitle">How to connect your Google account</div>
+          <div className="UiBannerSubtitle">
+            Google may show an extra verification screen while our app is under review. This is
+            normal for new apps. To continue safely сlick “Advanced” and select “Go to Atomic Bot”.
+            Your Google account remains protected.
+          </div>
+        </div>
+        <div className="UiBannerImageContainer">
+          <img src={connectGoogleImage} alt="" />
+        </div>
       </div>
 
       <div className={sm.UiSkillModalActions}>
