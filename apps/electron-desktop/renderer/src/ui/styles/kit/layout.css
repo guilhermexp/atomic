@@ -224,8 +224,9 @@
   border-radius: var(--radius-lg);
   padding: 12px;
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-direction: column;
+  margin-bottom: 8px;
 }
 
 .UiLiquidBanner {
@@ -249,7 +250,7 @@
 
 .UiBannerImageContainer {
   width: 100%;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 
