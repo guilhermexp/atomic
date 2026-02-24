@@ -2,7 +2,7 @@ import React from "react";
 
 import sm from "./SkillModal.module.css";
 import { getDesktopApiOrNull } from "@ipc/desktopApi";
-import { ActionButton, InlineError, TextInput } from "@shared/kit";
+import { ActionButton, TextInput } from "@shared/kit";
 import connectGoogleImage from "@assets/connect-google.png";
 
 const DEFAULT_GOG_SERVICES = "gmail,calendar,drive,docs,sheets,contacts";
@@ -155,29 +155,32 @@ export function GoogleWorkspaceModalContent(props: {
         </div>
       </div>
 
-      <div className={sm.UiSkillModalActions}>
-        <ActionButton variant="primary" disabled={busy} onClick={() => void handleConnect()}>
-          {busy ? "Connecting…" : "Connect"}
-        </ActionButton>
-        <ActionButton disabled={busy} onClick={() => void handleCheck()}>
-          {busy ? "Checking…" : "Check"}
-        </ActionButton>
-      </div>
+      <div style={{ height: props.isConnected ? "117" : "54px" }}></div>
 
-      {/*{output && <pre className={sm.UiSkillModalOutput}>{output}</pre>}*/}
-
-      {props.isConnected && (
-        <div className={sm.UiSkillModalDangerZone}>
-          <button
-            type="button"
-            className={sm.UiSkillModalDisableButton}
-            disabled={busy}
-            onClick={props.onDisabled}
-          >
-            Disable
-          </button>
+      <div className={sm.UiSkillModalActionsWrapper}>
+        <div className={sm.UiSkillModalActions}>
+          <ActionButton variant="primary" disabled={busy} onClick={() => void handleConnect()}>
+            {busy ? "Connecting…" : "Connect"}
+          </ActionButton>
+          <ActionButton disabled={busy} onClick={() => void handleCheck()}>
+            {busy ? "Checking…" : "Check"}
+          </ActionButton>
         </div>
-      )}
+
+        {/*{output && <pre className={sm.UiSkillModalOutput}>{output}</pre>}*/}
+        {props.isConnected && (
+          <div className={sm.UiSkillModalDangerZone}>
+            <button
+              type="button"
+              className={sm.UiSkillModalDisableButton}
+              disabled={busy}
+              onClick={props.onDisabled}
+            >
+              Disable
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
