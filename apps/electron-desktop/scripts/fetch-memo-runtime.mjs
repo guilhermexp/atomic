@@ -106,9 +106,9 @@ function extractTarGz(params) {
   const { archivePath, extractDir } = params;
   rmrf(extractDir);
   ensureDir(extractDir);
-  const args = ["-xzf", archivePath, "-C", extractDir];
-  if (process.platform === "win32") args.push("--force-local");
-  const res = spawnSync("tar", args, { encoding: "utf-8" });
+  const a = archivePath.replaceAll("\\", "/");
+  const d = extractDir.replaceAll("\\", "/");
+  const res = spawnSync("tar", ["-xzf", a, "-C", d], { encoding: "utf-8" });
   if (res.status !== 0) {
     const stderr = String(res.stderr || "").trim();
     throw new Error(`failed to untar memo archive: ${stderr || "unknown error"}`);

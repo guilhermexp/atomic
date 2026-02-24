@@ -135,11 +135,12 @@ export function extractZip(archivePath, extractDir) {
 export function extractTarGz(archivePath, extractDir) {
   rmrf(extractDir);
   ensureDir(extractDir);
-  // GNU tar (common on Windows CI via Git/MSYS2) treats colons in paths as
-  // remote host separators (e.g. "D:\..." → host "D"). --force-local prevents this.
-  const args = ["-xzf", archivePath, "-C", extractDir];
-  if (process.platform === "win32") args.push("--force-local");
-  const res = spawnSync("tar", args, { encoding: "utf-8" });
+  // GNU tar (from Git/MSYS2 on Windows) misinterprets backslash paths and
+  // treats drive-letter colons as remote host specifiers. Forward slashes
+  // avoid both issues and work with GNU tar, bsdtar, and Windows APIs.
+  const a = archivePath.replaceAll("\\", "/");
+  const d = extractDir.replaceAll("\\", "/");
+  const res = spawnSync("tar", ["-xzf", a, "-C", d], { encoding: "utf-8" });
   if (res.status !== 0) {
     const stderr = String(res.stderr || "").trim();
     throw new Error(`failed to extract tar.gz archive: ${stderr || "unknown error"}`);
