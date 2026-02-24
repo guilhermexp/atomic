@@ -221,7 +221,7 @@
 
 .UiBanner {
   background: var(--surface-secondary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: 12px 12px 8px;
   display: flex;
   gap: 14px;
