@@ -33,6 +33,22 @@ function rmrf(p) {
   }
 }
 
+// fs.renameSync fails with EXDEV when src and dest are on different drives
+// (common on Windows CI where temp is on C:\ and workspace on D:\).
+function moveDir(src, dest) {
+  try {
+    fs.renameSync(src, dest);
+  } catch (err) {
+    if (err.code === "EXDEV") {
+      rmrf(dest);
+      fs.cpSync(src, dest, { recursive: true });
+      rmrf(src);
+    } else {
+      throw err;
+    }
+  }
+}
+
 function ensureDir(p) {
   fs.mkdirSync(p, { recursive: true });
 }
@@ -119,7 +135,7 @@ async function main() {
     if (!root) {
       throw new Error("Failed to find extracted Node directory");
     }
-    fs.renameSync(path.join(extractDir, root), targetDir);
+    moveDir(path.join(extractDir, root), targetDir);
   } else {
     // zip (Windows) — nodejs.org zips contain a top-level directory like
     // node-v22.12.0-win-x64/, so extract to a temp dir first, then move.
@@ -127,7 +143,8 @@ async function main() {
     ensureDir(extractDir);
     if (process.platform === "win32") {
       run("powershell", [
-        "-NoProfile", "-Command",
+        "-NoProfile",
+        "-Command",
         `Expand-Archive -LiteralPath '${archivePath}' -DestinationPath '${extractDir}' -Force`,
       ]);
     } else {
@@ -137,7 +154,7 @@ async function main() {
     const root = entries.find((e) => e.startsWith("node-v"));
     if (root) {
       rmrf(targetDir);
-      fs.renameSync(path.join(extractDir, root), targetDir);
+      moveDir(path.join(extractDir, root), targetDir);
     }
   }
 

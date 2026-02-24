@@ -5,8 +5,12 @@ import path from "node:path";
 export function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {
     stdio: "inherit",
+    shell: process.platform === "win32",
     ...opts,
   });
+  if (result.error) {
+    throw new Error(`Failed to execute ${cmd}: ${result.error.message}`);
+  }
   if (result.status !== 0) {
     throw new Error(`${cmd} ${args.join(" ")} failed with exit code ${result.status ?? "?"}`);
   }
@@ -37,7 +41,12 @@ export function tryRemove(p) {
 }
 
 export function packageNameFromSpecifier(specifier) {
-  if (!specifier || specifier.startsWith("node:") || specifier.startsWith(".") || specifier.startsWith("/")) {
+  if (
+    !specifier ||
+    specifier.startsWith("node:") ||
+    specifier.startsWith(".") ||
+    specifier.startsWith("/")
+  ) {
     return null;
   }
   const parts = specifier.split("/");

@@ -88,11 +88,7 @@ export interface Platform {
   readonly trayIconIsTemplate: boolean;
 
   /** Show a native update-splash screen that survives app restart. */
-  showUpdateSplash(params: {
-    stateDir: string;
-    pid: number;
-    bundleId: string;
-  }): void;
+  showUpdateSplash(params: { stateDir: string; pid: number; bundleId: string }): void;
 
   /** Kill a lingering update-splash screen from a previous launch. */
   killUpdateSplash(params: { stateDir: string }): void;

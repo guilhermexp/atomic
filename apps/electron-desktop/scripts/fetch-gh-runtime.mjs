@@ -110,7 +110,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `fetch-gh-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `fetch-gh-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
 

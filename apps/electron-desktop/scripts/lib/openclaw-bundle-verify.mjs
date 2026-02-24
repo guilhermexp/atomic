@@ -52,11 +52,11 @@ console.log("Resolved critical runtime packages:", pkgs.join(", "));
   const resolveRes = runCheck(
     "node",
     ["-e", resolveScript, openclawEntry, ...CRITICAL_RUNTIME_PACKAGES],
-    { cwd: outDir, timeout: timeoutMs },
+    { cwd: outDir, timeout: timeoutMs }
   );
   if (resolveRes.status !== 0) {
     throw new Error(
-      `[verify-openclaw-bundle] package resolve check failed.\n${resolveRes.stderr || resolveRes.stdout}`,
+      `[verify-openclaw-bundle] package resolve check failed.\n${resolveRes.stderr || resolveRes.stdout}`
     );
   }
 
@@ -69,7 +69,7 @@ console.log("Resolved critical runtime packages:", pkgs.join(", "));
       throw new Error(
         `[verify-openclaw-bundle] smoke failed: node openclaw.mjs ${cmdArgs.join(" ")}\n${
           smokeRes.stderr || smokeRes.stdout
-        }`,
+        }`
       );
     }
   }

@@ -38,12 +38,14 @@ const nmDir = path.join(outDir, "node_modules");
 const PNPM = process.env.PNPM_BIN || "pnpm";
 
 const safeMode = isSafeMode();
-const skipVerify = /^(1|true|yes)$/i.test(String(process.env.OPENCLAW_BUNDLE_SKIP_VERIFY || "").trim());
+const skipVerify = /^(1|true|yes)$/i.test(
+  String(process.env.OPENCLAW_BUNDLE_SKIP_VERIFY || "").trim()
+);
 const persistGeneratedExternals = /^(1|true|yes)$/i.test(
-  String(process.env.OPENCLAW_BUNDLE_WRITE_GENERATED_EXTERNALS || "").trim(),
+  String(process.env.OPENCLAW_BUNDLE_WRITE_GENERATED_EXTERNALS || "").trim()
 );
 const strictGeneratedExternals = /^(1|true|yes)$/i.test(
-  String(process.env.OPENCLAW_BUNDLE_STRICT_EXTERNALS || "").trim(),
+  String(process.env.OPENCLAW_BUNDLE_STRICT_EXTERNALS || "").trim()
 );
 console.log(`[electron-desktop] prepare-openclaw-bundle safe mode: ${safeMode ? "on" : "off"}`);
 
@@ -57,7 +59,9 @@ async function buildEntryWithAdaptiveExternals(params) {
   const maxAttempts = 12;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const effectiveExternals = resolveEsbuildExternals({ additional: [...adaptive, ...initialExternals] });
+    const effectiveExternals = resolveEsbuildExternals({
+      additional: [...adaptive, ...initialExternals],
+    });
     try {
       const mainBuild = await esbuild.build({
         entryPoints: [entryJs],
@@ -74,7 +78,9 @@ async function buildEntryWithAdaptiveExternals(params) {
       });
       return { mainBuild, adaptive, effectiveExternals };
     } catch (err) {
-      const pkg = inferPackageFromEsbuildErrorMessage(err instanceof Error ? err.message : String(err));
+      const pkg = inferPackageFromEsbuildErrorMessage(
+        err instanceof Error ? err.message : String(err)
+      );
       if (!pkg || NODE_BUILTINS.has(pkg) || isPackageCoveredByExternals(pkg, effectiveExternals)) {
         throw err;
       }
@@ -83,14 +89,16 @@ async function buildEntryWithAdaptiveExternals(params) {
     }
   }
 
-  throw new Error("[electron-desktop] Failed to bundle dist/entry.js after adaptive external retries");
+  throw new Error(
+    "[electron-desktop] Failed to bundle dist/entry.js after adaptive external retries"
+  );
 }
 
 function verifyControlUiBuilt() {
   const controlUiIndex = path.join(repoRoot, "dist", "control-ui", "index.html");
   if (!fs.existsSync(controlUiIndex)) {
     throw new Error(
-      `[electron-desktop] Control UI assets missing after build: ${controlUiIndex}. Did ui:build output change?`,
+      `[electron-desktop] Control UI assets missing after build: ${controlUiIndex}. Did ui:build output change?`
     );
   }
 }
@@ -251,7 +259,9 @@ function traceKeepEntries(params) {
     }
   }
 
-  const pnpmEntries = fs.readdirSync(pnpmStoreDir).filter((e) => e !== "node_modules" && e !== "lock.yaml");
+  const pnpmEntries = fs
+    .readdirSync(pnpmStoreDir)
+    .filter((e) => e !== "node_modules" && e !== "lock.yaml");
   for (const pkg of packageNames) {
     try {
       const target = fs.realpathSync(path.join(nmDir, pkg));
@@ -315,7 +325,9 @@ function deepHoistSubDependencies(pnpmStoreDir) {
     }
   }
   if (deepHoisted > 0) {
-    console.log(`[electron-desktop] Deep-hoisted ${deepHoisted} sub-dependencies to root node_modules`);
+    console.log(
+      `[electron-desktop] Deep-hoisted ${deepHoisted} sub-dependencies to root node_modules`
+    );
   }
 }
 
@@ -410,7 +422,8 @@ async function main() {
 
   if (fs.existsSync(nmDir) && !safeMode) {
     const stripped = stripJunkFiles(nmDir);
-    if (stripped > 0) console.log(`[electron-desktop] Stripped ${stripped} unnecessary files from node_modules`);
+    if (stripped > 0)
+      console.log(`[electron-desktop] Stripped ${stripped} unnecessary files from node_modules`);
   }
 
   const distDir = path.join(outDir, "dist");
@@ -437,7 +450,10 @@ async function main() {
       learnedAdaptiveExternals.add(pkg);
     }
 
-    for (const p of collectExternalPackagesFromMetafile({ metafile: mainBuild.metafile, nodeBuiltins: NODE_BUILTINS })) {
+    for (const p of collectExternalPackagesFromMetafile({
+      metafile: mainBuild.metafile,
+      nodeBuiltins: NODE_BUILTINS,
+    })) {
       externalPkgs.add(p);
     }
 
@@ -468,7 +484,9 @@ async function main() {
           fs.rmSync(path.join(pnpmStoreDir, entry), { recursive: true, force: true });
           removedEntries++;
         }
-        console.log(`[electron-desktop] Removed ${removedEntries} .pnpm entries (kept ${keepEntries.size})`);
+        console.log(
+          `[electron-desktop] Removed ${removedEntries} .pnpm entries (kept ${keepEntries.size})`
+        );
         removeDanglingLinks(pnpmStoreDir);
         deepHoistSubDependencies(pnpmStoreDir);
       }
@@ -483,14 +501,14 @@ async function main() {
     const updated = uniqSortedStrings([...readGeneratedExternals(), ...learnedAdaptiveExternals]);
     writeGeneratedExternals(updated);
     console.log(
-      `[electron-desktop] Persisted ${learnedAdaptiveExternals.size} adaptive externals to generated list`,
+      `[electron-desktop] Persisted ${learnedAdaptiveExternals.size} adaptive externals to generated list`
     );
   } else if (learnedAdaptiveExternals.size > 0) {
     console.log(
-      `[electron-desktop] Learned adaptive externals for this run: ${[...learnedAdaptiveExternals].join(", ")}`,
+      `[electron-desktop] Learned adaptive externals for this run: ${[...learnedAdaptiveExternals].join(", ")}`
     );
     console.log(
-      "[electron-desktop] To persist them, rerun with OPENCLAW_BUNDLE_WRITE_GENERATED_EXTERNALS=1",
+      "[electron-desktop] To persist them, rerun with OPENCLAW_BUNDLE_WRITE_GENERATED_EXTERNALS=1"
     );
   }
 
@@ -501,7 +519,7 @@ async function main() {
         `Learned: ${[...learnedAdaptiveExternals].join(", ")}`,
         "Run: npm run refresh:openclaw-externals",
         "Then commit scripts/lib/openclaw-bundle-generated-externals.json",
-      ].join("\n"),
+      ].join("\n")
     );
   }
 
@@ -531,14 +549,21 @@ async function main() {
           ],
         });
         for (const f of fs.readdirSync(extDir, { withFileTypes: true })) {
-          if (f.name === "package.json" || f.name === "_bundled.js" || f.name === "openclaw.plugin.json") continue;
+          if (
+            f.name === "package.json" ||
+            f.name === "_bundled.js" ||
+            f.name === "openclaw.plugin.json"
+          )
+            continue;
           fs.rmSync(path.join(extDir, f.name), { recursive: true, force: true });
         }
         fs.renameSync(bundledFile, extIndex);
       }
     }
   } else {
-    console.log("[electron-desktop] Safe mode active: skipped extension rebundling and aggressive pruning");
+    console.log(
+      "[electron-desktop] Safe mode active: skipped extension rebundling and aggressive pruning"
+    );
   }
 
   if (!skipVerify) {

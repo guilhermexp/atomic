@@ -139,12 +139,7 @@ export function resolveEsbuildExternals(options = {}) {
 export const ESBUILD_EXTERNALS = resolveEsbuildExternals();
 
 // Explicit package pruning from the deployed pnpm store.
-export const PRUNE_PREFIXES = [
-  "node-llama-cpp",
-  "@node-llama-cpp+",
-  "koffi@",
-  "typescript@",
-];
+export const PRUNE_PREFIXES = ["node-llama-cpp", "@node-llama-cpp+", "koffi@", "typescript@"];
 
 export const PRUNE_LINK_NAMES = ["node-llama-cpp", "koffi", "typescript"];
 export const PRUNE_SCOPED_NAMES = ["@node-llama-cpp"];
@@ -238,27 +233,24 @@ export const STRIP_DIR_NAMES = new Set([
 ]);
 
 // Runtime package checks for post-bundle verification.
-export const CRITICAL_RUNTIME_PACKAGES = [
-  "express",
-  "jiti",
-  "yaml",
-  "music-metadata",
-  "file-type",
-];
+export const CRITICAL_RUNTIME_PACKAGES = ["express", "jiti", "yaml", "music-metadata", "file-type"];
 
 // Safe command probes for smoke validation.
-export const SMOKE_COMMANDS = [
-  ["--help"],
-  ["channels", "--help"],
-];
+export const SMOKE_COMMANDS = [["--help"], ["channels", "--help"]];
 
 export function isSafeMode() {
-  const raw = String(process.env.OPENCLAW_BUNDLE_SAFE_MODE || "").trim().toLowerCase();
+  const raw = String(process.env.OPENCLAW_BUNDLE_SAFE_MODE || "")
+    .trim()
+    .toLowerCase();
   if (raw === "1" || raw === "true" || raw === "yes") {
     return true;
   }
   if (raw === "0" || raw === "false" || raw === "no") {
     return false;
   }
-  return String(process.env.CI || "").trim().toLowerCase() === "true";
+  return (
+    String(process.env.CI || "")
+      .trim()
+      .toLowerCase() === "true"
+  );
 }

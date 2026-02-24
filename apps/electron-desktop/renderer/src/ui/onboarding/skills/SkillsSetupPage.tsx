@@ -222,7 +222,7 @@ export function SkillsSetupPage(props: {
   const activeStep = 3;
   const platform = getDesktopApiOrNull()?.platform ?? "darwin";
   const visibleSkills = SKILLS.filter((s) =>
-    isSkillAvailable(s.id as Parameters<typeof isSkillAvailable>[0], platform),
+    isSkillAvailable(s.id as Parameters<typeof isSkillAvailable>[0], platform)
   );
   return (
     <HeroPageLayout variant="compact" align="center" aria-label="Skills setup">

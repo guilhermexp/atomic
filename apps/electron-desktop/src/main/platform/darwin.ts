@@ -252,11 +252,7 @@ export class DarwinPlatform implements Platform {
     }
     const isAbsoluteNodeBin = path.isAbsolute(params.nodeBin);
     const nodeCmd = isAbsoluteNodeBin ? params.nodeBin : "node";
-    const script = [
-      "#!/bin/sh",
-      `exec "${nodeCmd}" "${params.scriptPath}" "$@"`,
-      "",
-    ].join("\n");
+    const script = ["#!/bin/sh", `exec "${nodeCmd}" "${params.scriptPath}" "$@"`, ""].join("\n");
     fs.writeFileSync(wrapperPath, script, { mode: 0o755 });
     return wrapperPath;
   }
@@ -282,9 +278,7 @@ export class DarwinPlatform implements Platform {
       paths.push(path.join(xdg, appName));
     }
     paths.push(path.join(os.homedir(), ".config", appName));
-    paths.push(
-      path.join(os.homedir(), "Library", "Application Support", appName)
-    );
+    paths.push(path.join(os.homedir(), "Library", "Application Support", appName));
     return paths;
   }
 
@@ -307,19 +301,13 @@ export class DarwinPlatform implements Platform {
       encoding: "utf-8",
     });
     if (res.status !== 0) {
-      throw new Error(
-        `Failed to extract zip: ${String(res.stderr || "").trim()}`
-      );
+      throw new Error(`Failed to extract zip: ${String(res.stderr || "").trim()}`);
     }
   }
 
   // ── Update splash ──────────────────────────────────────────────────────
 
-  showUpdateSplash(params: {
-    stateDir: string;
-    pid: number;
-    bundleId: string;
-  }): void {
+  showUpdateSplash(params: { stateDir: string; pid: number; bundleId: string }): void {
     try {
       fs.mkdirSync(params.stateDir, { recursive: true });
       const sentinelPath = path.join(params.stateDir, SENTINEL_FILENAME);
@@ -328,14 +316,7 @@ export class DarwinPlatform implements Platform {
 
       const child = spawn(
         "osascript",
-        [
-          "-l",
-          "JavaScript",
-          scriptPath,
-          String(params.pid),
-          sentinelPath,
-          params.bundleId,
-        ],
+        ["-l", "JavaScript", scriptPath, String(params.pid), sentinelPath, params.bundleId],
         { detached: true, stdio: "ignore" }
       );
       child.unref();
@@ -368,8 +349,7 @@ export class DarwinPlatform implements Platform {
   // ── Lock file ───────────────────────────────────────────────────────────
 
   gatewayLockDirSuffix(): string {
-    const uid =
-      typeof process.getuid === "function" ? process.getuid() : undefined;
+    const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
     return uid != null ? `openclaw-${uid}` : "openclaw";
   }
 }

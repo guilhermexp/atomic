@@ -49,7 +49,6 @@ export const WHISPER_MODELS: WhisperModelDef[] = [
 
 export const DEFAULT_MODEL_ID: WhisperModelId = "small";
 
-
 export function getModelDef(id: WhisperModelId): WhisperModelDef {
   return WHISPER_MODELS.find((m) => m.id === id) ?? WHISPER_MODELS[0]!;
 }

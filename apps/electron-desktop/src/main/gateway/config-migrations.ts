@@ -83,7 +83,7 @@ function hasProfileForBin(profiles: Record<string, unknown>, bin: string): boole
 function applySafeBinProfileScaffold(exec: Record<string, unknown>): boolean {
   const configuredSafeBins = Array.isArray(exec.safeBins) ? exec.safeBins : [];
   const safeBins = Array.from(
-    new Set(configuredSafeBins.map((entry) => normalizeSafeBinName(entry)).filter(isNonEmptyString)),
+    new Set(configuredSafeBins.map((entry) => normalizeSafeBinName(entry)).filter(isNonEmptyString))
   );
   if (safeBins.length === 0) {
     return false;

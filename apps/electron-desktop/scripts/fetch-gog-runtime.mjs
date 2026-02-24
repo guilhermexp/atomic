@@ -100,7 +100,7 @@ async function main() {
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `fetch-gog-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`,
+      `fetch-gog-runtime: unsupported platform "${platform}" (supported: ${SUPPORTED_PLATFORMS.join(", ")})`
     );
   }
 
@@ -120,7 +120,7 @@ async function main() {
   const version = tagName && tagName.startsWith("v") ? tagName.slice(1) : tagName;
   if (!version) {
     throw new Error(
-      `failed to resolve gogcli version from GitHub release tag: ${tagName || "<missing>"}`,
+      `failed to resolve gogcli version from GitHub release tag: ${tagName || "<missing>"}`
     );
   }
 
@@ -137,7 +137,7 @@ async function main() {
       .slice(0, 40)
       .join(", ");
     throw new Error(
-      `gogcli asset not found for ${platform}/${arch}. Expected ${assetName}. Known assets (first 40): ${known || "<none>"}`,
+      `gogcli asset not found for ${platform}/${arch}. Expected ${assetName}. Known assets (first 40): ${known || "<none>"}`
     );
   }
 
@@ -161,7 +161,7 @@ async function main() {
   const extracted = findFileRecursive(extractDir, gogBinName);
   if (!extracted) {
     throw new Error(
-      `failed to locate ${gogBinName} in extracted gogcli archive (dir: ${extractDir})`,
+      `failed to locate ${gogBinName} in extracted gogcli archive (dir: ${extractDir})`
     );
   }
 

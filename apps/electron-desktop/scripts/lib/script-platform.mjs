@@ -115,7 +115,7 @@ export function extractZip(archivePath, extractDir) {
         "-Command",
         `Expand-Archive -LiteralPath '${archivePath}' -DestinationPath '${extractDir}' -Force`,
       ],
-      { encoding: "utf-8" },
+      { encoding: "utf-8" }
     );
     if (res.status !== 0) {
       const stderr = String(res.stderr || "").trim();
