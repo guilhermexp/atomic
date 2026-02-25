@@ -417,7 +417,7 @@ async function main() {
   verifyControlUiBuilt();
   run(PNPM, ["-C", repoRoot, "--filter", "openclaw", "--prod", "--legacy", "deploy", outDir]);
 
-  if (process.platform === "win32") hoistPnpmVirtualStoreToRoot();
+  hoistPnpmVirtualStoreToRoot();
   pruneKnownUnneededPackages();
 
   if (fs.existsSync(nmDir)) {
