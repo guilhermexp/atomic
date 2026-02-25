@@ -514,11 +514,14 @@ const chatSlice = createSlice({
       // so we don't lose them when the API hasn't persisted yet.
       // Deduplicate against history by text to avoid race-condition duplicates
       // (e.g. a stream final arriving between sessionCleared and historyLoaded).
-      const historyTexts = new Set(fromHistory.map((m) => m.text));
+      // Use stripMetadata-normalized text for comparison so that metadata
+      // differences (message_id, date headers, etc.) don't defeat dedup.
+      const historyTexts = new Set(fromHistory.map((m) => stripMetadata(m.text).trim()));
       const liveOnly: UiMessage[] = [];
       for (const m of state.messages) {
         if (m.role === "assistant" && m.runId && m.ts != null && m.ts > lastHistoryTs) {
-          if (!historyTexts.has(m.text)) {
+          const normalizedText = stripMetadata(m.text).trim();
+          if (!historyTexts.has(normalizedText)) {
             liveOnly.push(m);
           }
         }
@@ -622,7 +625,11 @@ const chatSlice = createSlice({
         toolCalls?: UiToolCall[];
       }>
     ) {
-      const { runId, seq, text, toolCalls } = action.payload;
+      const { runId, seq, toolCalls } = action.payload;
+      // Apply the same stripMetadata transform that parseHistoryMessages uses
+      // so that the deduplication comparison in historyLoaded (which compares
+      // live message text vs server history text) works correctly.
+      const text = stripMetadata(action.payload.text).trim();
       delete state.streamByRun[runId];
 
       // Collect any live tool calls for this run and convert them to UiToolCall[]
