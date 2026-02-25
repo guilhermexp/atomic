@@ -81,8 +81,8 @@ jobs:
         run: npm ci
 
       - name: Rebuild native modules for current Node
-        working-directory: apps/electron-desktop
-        run: npm rebuild macos-alias
+        working-directory: apps/electron-desktop/node_modules/macos-alias
+        run: npx node-gyp rebuild
 
       - name: Build main + renderer
         working-directory: apps/electron-desktop
