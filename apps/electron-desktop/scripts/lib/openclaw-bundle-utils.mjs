@@ -110,9 +110,9 @@ export function scanTopLevelChunkRefs(params) {
   const { jsSource, fileDir, distDir } = params;
   const preserveFiles = new Set();
   const importRe =
-    /(?:import|export)\s[^;]*?\bfrom\s*["']([^"']+)["']|\brequire\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
+    /(?:import|export)\s*[^;]*?\bfrom\s*["']([^"']+)["']|\bimport\s*["']([^"']+)["']|\brequire\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
   for (const m of jsSource.matchAll(importRe)) {
-    const dep = m[1] || m[2] || m[3];
+    const dep = m[1] || m[2] || m[3] || m[4];
     if (!dep || !dep.startsWith(".")) continue;
     const abs = path.resolve(fileDir, dep);
     if (path.dirname(abs) === distDir) {
@@ -130,7 +130,7 @@ export async function collectDistSubdirPackages(params) {
   const preserveFiles = new Set();
   let analyzedFiles = 0;
   const importRe =
-    /(?:import|export)\s[^;]*?\bfrom\s*["']([^"']+)["']|\brequire\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
+    /(?:import|export)\s*[^;]*?\bfrom\s*["']([^"']+)["']|\bimport\s*["']([^"']+)["']|\brequire\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
 
   const subdirs = fs.readdirSync(distDir, { withFileTypes: true });
   for (const sub of subdirs) {
@@ -158,7 +158,7 @@ export async function collectDistSubdirPackages(params) {
         }
         // Keep package deps used by non-rebundled dist subdirs (plugin-sdk, bundled hooks).
         for (const m of src.matchAll(importRe)) {
-          const dep = m[1] || m[2] || m[3];
+          const dep = m[1] || m[2] || m[3] || m[4];
           const pkg = packageNameFromSpecifier(dep);
           if (pkg && !nodeBuiltins.has(pkg)) {
             packages.add(pkg);
@@ -186,6 +186,32 @@ export async function collectDistSubdirPackages(params) {
         }
       }
     }
+  }
+
+  // Transitively scan preserved dist-level chunks: each preserved file may
+  // itself import other dist-level chunks that also need to survive cleanup.
+  const scanned = new Set();
+  let frontier = [...preserveFiles];
+  while (frontier.length > 0) {
+    const next = [];
+    for (const fileName of frontier) {
+      if (scanned.has(fileName)) continue;
+      scanned.add(fileName);
+      const filePath = path.join(distDir, fileName);
+      let src;
+      try {
+        src = fs.readFileSync(filePath, "utf8");
+      } catch {
+        continue;
+      }
+      for (const keep of scanTopLevelChunkRefs({ jsSource: src, fileDir: distDir, distDir })) {
+        if (!preserveFiles.has(keep)) {
+          preserveFiles.add(keep);
+          next.push(keep);
+        }
+      }
+    }
+    frontier = next;
   }
 
   return { packages, preserveFiles, analyzedFiles };
