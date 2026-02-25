@@ -418,9 +418,9 @@ async function main() {
   run(PNPM, ["-C", repoRoot, "--filter", "openclaw", "--prod", "--legacy", "deploy", outDir]);
 
   hoistPnpmVirtualStoreToRoot();
-  if (!safeMode) pruneKnownUnneededPackages();
+  pruneKnownUnneededPackages();
 
-  if (fs.existsSync(nmDir) && !safeMode) {
+  if (fs.existsSync(nmDir)) {
     const stripped = stripJunkFiles(nmDir);
     if (stripped > 0)
       console.log(`[electron-desktop] Stripped ${stripped} unnecessary files from node_modules`);
@@ -473,7 +473,7 @@ async function main() {
     }
     fs.renameSync(bundledPath, entryJs);
 
-    if (!safeMode) {
+    if (process.platform === "win32") {
       const pnpmStoreDir = path.join(nmDir, ".pnpm");
       if (fs.existsSync(pnpmStoreDir)) {
         const keepEntries = traceKeepEntries({ pnpmStoreDir, packageNames: [...externalPkgs] });
@@ -523,7 +523,7 @@ async function main() {
     );
   }
 
-  if (!safeMode) {
+  if (process.platform === "win32") {
     const extensionsDir = path.join(outDir, "extensions");
     if (fs.existsSync(extensionsDir)) {
       const esbuildForExt = esbuild || (await import("esbuild"));
@@ -561,9 +561,7 @@ async function main() {
       }
     }
   } else {
-    console.log(
-      "[electron-desktop] Safe mode active: skipped extension rebundling and aggressive pruning"
-    );
+    console.log("[electron-desktop] Skipped extension rebundling and .pnpm pruning (macOS build)");
   }
 
   // macOS codesign --verify --deep --strict rejects bundles with symlinks that
