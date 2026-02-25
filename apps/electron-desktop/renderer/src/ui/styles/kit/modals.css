@@ -50,6 +50,7 @@
   animation: uiModalSlideUp 200ms ease;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .UiModalHeader {
