@@ -2,13 +2,13 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { patchSpawnForWindows } from "./infra/windows-spawn-patch.js";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
 import { shouldSkipRespawnForArgv } from "./cli/respawn-policy.js";
 import { normalizeWindowsArgv } from "./cli/windows-argv.js";
 import { isTruthyEnvValue, normalizeEnv } from "./infra/env.js";
 import { isMainModule } from "./infra/is-main.js";
 import { installProcessWarningFilter } from "./infra/warning-filter.js";
+import { patchSpawnForWindows } from "./infra/windows-spawn-patch.js";
 import { attachChildProcessBridge } from "./process/child-process-bridge.js";
 
 patchSpawnForWindows();
@@ -17,6 +17,16 @@ const ENTRY_WRAPPER_PAIRS = [
   { wrapperBasename: "openclaw.mjs", entryBasename: "entry.js" },
   { wrapperBasename: "openclaw.js", entryBasename: "entry.js" },
 ] as const;
+
+function shouldForceReadOnlyAuthStore(argv: string[]): boolean {
+  const tokens = argv.slice(2).filter((token) => token.length > 0 && !token.startsWith("-"));
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    if (tokens[index] === "secrets" && tokens[index + 1] === "audit") {
+      return true;
+    }
+  }
+  return false;
+}
 
 // Guard: only run entry-point logic when this file is the main module.
 // The bundler may import entry.js as a shared dependency when dist/index.js
@@ -34,6 +44,10 @@ if (
   process.title = "openclaw";
   installProcessWarningFilter();
   normalizeEnv();
+
+  if (shouldForceReadOnlyAuthStore(process.argv)) {
+    process.env.OPENCLAW_AUTH_STORE_READONLY = "1";
+  }
 
   if (process.argv.includes("--no-color")) {
     process.env.NO_COLOR = "1";

@@ -76,8 +76,7 @@ apps/ios/*.dSYM.zip
 
 # provisioning profiles (local)
 apps/ios/*.mobileprovision
-.env
-.idea/**
+
 # Local untracked files
 .local/
 docs/.local/
@@ -88,7 +87,6 @@ USER.md
 
 # local tooling
 .serena/
-.history/
 
 # Agent credentials and memory (NEVER COMMIT)
 /memory/
@@ -100,10 +98,25 @@ package-lock.json
 .agents/
 .agents
 .agent/
+skills-lock.json
 
 # Local iOS signing overrides
 apps/ios/LocalSigning.xcconfig
 
+# Xcode build directories (xcodebuild output)
+apps/ios/build/
+apps/shared/OpenClawKit/build/
+Swabble/build/
+
 # Generated protocol schema (produced via pnpm protocol:gen)
 dist/protocol.schema.json
 .ant-colony/
+
+# Eclipse
+**/.project
+**/.classpath
+**/.settings/
+**/.gradle/
+
+# Synthing
+**/.stfolder/
