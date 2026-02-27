@@ -45,6 +45,22 @@ function repoRootFromHere() {
   return path.resolve(__dirname, "..", "..", "..");
 }
 
+function openOutputInFinder(dmgPath, outDir) {
+  const shouldOpen = String(process.env.OPEN_OUTPUT_DIR || "1").trim() === "1";
+  const isCi =
+    String(process.env.CI || "")
+      .trim()
+      .toLowerCase() === "true";
+  if (!shouldOpen || isCi) {
+    return;
+  }
+
+  const revealResult = spawnSync("open", ["-R", dmgPath], { stdio: "ignore" });
+  if (revealResult.status !== 0) {
+    spawnSync("open", [outDir], { stdio: "ignore" });
+  }
+}
+
 function appRootFromHere() {
   // apps/electron-desktop/scripts -> apps/electron-desktop
   return path.resolve(__dirname, "..");
@@ -158,6 +174,7 @@ module.exports = async function afterAllArtifactBuild(context) {
     console.log(
       "[electron-desktop] afterAllArtifactBuild: NOTARIZE=1 not set (skipping DMG notarization)"
     );
+    openOutputInFinder(dmgPath, outDir);
     return;
   }
 
@@ -180,4 +197,5 @@ module.exports = async function afterAllArtifactBuild(context) {
 
   console.log(`[electron-desktop] afterAllArtifactBuild: notarizing DMG: ${dmgPath}`);
   run("bash", [notarizeScript, dmgPath], { stdio: "inherit", env: process.env });
+  openOutputInFinder(dmgPath, outDir);
 };
