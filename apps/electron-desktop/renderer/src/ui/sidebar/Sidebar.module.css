@@ -80,6 +80,13 @@
   padding: 6px;
 }
 
+.UiChatSidebarFooterTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .UiChatSidebarSettings {
   display: flex;
   cursor: pointer;
@@ -114,7 +121,9 @@
   gap: 6px;
   height: 28px;
   padding: 0 10px;
-  margin-bottom: 4px;
+  margin-bottom: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   border-radius: 14px;
   font-size: 12px;
   font-weight: 500;
@@ -130,6 +139,15 @@
   height: 7px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
+}
+
+.UiChatSidebarWorkflowButton {
+  flex-shrink: 0;
+  opacity: 0.78;
+}
+
+.UiChatSidebarWorkflowButton:hover {
+  opacity: 1;
 }
 
 .UiChatSidebarHealth--ok .UiChatSidebarHealthDot {

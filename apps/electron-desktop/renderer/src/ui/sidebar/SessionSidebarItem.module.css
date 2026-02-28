@@ -30,9 +30,9 @@
 
 .SessionSidebarItem__spinner {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   border-top-color: rgba(255, 255, 255, 0.7);
   border-radius: 50%;
   animation: sidebarSpin 0.8s linear infinite;

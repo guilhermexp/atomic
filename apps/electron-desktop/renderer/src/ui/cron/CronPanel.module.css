@@ -27,6 +27,27 @@
   background: #2a2d34;
 }
 
+.CronToggleCompact {
+  position: static;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+  width: 24px;
+  height: 24px;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  box-shadow: none;
+}
+
+.CronToggleCompact:hover,
+.CronToggleCompact.CronToggleOpen {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+}
+
 .CronPanel {
   position: fixed;
   z-index: 95;
@@ -39,7 +60,7 @@
 
 .CronPanelRight {
   right: 12px;
-  bottom: 98px;
+  bottom: 12px;
   width: min(380px, calc(100vw - 24px));
   height: min(72vh, 760px);
   border-radius: 16px;
@@ -270,7 +291,7 @@
 
   .CronPanelRight {
     right: 8px;
-    bottom: 86px;
+    bottom: 8px;
     width: min(96vw, 360px);
     height: min(70vh, 680px);
   }

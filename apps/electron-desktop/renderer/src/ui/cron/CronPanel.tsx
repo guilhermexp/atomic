@@ -497,9 +497,9 @@ function PanelIcon() {
   );
 }
 
-function BrandMarkIcon() {
+function BrandMarkIcon({ size = 18 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
       <path d="M5.2 18.2 9.35 6h2.45L7.65 18.2z" fill="currentColor" />
       <path d="M16.35 18.2 12.2 6h2.45l4.15 12.2z" fill="currentColor" />
       <path d="M10.2 18.2 12 12.9l1.8 5.3z" fill="#0a0b0f" />
@@ -522,16 +522,39 @@ function CloseIcon() {
   );
 }
 
-export function CronToggleButton({ open, onClick }: { open: boolean; onClick: () => void }) {
+export function CronToggleButton({
+  open,
+  onClick,
+  compact = false,
+  className = "",
+  title = "Open workflows",
+  ariaLabel = "Toggle workflows",
+}: {
+  open: boolean;
+  onClick: () => void;
+  compact?: boolean;
+  className?: string;
+  title?: string;
+  ariaLabel?: string;
+}) {
+  const classes = [
+    css.CronToggle,
+    compact ? css.CronToggleCompact : "",
+    open ? css.CronToggleOpen : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <button
       type="button"
-      className={`${css.CronToggle} ${open ? css.CronToggleOpen : ""}`}
+      className={classes}
       onClick={onClick}
-      aria-label="Toggle workflows"
-      title="Open workflows"
+      aria-label={ariaLabel}
+      title={title}
     >
-      <BrandMarkIcon />
+      <BrandMarkIcon size={compact ? 12 : 18} />
     </button>
   );
 }

@@ -10,6 +10,10 @@ import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { downloadWhisperModel } from "@store/slices/whisperSlice";
 import { addToastError } from "@shared/toast";
 import { routes } from "../app/routes";
+import {
+  autoRenameSessionFromFirstMessage,
+  getFallbackSessionLabel,
+} from "./utils/autoRenameSession";
 import ct from "./ChatTranscript.module.css";
 
 function newSessionKey(): string {
@@ -159,14 +163,18 @@ export function StartChatPage({
         idempotencyKey: runId,
         ...(apiAttachments?.length ? { attachments: apiAttachments } : {}),
       });
+      if (message) {
+        // Fire-and-forget: persist a human-friendly label without blocking navigation.
+        void autoRenameSessionFromFirstMessage({
+          sessionKey,
+          userMessage: message,
+          request: gw.request,
+        });
+      }
       setInput("");
       setAttachments([]);
       const title =
-        message.length > 0
-          ? message.length > 48
-            ? `${message.slice(0, 48)}…`
-            : message
-          : `[${attachments.length} file(s)]`;
+        message.length > 0 ? getFallbackSessionLabel(message) : `[${attachments.length} file(s)]`;
       void navigate(`${routes.chat}?session=${encodeURIComponent(sessionKey)}`, {
         replace: true,
         state: {

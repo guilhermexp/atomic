@@ -7,6 +7,7 @@ import { routes } from "../app/routes";
 import { addToastError } from "@shared/toast";
 import { SplashLogo } from "@shared/kit";
 import { useAppSelector } from "@store/hooks";
+import { CronToggleButton } from "../cron/CronPanel";
 import { SessionSidebarItem } from "./SessionSidebarItem";
 import { cleanDerivedTitle } from "../chat/hooks/messageParser";
 import css from "./Sidebar.module.css";
@@ -46,6 +47,7 @@ type SessionsListResult = {
     key: string;
     kind: string;
     label?: string;
+    displayName?: string;
     derivedTitle?: string;
     lastMessagePreview?: string;
     updatedAt: number | null;
@@ -82,6 +84,11 @@ function isHeartbeatSession(row: SessionsListResult["sessions"][number]): boolea
 // cleanDerivedTitle is now in ./utils/messageParser.ts
 
 function titleFromRow(row: SessionsListResult["sessions"][number]): string {
+  const explicit = (row.displayName ?? row.label ?? "").trim();
+  if (explicit) {
+    return explicit.length > TITLE_MAX_LEN ? `${explicit.slice(0, TITLE_MAX_LEN)}…` : explicit;
+  }
+
   const cleaned = cleanDerivedTitle(row.derivedTitle);
   if (cleaned) {
     return cleaned.length > TITLE_MAX_LEN ? `${cleaned.slice(0, TITLE_MAX_LEN)}…` : cleaned;
@@ -89,7 +96,12 @@ function titleFromRow(row: SessionsListResult["sessions"][number]): string {
   return "New Chat";
 }
 
-export function Sidebar() {
+type SidebarProps = {
+  cronOpen?: boolean;
+  onToggleCron?: () => void;
+};
+
+export function Sidebar({ cronOpen = false, onToggleCron }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -246,11 +258,23 @@ export function Sidebar() {
       </div>
 
       <div className={css.UiChatSidebarFooter}>
-        <div
-          className={`${css.UiChatSidebarHealth} ${gw.connected ? css["UiChatSidebarHealth--ok"] : css["UiChatSidebarHealth--off"]}`}
-        >
-          <span className={css.UiChatSidebarHealthDot} />
-          {gw.connected ? "Health OK" : "Offline"}
+        <div className={css.UiChatSidebarFooterTop}>
+          <div
+            className={`${css.UiChatSidebarHealth} ${gw.connected ? css["UiChatSidebarHealth--ok"] : css["UiChatSidebarHealth--off"]}`}
+          >
+            <span className={css.UiChatSidebarHealthDot} />
+            {gw.connected ? "Health OK" : "Offline"}
+          </div>
+          {onToggleCron ? (
+            <CronToggleButton
+              open={cronOpen}
+              onClick={onToggleCron}
+              compact
+              className={css.UiChatSidebarWorkflowButton}
+              ariaLabel={cronOpen ? "Hide workflows panel" : "Show workflows panel"}
+              title={cronOpen ? "Hide workflows" : "Show workflows"}
+            />
+          ) : null}
         </div>
         {showTerminal && (
           <NavLink to={routes.terminal} className={css.UiChatSidebarSettings} aria-label="Terminal">
