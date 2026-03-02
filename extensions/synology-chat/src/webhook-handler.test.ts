@@ -2,7 +2,10 @@ import { EventEmitter } from "node:events";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ResolvedSynologyChatAccount } from "./types.js";
-import { createWebhookHandler } from "./webhook-handler.js";
+import {
+  clearSynologyWebhookRateLimiterStateForTest,
+  createWebhookHandler,
+} from "./webhook-handler.js";
 
 // Mock sendMessage to prevent real HTTP calls
 vi.mock("./client.js", () => ({
@@ -73,12 +76,31 @@ describe("createWebhookHandler", () => {
   let log: { info: any; warn: any; error: any };
 
   beforeEach(() => {
+    clearSynologyWebhookRateLimiterStateForTest();
     log = {
       info: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),
     };
   });
+
+  async function expectForbiddenByPolicy(params: {
+    account: Partial<ResolvedSynologyChatAccount>;
+    bodyContains: string;
+  }) {
+    const handler = createWebhookHandler({
+      account: makeAccount(params.account),
+      deliver: vi.fn(),
+      log,
+    });
+
+    const req = makeReq("POST", validBody);
+    const res = makeRes();
+    await handler(req, res);
+
+    expect(res._status).toBe(403);
+    expect(res._body).toContain(params.bodyContains);
+  }
 
   it("rejects non-POST methods with 405", async () => {
     const handler = createWebhookHandler({
@@ -129,12 +151,23 @@ describe("createWebhookHandler", () => {
   });
 
   it("returns 403 for unauthorized user with allowlist policy", async () => {
+    await expectForbiddenByPolicy({
+      account: {
+        dmPolicy: "allowlist",
+        allowedUserIds: ["456"],
+      },
+      bodyContains: "not authorized",
+    });
+  });
+
+  it("returns 403 when allowlist policy is set with empty allowedUserIds", async () => {
+    const deliver = vi.fn();
     const handler = createWebhookHandler({
       account: makeAccount({
         dmPolicy: "allowlist",
-        allowedUserIds: ["456"],
+        allowedUserIds: [],
       }),
-      deliver: vi.fn(),
+      deliver,
       log,
     });
 
@@ -143,22 +176,15 @@ describe("createWebhookHandler", () => {
     await handler(req, res);
 
     expect(res._status).toBe(403);
-    expect(res._body).toContain("not authorized");
+    expect(res._body).toContain("Allowlist is empty");
+    expect(deliver).not.toHaveBeenCalled();
   });
 
   it("returns 403 when DMs are disabled", async () => {
-    const handler = createWebhookHandler({
-      account: makeAccount({ dmPolicy: "disabled" }),
-      deliver: vi.fn(),
-      log,
+    await expectForbiddenByPolicy({
+      account: { dmPolicy: "disabled" },
+      bodyContains: "disabled",
     });
-
-    const req = makeReq("POST", validBody);
-    const res = makeRes();
-    await handler(req, res);
-
-    expect(res._status).toBe(403);
-    expect(res._body).toContain("disabled");
   });
 
   it("returns 429 when rate limited", async () => {
