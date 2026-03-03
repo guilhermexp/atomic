@@ -93,6 +93,7 @@ export function spawnGateway(params: {
     "--experimental-sqlite",
     script,
     "gateway",
+    "run",
     "--bind",
     "loopback",
     "--port",

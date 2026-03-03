@@ -14,6 +14,7 @@ import { OtherTab } from "./OtherTab";
 import { SkillsIntegrationsTab } from "./skills/SkillsIntegrationsTab";
 import { VoiceRecognitionTab } from "./voice/VoiceRecognitionTab";
 import { AccountTab } from "./account/AccountTab";
+import { OpenClawTab } from "./openclaw/OpenClawTab";
 import { addToastError } from "@shared/toast";
 
 export type SettingsOutletContext = {
@@ -31,7 +32,8 @@ export type SettingsTabId =
   | "connectors"
   | "voice"
   | "account"
-  | "other";
+  | "other"
+  | "openclaw";
 
 type TabDef = { path: string; label: string; tab: SettingsTabId };
 
@@ -43,6 +45,7 @@ const ALL_TABS: TabDef[] = [
   { path: "skills", label: "Skills", tab: "skills-integrations" },
   { path: "voice", label: "Voice", tab: "voice" },
   { path: "other", label: "Other", tab: "other" },
+  { path: "openclaw", label: "OpenClaw", tab: "openclaw" },
 ];
 
 function getVisibleTabs(mode: SetupMode | null): TabDef[] {
@@ -130,6 +133,17 @@ export function SettingsTab({ tab }: { tab: SettingsTabId }) {
       return <AccountTab />;
     case "other":
       return <OtherTab onError={ctx.onError} />;
+    case "openclaw":
+      return (
+        <OpenClawTab
+          state={ctx.state}
+          gw={ctx.gw}
+          configSnap={ctx.configSnap}
+          reload={ctx.reload}
+          onError={ctx.onError}
+          isPaidMode={authMode === "paid"}
+        />
+      );
     default:
       return null;
   }

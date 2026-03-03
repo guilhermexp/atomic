@@ -222,6 +222,7 @@ export function App() {
             <Route path="voice" element={<SettingsTab tab="voice" />} />
             <Route path="account" element={<SettingsTab tab="account" />} />
             <Route path="other" element={<SettingsTab tab="other" />} />
+            <Route path="openclaw" element={<SettingsTab tab="openclaw" />} />
           </Route>
         </Route>
         <Route

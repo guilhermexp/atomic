@@ -1,0 +1,65 @@
+/* OpenClaw consolidated settings tab: left sidebar + right content pane */
+
+.OpenClawLayout {
+  display: flex;
+  gap: 0;
+  min-height: 400px;
+}
+
+/* ── Left sidebar navigation ── */
+
+.OpenClawSidebar {
+  flex: 0 0 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 20px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.OpenClawNavItem {
+  appearance: none;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: rgba(230, 237, 243, 0.55);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.OpenClawNavItem:hover {
+  color: rgba(230, 237, 243, 0.85);
+  background: var(--surface-hover);
+}
+
+.OpenClawNavItem--active {
+  color: #fff;
+  background: var(--surface-overlay);
+}
+
+.OpenClawNavIcon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ── Right content pane ── */
+
+.OpenClawContent {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 24px;
+}
