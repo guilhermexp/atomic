@@ -189,7 +189,7 @@ export const ChatComposer = React.forwardRef<ChatComposerRef, ChatComposerProps>
               id: crypto.randomUUID(),
               dataUrl,
               mimeType: file.type || "application/octet-stream",
-              fileName: file.name,
+              fileName: file.name.normalize("NFC"),
             });
             if (add.length === expectedCount) {
               onAttachmentsChange((prev) => [...prev, ...add]);

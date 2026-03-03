@@ -33,6 +33,7 @@ export type ChatAttachmentCardProps = {
 /** File attachment card: icon + filename + file type (non-image). */
 export function ChatAttachmentCard({ fileName, mimeType, onRemove }: ChatAttachmentCardProps) {
   const fileTypeLabel = getFileTypeLabel(mimeType);
+  const displayFileName = fileName.normalize("NFC");
 
   return (
     <div className={s.UiChatAttachmentCard}>
@@ -55,7 +56,7 @@ export function ChatAttachmentCard({ fileName, mimeType, onRemove }: ChatAttachm
         </svg>
       </div>
       <div className={s.UiChatAttachmentCardText}>
-        <span className={s.UiChatAttachmentCardFileName}>{fileName}</span>
+        <span className={s.UiChatAttachmentCardFileName}>{displayFileName}</span>
         <span className={s.UiChatAttachmentCardFileType}>{fileTypeLabel}</span>
       </div>
       {onRemove != null && (

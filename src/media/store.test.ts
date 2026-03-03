@@ -290,6 +290,22 @@ describe("media store", () => {
       });
     });
 
+    it("normalizes decomposed unicode filenames to NFC", async () => {
+      await withTempStore(async (store) => {
+        const buf = Buffer.from("test");
+        const saved = await store.saveMediaBuffer(
+          buf,
+          "text/plain",
+          "inbound",
+          5 * 1024 * 1024,
+          "Captura de Tela 2026-03-03 às 07.10.49.txt",
+        );
+
+        expect(saved.id.includes("\u0300")).toBe(false);
+        expect(saved.id).toContain("às");
+      });
+    });
+
     it("falls back to UUID-only when originalFilename not provided", async () => {
       await withTempStore(async (store) => {
         const buf = Buffer.from("test");

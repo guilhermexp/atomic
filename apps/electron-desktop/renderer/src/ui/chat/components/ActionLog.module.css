@@ -10,23 +10,17 @@
   align-items: center;
   gap: 6px;
   padding: 4px 0 8px;
-  border: none;
-  background: transparent;
   color: rgba(255, 255, 255, 0.7);
   font-size: 16px;
   font-weight: 400;
   font-family: inherit;
-  cursor: pointer;
+  cursor: default;
   text-align: left;
-  user-select: none;
+  user-select: text;
   transition: color var(--transition-fast, 120ms);
   height: 24px;
   box-sizing: border-box;
   text-transform: capitalize;
-}
-
-.ActionLogHeader:hover {
-  color: #ffffff;
 }
 
 .ActionLogHeaderTitle {

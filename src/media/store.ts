@@ -44,7 +44,7 @@ export function setMediaStoreNetworkDepsForTest(deps?: {
  * Keeps: alphanumeric, dots, hyphens, underscores, Unicode letters/numbers.
  */
 function sanitizeFilename(name: string): string {
-  const trimmed = name.trim();
+  const trimmed = name.normalize("NFC").trim();
   if (!trimmed) {
     return "";
   }

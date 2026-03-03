@@ -47,6 +47,14 @@ describe("parseUserMessageWithAttachments", () => {
     expect(result.fileAttachments[1].fileName).toBe("d.mp3");
   });
 
+  it("normalizes decomposed unicode filenames to NFC", () => {
+    const text = "[media attached: /tmp/Captura de Tela 2026-03-03 às 07.10.49.png (image/png)]";
+    const result = parseUserMessageWithAttachments(text);
+    const fileName = result.fileAttachments[0]?.fileName ?? "";
+    expect(fileName).toContain("às");
+    expect(fileName.includes("\u0300")).toBe(false);
+  });
+
   it("skips count-only markers like [media attached: 2 files]", () => {
     const text = "Here are some files [media attached: 2 files]";
     const result = parseUserMessageWithAttachments(text);

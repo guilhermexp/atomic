@@ -249,6 +249,21 @@ function parseRole(value: unknown): UiMessage["role"] {
   return "unknown";
 }
 
+/** Stable text key for duplicate detection across stream/history race conditions. */
+function normalizeMessageTextForDedup(text: string): string {
+  return (
+    stripMetadata(text)
+      .normalize("NFC")
+      .replace(/\[\[[^[\]]+\]\]/g, " ")
+      // Treat ordered-list markers like "1)" and "1." as equivalent.
+      .replace(/^\s*(\d+)[.)]\s+/gm, "$1. ")
+      // Remove zero-width/invisible chars that can differ across stream/history.
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
 /** Extract tool calls from an assistant message's content array. */
 export function extractToolCalls(msg: unknown): UiToolCall[] {
   const out: UiToolCall[] = [];
@@ -510,14 +525,24 @@ const chatSlice = createSlice({
       const fromHistory = action.payload;
       const lastHistoryTs =
         fromHistory.length > 0 ? Math.max(...fromHistory.map((m) => m.ts ?? 0)) : 0;
+      const historyAssistantTexts = new Set(
+        fromHistory
+          .filter((m) => m.role === "assistant")
+          .map((m) => normalizeMessageTextForDedup(m.text))
+          .filter((t) => t.length > 0)
+      );
       // Keep live messages (assistant stream finals + optimistic user messages)
       // that are newer than the latest server history entry and not yet persisted.
       // Deduplicate against history by text to avoid race-condition duplicates
       // (e.g. a stream final arriving between sessionCleared and historyLoaded).
-      const historyTexts = new Set(fromHistory.map((m) => m.text));
       const liveOnly: UiMessage[] = [];
       for (const m of state.messages) {
-        if (m.ts == null || m.ts <= lastHistoryTs || historyTexts.has(m.text)) {
+        const normalizedText = normalizeMessageTextForDedup(m.text);
+        const alreadyInHistory =
+          m.role === "assistant" &&
+          normalizedText.length > 0 &&
+          historyAssistantTexts.has(normalizedText);
+        if (m.ts == null || m.ts <= lastHistoryTs || alreadyInHistory) {
           continue;
         }
         if (m.role === "assistant" && m.runId) {
@@ -678,7 +703,7 @@ const chatSlice = createSlice({
       if (text && isHeartbeatMessage("assistant", text)) {
         return;
       }
-      state.messages.push({
+      const nextMessage: UiMessage = {
         id: `a-${runId}-${seq}`,
         role: "assistant",
         text,
@@ -686,7 +711,44 @@ const chatSlice = createSlice({
         ts: Date.now(),
         toolCalls: hasToolCalls ? allToolCalls : undefined,
         toolResults: liveResultsForRun.length > 0 ? liveResultsForRun : undefined,
-      });
+      };
+
+      // Final events can be replayed after reconnect; update existing run output
+      // instead of appending duplicate assistant bubbles.
+      const existingIdx = state.messages.findIndex(
+        (m) => m.role === "assistant" && m.runId === runId
+      );
+      if (existingIdx >= 0) {
+        const existing = state.messages[existingIdx];
+        state.messages[existingIdx] = {
+          ...nextMessage,
+          id: existing.id,
+          ts: existing.ts,
+        };
+        return;
+      }
+
+      // Fallback for replay edge cases where a duplicate final arrives with a
+      // different runId but same rendered text right after the original one.
+      const normalizedNextText = normalizeMessageTextForDedup(text);
+      const last = state.messages[state.messages.length - 1];
+      if (
+        last &&
+        last.role === "assistant" &&
+        last.ts != null &&
+        nextMessage.ts - last.ts <= 30_000 &&
+        normalizedNextText.length > 0 &&
+        normalizeMessageTextForDedup(last.text) === normalizedNextText
+      ) {
+        state.messages[state.messages.length - 1] = {
+          ...nextMessage,
+          id: last.id,
+          ts: last.ts,
+        };
+        return;
+      }
+
+      state.messages.push(nextMessage);
     },
     streamErrorReceived(state, action: PayloadAction<{ runId: string; errorMessage?: string }>) {
       delete state.streamByRun[action.payload.runId];

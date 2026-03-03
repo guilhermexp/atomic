@@ -7,6 +7,10 @@
 /** Parsed file attachment from user message text. */
 export type ParsedFileAttachment = { fileName: string; mimeType: string };
 
+function normalizeDisplayText(value: string): string {
+  return value.normalize("NFC");
+}
+
 // Shared regex patterns for stripping gateway-injected metadata.
 // System event blocks (e.g. "System: [timestamp] Exec finished (params) output...")
 // that appear before untrusted metadata. Matches from "System:" to the next blank line.
@@ -64,14 +68,15 @@ export function parseUserMessageWithAttachments(text: string): {
       const rawName = part.slice(0, lastParen).trim();
       const mimeType = part.slice(lastParen + 1, -1).trim();
       // Extract just the filename from path (may be full or relative path)
-      const fileName = rawName.includes("/") ? rawName.split("/").pop()! : rawName;
+      const fileNameRaw = rawName.includes("/") ? rawName.split("/").pop()! : rawName;
+      const fileName = normalizeDisplayText(fileNameRaw);
       if (fileName && mimeType) {
         fileAttachments.push({ fileName, mimeType });
       }
     }
   }
 
-  const displayText = stripMetadata(text).trim();
+  const displayText = normalizeDisplayText(stripMetadata(text).trim());
   return { displayText, fileAttachments };
 }
 
@@ -85,5 +90,5 @@ export function cleanDerivedTitle(derivedTitle: string | undefined): string {
   if (!raw) {
     return "";
   }
-  return stripMetadata(raw).replace(/\s+/g, " ").trim();
+  return normalizeDisplayText(stripMetadata(raw).replace(/\s+/g, " ").trim());
 }

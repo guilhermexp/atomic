@@ -105,6 +105,48 @@ describe("chatSlice reducers", () => {
     expect(state.messages).toEqual(history);
   });
 
+  it("historyLoaded deduplicates assistant messages after metadata/whitespace normalization", () => {
+    const withLive: ChatSliceState = {
+      ...base,
+      messages: [
+        {
+          id: "a-r1-0",
+          role: "assistant",
+          text: "[2026-03-03 11:36 BRT]  response text\n",
+          runId: "r1",
+          ts: 9999,
+        },
+      ],
+    };
+    const history: UiMessage[] = [
+      { id: "h-1", role: "user", text: "hello", ts: 100 },
+      { id: "h-2", role: "assistant", text: "response text", ts: 200 },
+    ];
+    const state = chatReducer(withLive, chatActions.historyLoaded(history));
+    expect(state.messages).toEqual(history);
+  });
+
+  it("historyLoaded deduplicates assistant messages with equivalent list markers/directives/unicode", () => {
+    const withLive: ChatSliceState = {
+      ...base,
+      messages: [
+        {
+          id: "a-r3-0",
+          role: "assistant",
+          text: "[[reply_to_current]] Ai\u0301 sim.\n\n1) espe\u0301cie\n2) vibe\n3) emoji",
+          runId: "r3",
+          ts: 9999,
+        },
+      ],
+    };
+    const history: UiMessage[] = [
+      { id: "h-1", role: "user", text: "hello", ts: 100 },
+      { id: "h-2", role: "assistant", text: "Aí sim.\n\n1. espécie\n2. vibe\n3. emoji", ts: 200 },
+    ];
+    const state = chatReducer(withLive, chatActions.historyLoaded(history));
+    expect(state.messages).toEqual(history);
+  });
+
   it("historyLoaded keeps live assistant messages not present in history", () => {
     // A live assistant message whose text does NOT appear in history should be
     // preserved (the API hasn't persisted it yet).
@@ -191,6 +233,42 @@ describe("chatSlice reducers", () => {
     expect(state.streamByRun["r1"]).toBeUndefined();
     expect(state.messages).toHaveLength(1);
     expect(state.messages[0].text).toBe("final text");
+  });
+
+  it("streamFinalReceived replay for same runId updates existing assistant message instead of duplicating", () => {
+    const withFirstFinal = chatReducer(
+      base,
+      chatActions.streamFinalReceived({ runId: "r1", seq: 0, text: "first final" })
+    );
+    expect(withFirstFinal.messages).toHaveLength(1);
+
+    const replayedFinal = chatReducer(
+      withFirstFinal,
+      chatActions.streamFinalReceived({ runId: "r1", seq: 1, text: "replayed final" })
+    );
+    expect(replayedFinal.messages).toHaveLength(1);
+    expect(replayedFinal.messages[0].runId).toBe("r1");
+    expect(replayedFinal.messages[0].text).toBe("replayed final");
+  });
+
+  it("streamFinalReceived deduplicates immediate replay with different runId and equivalent text", () => {
+    const withFirstFinal = chatReducer(
+      base,
+      chatActions.streamFinalReceived({
+        runId: "r1",
+        seq: 0,
+        text: "[2026-03-03 11:36 BRT] final text",
+      })
+    );
+    expect(withFirstFinal.messages).toHaveLength(1);
+
+    const replayedFinal = chatReducer(
+      withFirstFinal,
+      chatActions.streamFinalReceived({ runId: "r2", seq: 0, text: "final text" })
+    );
+    expect(replayedFinal.messages).toHaveLength(1);
+    expect(replayedFinal.messages[0].runId).toBe("r2");
+    expect(replayedFinal.messages[0].text).toBe("final text");
   });
 
   it("streamFinalReceived with empty text removes stream but does not add message", () => {
