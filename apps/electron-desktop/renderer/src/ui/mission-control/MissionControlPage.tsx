@@ -197,9 +197,32 @@ const DEFAULT_DATA: MissionControlData = {
 
 type ModelShare = { id: string; share: number };
 
+function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefined): Integration[] {
+  const anyCfg = (config ?? {}) as Record<string, unknown>;
+  const channels = (anyCfg.channels ?? {}) as Record<string, unknown>;
+  const seeds: Array<{ key: string; name: string; channel: string }> = [
+    { key: "webchat", name: "Webchat", channel: "webchat" },
+    { key: "telegram", name: "Telegram", channel: "telegram" },
+    { key: "discord", name: "Discord", channel: "discord" },
+    { key: "slack", name: "Slack", channel: "slack" },
+    { key: "signal", name: "Signal", channel: "signal" },
+  ];
+  return seeds.map((s, idx) => {
+    const entry = (channels[s.key] ?? {}) as Record<string, unknown>;
+    const enabled = entry.enabled === true;
+    return {
+      id: `int-auto-${idx + 1}`,
+      name: s.name,
+      channel: s.channel,
+      status: enabled ? "connected" : "disabled",
+    } as Integration;
+  });
+}
+
 function readMissionControl(config: Record<string, unknown> | undefined): MissionControlData {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const incoming = (anyCfg.missionControl ?? {}) as Partial<MissionControlData>;
+  const autoIntegrations = deriveIntegrationsFromConfig(config);
   return {
     ...DEFAULT_DATA,
     ...incoming,
@@ -210,9 +233,12 @@ function readMissionControl(config: Record<string, unknown> | undefined): Missio
     orgDivisions: Array.isArray(incoming.orgDivisions)
       ? incoming.orgDivisions
       : DEFAULT_DATA.orgDivisions,
-    integrations: Array.isArray(incoming.integrations)
-      ? incoming.integrations
-      : DEFAULT_DATA.integrations,
+    integrations:
+      Array.isArray(incoming.integrations) && incoming.integrations.length > 0
+        ? incoming.integrations
+        : autoIntegrations.length > 0
+          ? autoIntegrations
+          : DEFAULT_DATA.integrations,
     overnightTimeline: Array.isArray(incoming.overnightTimeline)
       ? incoming.overnightTimeline
       : DEFAULT_DATA.overnightTimeline,
