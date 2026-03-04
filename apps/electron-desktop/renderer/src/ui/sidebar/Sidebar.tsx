@@ -108,6 +108,7 @@ export function Sidebar() {
   const [sessions, setSessions] = React.useState<SessionWithTitle[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [missionPendingCount, setMissionPendingCount] = React.useState(0);
+  const [liveEventCount, setLiveEventCount] = React.useState(0);
 
   const loadSessionsWithTitles = React.useCallback(
     async (background: boolean = false) => {
@@ -130,6 +131,13 @@ export function Sidebar() {
 
         setSessions(withTitles);
 
+        const now = Date.now();
+        const activeEvents = rows.filter((row) => {
+          const ts = row.updatedAt ?? 0;
+          return ts > 0 && now - ts < 2 * 60 * 1000;
+        }).length;
+        setLiveEventCount(activeEvents);
+
         try {
           const cfg = await gw.request<ConfigGetResponse>("config.get", {});
           const cfgAny = (cfg?.config ?? {}) as Record<string, unknown>;
@@ -147,6 +155,7 @@ export function Sidebar() {
         if (!background) {
           addToastError(err);
           setSessions([]);
+          setLiveEventCount(0);
         }
       } finally {
         if (!background) {
@@ -280,6 +289,24 @@ export function Sidebar() {
             Terminal
           </NavLink>
         )}
+        <NavLink
+          to={`${routes.missionControl}?tab=eventos`}
+          className={css.UiChatSidebarSettings}
+          aria-label="Eventos ao vivo"
+        >
+          <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
+            ⚡
+          </span>
+          <span className={css.UiChatSidebarSettingsLabel}>Eventos ao vivo</span>
+          {liveEventCount > 0 && (
+            <span
+              className={css.UiChatSidebarBadge}
+              aria-label={`${liveEventCount} eventos ativos`}
+            >
+              {liveEventCount}
+            </span>
+          )}
+        </NavLink>
         <NavLink
           to={`${routes.missionControl}?tab=runs`}
           className={css.UiChatSidebarSettings}

@@ -68,7 +68,14 @@ type RunDispatch = {
   jobName: string;
   sessionKey: string;
   requestedAt: string;
-  status: "dispatched" | "running" | "completed" | "unknown";
+  status: "dispatched" | "running" | "completed" | "failed" | "unknown";
+};
+
+type LiveEvent = {
+  id: string;
+  at: string;
+  event: string;
+  payload: unknown;
 };
 type BrainDoc = { id: string; title: string; content: string };
 type BackupSnapshot = { id: string; label: string; createdAt: string; restoreChecked: boolean };
@@ -111,7 +118,7 @@ const DEFAULT_DATA: MissionControlData = {
 };
 
 type ModelShare = { id: string; share: number };
-type ActiveTab = "operations" | "brain";
+type ActiveTab = "operations" | "brain" | "eventos";
 
 function nowLabel() {
   return new Date().toLocaleTimeString();
@@ -228,6 +235,8 @@ export function MissionControlPage() {
   const [models, setModels] = React.useState<ModelShare[]>([]);
   const [lastSyncAt, setLastSyncAt] = React.useState<string>("--:--:--");
   const [activeTab, setActiveTab] = React.useState<ActiveTab>("operations");
+  const [liveEvents, setLiveEvents] = React.useState<LiveEvent[]>([]);
+  const [eventFilter, setEventFilter] = React.useState("");
 
   // Cron modal state
   const [cronModalOpen, setCronModalOpen] = React.useState(false);
@@ -295,7 +304,42 @@ export function MissionControlPage() {
     return () => window.clearInterval(timer);
   }, [load]);
   React.useEffect(() => {
-    const off = gw.onEvent(() => {
+    const off = gw.onEvent((evt) => {
+      const stamp = nowLabel();
+      setLiveEvents((prev) =>
+        [
+          {
+            id: crypto.randomUUID(),
+            at: stamp,
+            event: evt.event,
+            payload: evt.payload,
+          },
+          ...prev,
+        ].slice(0, 300)
+      );
+
+      if (evt.event === "chat") {
+        const payload = (evt.payload ?? {}) as { sessionKey?: string; state?: string };
+        if (payload.sessionKey) {
+          setData((curr) => ({
+            ...curr,
+            runDispatches: curr.runDispatches.map((r) =>
+              r.sessionKey !== payload.sessionKey
+                ? r
+                : {
+                    ...r,
+                    status:
+                      payload.state === "final"
+                        ? "completed"
+                        : payload.state === "error"
+                          ? "failed"
+                          : "running",
+                  }
+            ),
+          }));
+        }
+      }
+
       void load();
     });
     return off;
@@ -307,6 +351,8 @@ export function MissionControlPage() {
       runsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (params.get("tab") === "brain") {
       setActiveTab("brain");
+    } else if (params.get("tab") === "eventos") {
+      setActiveTab("eventos");
     }
   }, [location.search]);
 
@@ -399,6 +445,7 @@ export function MissionControlPage() {
     try {
       const sessionKey = newSessionKey();
       const message = [
+        `[RUNNOW] ${target.name}`,
         "MISSION_CONTROL_RUNNOW",
         `Job: ${target.name}`,
         `Schedule: ${target.schedule}`,
@@ -497,6 +544,12 @@ export function MissionControlPage() {
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
   const healthyJobs = data.cronJobs.filter((j) => j.status === "healthy").length;
+  const filteredEvents = liveEvents.filter((e) =>
+    eventFilter.trim()
+      ? e.event.toLowerCase().includes(eventFilter.toLowerCase()) ||
+        JSON.stringify(e.payload).toLowerCase().includes(eventFilter.toLowerCase())
+      : true
+  );
 
   return (
     <div className={css.wrap}>
@@ -516,6 +569,12 @@ export function MissionControlPage() {
             >
               Cérebro
             </button>
+            <button
+              className={`${css.tabBtn} ${activeTab === "eventos" ? css.tabActive : ""}`}
+              onClick={() => setActiveTab("eventos")}
+            >
+              Eventos
+            </button>
           </div>
           <div className={css.syncMeta}>sincronia: {lastSyncAt}</div>
           <button className={css.refreshBtn} onClick={() => void load()} disabled={loading}>
@@ -532,6 +591,46 @@ export function MissionControlPage() {
           onAddDoc={addBrainDoc}
           onDeleteDoc={deleteBrainDoc}
         />
+      ) : activeTab === "eventos" ? (
+        <div className={css.grid}>
+          <section className={`${css.card} ${css.wide}`}>
+            <div className={css.cardHeader}>
+              <h3>Eventos em tempo real</h3>
+              <button className={css.smallBtn} onClick={() => setLiveEvents([])}>
+                Limpar feed
+              </button>
+            </div>
+            <input
+              className={css.inputLike}
+              placeholder="Filtrar eventos (ex.: chat, agent, error)"
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value)}
+            />
+            <div className={css.tableWrap}>
+              <table className={css.table}>
+                <thead>
+                  <tr>
+                    <th>Horário</th>
+                    <th>Evento</th>
+                    <th>Payload</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEvents.slice(0, 200).map((ev) => (
+                    <tr key={ev.id}>
+                      <td className={css.mono}>{ev.at}</td>
+                      <td>{ev.event}</td>
+                      <td className={css.mono}>{JSON.stringify(ev.payload).slice(0, 260)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {filteredEvents.length === 0 && (
+              <p className={css.muted}>Nenhum evento no stream até agora.</p>
+            )}
+          </section>
+        </div>
       ) : (
         <div className={css.grid}>
           {/* Morning brief */}
