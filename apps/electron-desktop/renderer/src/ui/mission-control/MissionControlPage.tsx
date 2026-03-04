@@ -331,6 +331,32 @@ function deriveCronJobsFromGateway(gatewayJobs: GatewayCronJob[], existing: Cron
   return [...fromGateway, ...manualOnly].slice(0, 100);
 }
 
+function deriveBrainDocsFromConfig(config: Record<string, unknown> | undefined): BrainDoc[] {
+  const anyCfg = (config ?? {}) as Record<string, unknown>;
+  const channels = ((anyCfg.channels ?? {}) as Record<string, unknown>) || {};
+  const enabledChannels = Object.entries(channels)
+    .filter(([, v]) => (v as Record<string, unknown>)?.enabled === true)
+    .map(([k]) => k)
+    .slice(0, 8);
+  const auth = (anyCfg.auth ?? {}) as Record<string, unknown>;
+  const authProfiles = Array.isArray(auth.order) ? auth.order.length : 0;
+  return [
+    {
+      id: "brain:config:channels",
+      title: "Configuração ativa de canais",
+      content:
+        enabledChannels.length > 0
+          ? `Canais habilitados: ${enabledChannels.join(", ")}`
+          : "Nenhum canal habilitado detectado.",
+    },
+    {
+      id: "brain:config:auth",
+      title: "Perfis de autenticação",
+      content: `Total de perfis em auth.order: ${authProfiles}`,
+    },
+  ];
+}
+
 function deriveBrainDocsFromSessions(sessions: SessionEntry[], existing: BrainDoc[]): BrainDoc[] {
   const seen = new Set(existing.map((d) => d.id));
   const derived = [...existing];
@@ -513,7 +539,8 @@ export function MissionControlPage() {
       ]);
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
 
-      const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {}, chStatus);
+      const rawConfig = (cfg.config as Record<string, unknown>) || {};
+      const parsed = readMissionControl(rawConfig, chStatus);
       const sessionRows = Array.isArray(sess.sessions) ? sess.sessions : [];
       setSessionsCount(sessionRows.length);
       setSessions(sessionRows);
@@ -534,7 +561,10 @@ export function MissionControlPage() {
           parsed.cronJobs
         ),
         runDispatches: deriveRunDispatchesFromCronRuns(cronRunEntries, parsed.runDispatches),
-        brainDocs: deriveBrainDocsFromSessions(sessionRows, parsed.brainDocs),
+        brainDocs: deriveBrainDocsFromSessions(sessionRows, [
+          ...deriveBrainDocsFromConfig(rawConfig),
+          ...parsed.brainDocs,
+        ]),
         overnightTimeline: [
           ...cronRunEntries.slice(0, 5).map((r) => {
             const outcome = r.status === "ok" ? "ok" : r.status === "error" ? "falhou" : "skip";
@@ -912,6 +942,10 @@ export function MissionControlPage() {
     });
   };
 
+  const retryFailedJob = async (job: CronJob) => {
+    await runNowJob(job.id);
+  };
+
   /* ── Backup/restore actions ── */
   const addSnapshot = async () => {
     const stamp = nowLabel();
@@ -969,6 +1003,11 @@ export function MissionControlPage() {
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
   const healthyJobs = data.cronJobs.filter((j) => j.status === "healthy").length;
+  const warningJobs = data.cronJobs.filter((j) => j.status === "warning").length;
+  const completedRuns = data.runDispatches.filter((r) => r.status === "completed").length;
+  const failedRuns = data.runDispatches.filter((r) => r.status === "failed").length;
+  const totalRuns = completedRuns + failedRuns;
+  const successRate = totalRuns > 0 ? Math.round((completedRuns / totalRuns) * 100) : null;
   const filteredEvents = liveEvents.filter((e) => {
     if (!eventFilter.trim()) return true;
     const q = eventFilter.toLowerCase();
@@ -1128,6 +1167,14 @@ export function MissionControlPage() {
                 <span>Projetos</span>
                 <strong>{data.projects.length}</strong>
               </div>
+              <div>
+                <span>Rotinas com alerta</span>
+                <strong>{warningJobs}</strong>
+              </div>
+              <div>
+                <span>Taxa de sucesso</span>
+                <strong>{successRate === null ? "--" : `${successRate}%`}</strong>
+              </div>
             </div>
             <p className={css.muted}>
               Atualização automática a cada {Math.floor(AUTO_REFRESH_MS / 1000)}s + eventos do
@@ -1231,6 +1278,11 @@ export function MissionControlPage() {
                           >
                             Editar
                           </button>
+                          {j.status === "warning" && (
+                            <button className={css.smallBtn} onClick={() => void retryFailedJob(j)}>
+                              Reprocessar erro
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
