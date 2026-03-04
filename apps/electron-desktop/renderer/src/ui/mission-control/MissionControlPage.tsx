@@ -21,6 +21,7 @@ type CronJob = {
   isolatedSession: boolean;
   status: JobStatus;
   nextRun: string;
+  lastRun?: string;
 };
 type SystemCard = {
   id: string;
@@ -62,6 +63,8 @@ type MissionControlData = {
   contentLibrary: ContentLibrary;
 };
 
+const AUTO_REFRESH_MS = 15000;
+
 const DEFAULT_DATA: MissionControlData = {
   decisions: [
     {
@@ -91,6 +94,7 @@ const DEFAULT_DATA: MissionControlData = {
       isolatedSession: true,
       status: "healthy",
       nextRun: "02:00",
+      lastRun: "02:00",
     },
     {
       id: "job-002",
@@ -99,6 +103,7 @@ const DEFAULT_DATA: MissionControlData = {
       isolatedSession: true,
       status: "warning",
       nextRun: "09:00",
+      lastRun: "--",
     },
     {
       id: "job-003",
@@ -107,6 +112,7 @@ const DEFAULT_DATA: MissionControlData = {
       isolatedSession: true,
       status: "healthy",
       nextRun: "09:30",
+      lastRun: "--",
     },
     {
       id: "job-004",
@@ -115,6 +121,7 @@ const DEFAULT_DATA: MissionControlData = {
       isolatedSession: true,
       status: "paused",
       nextRun: "03:45",
+      lastRun: "03:45",
     },
   ],
   systems: [
@@ -197,6 +204,10 @@ const DEFAULT_DATA: MissionControlData = {
 
 type ModelShare = { id: string; share: number };
 
+function nowLabel() {
+  return new Date().toLocaleTimeString();
+}
+
 function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefined): Integration[] {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const channels = (anyCfg.channels ?? {}) as Record<string, unknown>;
@@ -247,6 +258,41 @@ function readMissionControl(config: Record<string, unknown> | undefined): Missio
   };
 }
 
+function deriveSystemsRuntime(
+  base: SystemCard[],
+  connected: boolean,
+  sessionsCount: number,
+  integrations: Integration[]
+): SystemCard[] {
+  const gatewaySystem: SystemCard = {
+    id: "sys-gateway-live",
+    name: "Gateway Link",
+    status: connected ? "online" : "offline",
+    health: connected ? 100 : 35,
+    detail: connected ? "WebSocket conectado" : "Sem conexão com gateway",
+  };
+  const sessionsSystem: SystemCard = {
+    id: "sys-sessions-live",
+    name: "Session Fabric",
+    status: sessionsCount > 0 ? "online" : "warning",
+    health: sessionsCount > 0 ? Math.min(100, 70 + sessionsCount) : 55,
+    detail: `${sessionsCount} sessões visíveis no runtime`,
+  };
+  const connectedIntegrations = integrations.filter((i) => i.status === "connected").length;
+  const integrationSystem: SystemCard = {
+    id: "sys-integrations-live",
+    name: "Channel Integrations",
+    status: connectedIntegrations > 0 ? "online" : "warning",
+    health: Math.max(40, Math.min(100, 40 + connectedIntegrations * 20)),
+    detail: `${connectedIntegrations}/${integrations.length} canais conectados`,
+  };
+
+  const withoutReplaced = base.filter(
+    (s) => !["sys-gateway-live", "sys-sessions-live", "sys-integrations-live"].includes(s.id)
+  );
+  return [gatewaySystem, sessionsSystem, integrationSystem, ...withoutReplaced];
+}
+
 export function MissionControlPage() {
   const gw = useGatewayRpc();
   const [loading, setLoading] = React.useState(true);
@@ -254,6 +300,7 @@ export function MissionControlPage() {
   const [data, setData] = React.useState<MissionControlData>(DEFAULT_DATA);
   const [sessionsCount, setSessionsCount] = React.useState(0);
   const [models, setModels] = React.useState<ModelShare[]>([]);
+  const [lastSyncAt, setLastSyncAt] = React.useState<string>("--:--:--");
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -267,8 +314,20 @@ export function MissionControlPage() {
         gw.request<ModelsListResponse>("models.list", {}).catch(() => ({ models: [] })),
       ]);
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
-      setData(readMissionControl((cfg.config as Record<string, unknown>) || {}));
-      setSessionsCount(Array.isArray(sess.sessions) ? sess.sessions.length : 0);
+
+      const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {});
+      const visibleSessions = Array.isArray(sess.sessions) ? sess.sessions.length : 0;
+      setSessionsCount(visibleSessions);
+      const withRuntimeSystems = {
+        ...parsed,
+        systems: deriveSystemsRuntime(
+          parsed.systems,
+          gw.connected,
+          visibleSessions,
+          parsed.integrations
+        ),
+      };
+      setData(withRuntimeSystems);
 
       const modelList = Array.isArray(mdl.models) ? mdl.models : [];
       if (!modelList.length) {
@@ -281,6 +340,7 @@ export function MissionControlPage() {
         const pct = Math.max(1, Math.floor(100 / modelList.length));
         setModels(modelList.slice(0, 4).map((m) => ({ id: m.id, share: pct })));
       }
+      setLastSyncAt(nowLabel());
     } catch (err) {
       addToastError(err);
     } finally {
@@ -291,6 +351,20 @@ export function MissionControlPage() {
   React.useEffect(() => {
     void load();
   }, [load]);
+
+  React.useEffect(() => {
+    const timer = window.setInterval(() => {
+      void load();
+    }, AUTO_REFRESH_MS);
+    return () => window.clearInterval(timer);
+  }, [load]);
+
+  React.useEffect(() => {
+    const off = gw.onEvent(() => {
+      void load();
+    });
+    return off;
+  }, [gw, load]);
 
   const persist = React.useCallback(
     async (next: MissionControlData) => {
@@ -322,15 +396,32 @@ export function MissionControlPage() {
     void persist(next);
   };
 
-  const cycleJob = (id: string) => {
+  const togglePauseJob = (id: string) => {
     const next = {
       ...data,
       cronJobs: data.cronJobs.map((j) => {
         if (j.id !== id) return j;
-        const status: JobStatus =
-          j.status === "healthy" ? "warning" : j.status === "warning" ? "paused" : "healthy";
-        return { ...j, status };
+        if (j.status === "paused") return { ...j, status: "healthy" as JobStatus };
+        return { ...j, status: "paused" as JobStatus };
       }),
+    };
+    setData(next);
+    void persist(next);
+  };
+
+  const runNowJob = (id: string) => {
+    const target = data.cronJobs.find((j) => j.id === id);
+    if (!target) return;
+    const stamp = nowLabel();
+    const next = {
+      ...data,
+      cronJobs: data.cronJobs.map((j) =>
+        j.id === id ? { ...j, lastRun: stamp, status: "healthy" } : j
+      ),
+      overnightTimeline: [
+        `${stamp} execução manual: ${target.name}`,
+        ...data.overnightTimeline,
+      ].slice(0, 15),
     };
     setData(next);
     void persist(next);
@@ -343,9 +434,12 @@ export function MissionControlPage() {
     <div className={css.wrap}>
       <div className={css.header}>
         <h1>Mission Control</h1>
-        <button className={css.refreshBtn} onClick={() => void load()} disabled={loading}>
-          {loading ? "Atualizando..." : "Atualizar"}
-        </button>
+        <div className={css.headerRight}>
+          <div className={css.syncMeta}>sync: {lastSyncAt}</div>
+          <button className={css.refreshBtn} onClick={() => void load()} disabled={loading}>
+            {loading ? "Atualizando..." : "Atualizar"}
+          </button>
+        </div>
       </div>
 
       <div className={css.grid}>
@@ -371,7 +465,9 @@ export function MissionControlPage() {
               <strong>{data.projects.length}</strong>
             </div>
           </div>
-          <p className={css.muted}>Dados persistidos no config do AtomicBot/OpenClaw.</p>
+          <p className={css.muted}>
+            Auto-refresh a cada {Math.floor(AUTO_REFRESH_MS / 1000)}s + eventos do gateway.
+          </p>
         </section>
 
         <section className={css.card}>
@@ -422,6 +518,7 @@ export function MissionControlPage() {
                   <th>Isolated</th>
                   <th>Status</th>
                   <th>Next</th>
+                  <th>Last</th>
                   <th></th>
                 </tr>
               </thead>
@@ -433,10 +530,16 @@ export function MissionControlPage() {
                     <td>{j.isolatedSession ? "yes" : "no"}</td>
                     <td>{j.status}</td>
                     <td className={css.mono}>{j.nextRun}</td>
+                    <td className={css.mono}>{j.lastRun ?? "--"}</td>
                     <td>
-                      <button className={css.smallBtn} onClick={() => cycleJob(j.id)}>
-                        Cycle
-                      </button>
+                      <div className={css.inlineActions}>
+                        <button className={css.smallBtn} onClick={() => runNowJob(j.id)}>
+                          Run now
+                        </button>
+                        <button className={css.smallBtn} onClick={() => togglePauseJob(j.id)}>
+                          {j.status === "paused" ? "Resume" : "Pause"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
