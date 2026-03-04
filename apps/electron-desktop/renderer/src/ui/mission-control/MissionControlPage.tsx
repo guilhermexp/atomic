@@ -150,6 +150,17 @@ type GatewayCronJob = {
 
 type CronListResponse = { jobs?: GatewayCronJob[] };
 
+type CronRunEntry = {
+  ts: number;
+  jobId: string;
+  jobName?: string;
+  status?: "ok" | "error" | "skipped";
+  summary?: string;
+  sessionKey?: string;
+};
+
+type CronRunsPageResponse = { entries?: CronRunEntry[] };
+
 function classifyEventSeverity(event: string, payload: unknown): EventSeverity {
   if (event.includes("error") || event.includes("fail")) return "error";
   if (event.includes("warn")) return "warning";
@@ -320,6 +331,54 @@ function deriveCronJobsFromGateway(gatewayJobs: GatewayCronJob[], existing: Cron
   return [...fromGateway, ...manualOnly].slice(0, 100);
 }
 
+function deriveBrainDocsFromSessions(sessions: SessionEntry[], existing: BrainDoc[]): BrainDoc[] {
+  const seen = new Set(existing.map((d) => d.id));
+  const derived = [...existing];
+  for (const s of sessions) {
+    if (!s.title?.trim()) continue;
+    if (!/memory|memo|cron|missão|mission|deploy|bug|fix/i.test(s.title)) continue;
+    const id = `sess:${s.key}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    derived.unshift({
+      id,
+      title: s.title,
+      content: `Sessão ${s.key} • atualizada em ${s.updatedAt ?? "--"}`,
+    });
+  }
+  return derived.slice(0, 40);
+}
+
+function deriveRunDispatchesFromCronRuns(
+  entries: CronRunEntry[],
+  existing: RunDispatch[]
+): RunDispatch[] {
+  const normalized = entries.map((entry) => ({
+    id: `cronrun:${entry.jobId}:${entry.ts}`,
+    jobId: entry.jobId,
+    jobName: entry.jobName ?? entry.jobId,
+    sessionKey: entry.sessionKey ?? `cron:${entry.jobId}`,
+    requestedAt: formatMs(entry.ts),
+    status:
+      entry.status === "ok"
+        ? ("completed" as const)
+        : entry.status === "error"
+          ? ("failed" as const)
+          : entry.status === "skipped"
+            ? ("unknown" as const)
+            : ("unknown" as const),
+  }));
+  const merged = [...normalized, ...existing];
+  const seen = new Set<string>();
+  const out: RunDispatch[] = [];
+  for (const row of merged) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    out.push(row);
+  }
+  return out.slice(0, 30);
+}
+
 function deriveProjects(sessions: SessionEntry[], existing: Project[]): Project[] {
   const existingIds = new Set(existing.map((p) => p.id));
   const derived: Project[] = [...existing];
@@ -435,7 +494,7 @@ export function MissionControlPage() {
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [cfg, sess, mdl, chStatus, cronPage] = await Promise.all([
+      const [cfg, sess, mdl, chStatus, cronPage, cronRuns] = await Promise.all([
         gw.request<ConfigGetResponse>("config.get", {}),
         gw.request<SessionsListResponse>("sessions.list", {
           limit: 100,
@@ -448,6 +507,9 @@ export function MissionControlPage() {
         gw
           .request<CronListResponse>("cron.list", { includeDisabled: true, limit: 100 })
           .catch(() => ({ jobs: [] })),
+        gw
+          .request<CronRunsPageResponse>("cron.runs", { scope: "all", limit: 30 })
+          .catch(() => ({ entries: [] })),
       ]);
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
 
@@ -456,6 +518,7 @@ export function MissionControlPage() {
       setSessionsCount(sessionRows.length);
       setSessions(sessionRows);
       const statusErrors = deriveIntegrationErrorsFromStatus(chStatus);
+      const cronRunEntries = Array.isArray(cronRuns.entries) ? cronRuns.entries : [];
       const withRuntimeSystems = {
         ...parsed,
         systems: deriveSystemsRuntime(
@@ -470,6 +533,15 @@ export function MissionControlPage() {
           Array.isArray(cronPage.jobs) ? cronPage.jobs : [],
           parsed.cronJobs
         ),
+        runDispatches: deriveRunDispatchesFromCronRuns(cronRunEntries, parsed.runDispatches),
+        brainDocs: deriveBrainDocsFromSessions(sessionRows, parsed.brainDocs),
+        overnightTimeline: [
+          ...cronRunEntries.slice(0, 5).map((r) => {
+            const outcome = r.status === "ok" ? "ok" : r.status === "error" ? "falhou" : "skip";
+            return `${formatMs(r.ts)} cron ${r.jobName ?? r.jobId}: ${outcome}`;
+          }),
+          ...parsed.overnightTimeline,
+        ].slice(0, 15),
         integrationErrors: mergeIntegrationErrors(statusErrors, parsed.integrationErrors),
       };
       const withRunStatuses = {
@@ -841,8 +913,20 @@ export function MissionControlPage() {
   };
 
   /* ── Backup/restore actions ── */
-  const addSnapshot = () => {
+  const addSnapshot = async () => {
     const stamp = nowLabel();
+    try {
+      const result = await window.desktopApi?.createBackup?.();
+      if (result && !result.ok && !result.cancelled) {
+        addToastError(result.error || "Falha ao criar backup");
+        return;
+      }
+      if (result?.cancelled) return;
+    } catch (err) {
+      addToastError(err);
+      return;
+    }
+
     const snap: BackupSnapshot = {
       id: crypto.randomUUID(),
       label: `Snapshot ${stamp}`,
@@ -853,7 +937,7 @@ export function MissionControlPage() {
       ...data,
       backupSnapshots: [snap, ...data.backupSnapshots].slice(0, 30),
       overnightTimeline: [
-        `${stamp} snapshot created: ${snap.label}`,
+        `${stamp} snapshot criado (arquivo salvo): ${snap.label}`,
         ...data.overnightTimeline,
       ].slice(0, 15),
     });
