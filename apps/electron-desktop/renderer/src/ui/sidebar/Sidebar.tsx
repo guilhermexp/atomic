@@ -56,6 +56,10 @@ type SessionWithTitle = {
   title: string;
 };
 
+type ConfigGetResponse = {
+  config?: Record<string, unknown>;
+};
+
 const SESSIONS_LIST_LIMIT = 50;
 const TITLE_MAX_LEN = 48;
 
@@ -103,6 +107,7 @@ export function Sidebar() {
 
   const [sessions, setSessions] = React.useState<SessionWithTitle[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [missionPendingCount, setMissionPendingCount] = React.useState(0);
 
   const loadSessionsWithTitles = React.useCallback(
     async (background: boolean = false) => {
@@ -124,6 +129,20 @@ export function Sidebar() {
         }));
 
         setSessions(withTitles);
+
+        try {
+          const cfg = await gw.request<ConfigGetResponse>("config.get", {});
+          const cfgAny = (cfg?.config ?? {}) as Record<string, unknown>;
+          const mission = (cfgAny.missionControl ?? {}) as Record<string, unknown>;
+          const runs = Array.isArray(mission.runDispatches) ? mission.runDispatches : [];
+          const pending = runs.filter((r) => {
+            const status = (r as { status?: string }).status;
+            return status === "dispatched" || status === "running";
+          }).length;
+          setMissionPendingCount(pending);
+        } catch {
+          setMissionPendingCount(0);
+        }
       } catch (err) {
         if (!background) {
           addToastError(err);
@@ -269,7 +288,15 @@ export function Sidebar() {
           <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
             🛰️
           </span>
-          Mission Control
+          <span className={css.UiChatSidebarSettingsLabel}>Mission Control</span>
+          {missionPendingCount > 0 && (
+            <span
+              className={css.UiChatSidebarBadge}
+              aria-label={`${missionPendingCount} run(s) pendente(s)`}
+            >
+              {missionPendingCount}
+            </span>
+          )}
         </NavLink>
         <NavLink to={routes.settings} className={css.UiChatSidebarSettings} aria-label="Settings">
           <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
