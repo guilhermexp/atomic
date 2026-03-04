@@ -208,6 +208,10 @@ function nowLabel() {
   return new Date().toLocaleTimeString();
 }
 
+function newSessionKey(): string {
+  return `agent:main:main:${crypto.randomUUID().slice(0, 8)}`;
+}
+
 function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefined): Integration[] {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const channels = (anyCfg.channels ?? {}) as Record<string, unknown>;
@@ -409,22 +413,43 @@ export function MissionControlPage() {
     void persist(next);
   };
 
-  const runNowJob = (id: string) => {
+  const runNowJob = async (id: string) => {
     const target = data.cronJobs.find((j) => j.id === id);
     if (!target) return;
     const stamp = nowLabel();
-    const next = {
-      ...data,
-      cronJobs: data.cronJobs.map((j) =>
-        j.id === id ? { ...j, lastRun: stamp, status: "healthy" } : j
-      ),
-      overnightTimeline: [
-        `${stamp} execução manual: ${target.name}`,
-        ...data.overnightTimeline,
-      ].slice(0, 15),
-    };
-    setData(next);
-    void persist(next);
+
+    try {
+      const sessionKey = newSessionKey();
+      const message = [
+        "MISSION_CONTROL_RUNNOW",
+        `Job: ${target.name}`,
+        `Schedule: ${target.schedule}`,
+        `RequestedAt: ${stamp}`,
+        "Execute this routine now in this isolated session and return a short completion summary.",
+      ].join("\n");
+
+      await gw.request("chat.send", {
+        sessionKey,
+        message,
+        deliver: false,
+        idempotencyKey: crypto.randomUUID(),
+      });
+
+      const next = {
+        ...data,
+        cronJobs: data.cronJobs.map((j) =>
+          j.id === id ? { ...j, lastRun: stamp, status: "healthy" } : j
+        ),
+        overnightTimeline: [
+          `${stamp} execução manual disparada: ${target.name}`,
+          ...data.overnightTimeline,
+        ].slice(0, 15),
+      };
+      setData(next);
+      await persist(next);
+    } catch (err) {
+      addToastError(err);
+    }
   };
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
