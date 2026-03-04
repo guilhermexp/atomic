@@ -70,7 +70,7 @@
 }
 
 .metrics strong {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .muted {
@@ -146,6 +146,89 @@
 
 .actions button:last-child {
   background: #ddd;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  border-bottom: 1px solid #2b2b2b;
+  padding: 8px 6px;
+}
+
+.table th {
+  color: #aaa;
+  font-weight: 600;
+}
+
+.smallBtn {
+  border: 1px solid #3a3a3a;
+  background: #1f1f1f;
+  color: #f5f5f5;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.mono {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+}
+
+.systems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.system {
+  background: #202020;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.list li {
+  background: #202020;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timeline li {
+  border-left: 2px solid #ff7a1a;
+  padding-left: 10px;
+  color: #ddd;
+  font-size: 13px;
 }
 
 @media (max-width: 900px) {
