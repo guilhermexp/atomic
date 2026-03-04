@@ -94,140 +94,15 @@ type MissionControlData = {
 const AUTO_REFRESH_MS = 15000;
 
 const DEFAULT_DATA: MissionControlData = {
-  decisions: [
-    {
-      id: "dec-001",
-      title: "Ativar loop de self-improvement noturno",
-      impact: "medium",
-      status: "pending",
-    },
-    {
-      id: "dec-002",
-      title: "Publicar daily brief no Telegram às 09:00",
-      impact: "low",
-      status: "pending",
-    },
-    {
-      id: "dec-003",
-      title: "Permitir subagente autônomo para pesquisa noturna",
-      impact: "high",
-      status: "pending",
-    },
-  ],
-  cronJobs: [
-    {
-      id: "job-001",
-      name: "Daily GitHub Backup",
-      schedule: "0 2 * * *",
-      isolatedSession: true,
-      status: "healthy",
-      nextRun: "02:00",
-      lastRun: "02:00",
-    },
-    {
-      id: "job-002",
-      name: "Morning Security Check",
-      schedule: "0 9 * * *",
-      isolatedSession: true,
-      status: "warning",
-      nextRun: "09:00",
-      lastRun: "--",
-    },
-    {
-      id: "job-003",
-      name: "Projects Audit",
-      schedule: "30 9 * * *",
-      isolatedSession: true,
-      status: "healthy",
-      nextRun: "09:30",
-      lastRun: "--",
-    },
-    {
-      id: "job-004",
-      name: "Self-Improvement",
-      schedule: "45 3 * * *",
-      isolatedSession: true,
-      status: "paused",
-      nextRun: "03:45",
-      lastRun: "03:45",
-    },
-  ],
-  systems: [
-    {
-      id: "sys-001",
-      name: "OpenClaw Gateway",
-      status: "online",
-      health: 98,
-      detail: "Sessões e roteamento",
-    },
-    {
-      id: "sys-002",
-      name: "Firewall + listeners",
-      status: "warning",
-      health: 84,
-      detail: "Validar baseline",
-    },
-    {
-      id: "sys-003",
-      name: "Backup pipeline",
-      status: "online",
-      health: 96,
-      detail: "Último restore OK",
-    },
-    {
-      id: "sys-004",
-      name: "Project audit",
-      status: "online",
-      health: 93,
-      detail: "Inventário atualizado",
-    },
-  ],
-  projects: [
-    {
-      id: "prj-001",
-      name: "missioncontrol-macclaw-dashboard-design",
-      status: "active",
-      risk: "low",
-      updated: "today",
-    },
-    { id: "prj-002", name: "atomicbot", status: "active", risk: "medium", updated: "today" },
-    {
-      id: "prj-003",
-      name: "automation-scripts",
-      status: "planning",
-      risk: "low",
-      updated: "yesterday",
-    },
-  ],
-  orgDivisions: [
-    {
-      id: "org-001",
-      division: "Core",
-      lead: "O Brabo",
-      agents: ["Security Sentinel", "Ops Runner"],
-    },
-    {
-      id: "org-002",
-      division: "Growth",
-      lead: "Scout",
-      agents: ["Social Repurpose", "Sponsor Planner"],
-    },
-    { id: "org-003", division: "Product", lead: "Builder", agents: ["UX Refiner", "QA Watcher"] },
-  ],
-  integrations: [
-    { id: "int-001", name: "Webchat", status: "connected", channel: "webchat" },
-    { id: "int-002", name: "Telegram", status: "pending", channel: "telegram" },
-    { id: "int-003", name: "Discord", status: "pending", channel: "discord" },
-  ],
-  overnightTimeline: [
-    "02:00 backup diário executado",
-    "02:05 restore check concluído",
-    "03:45 auto-improvement pausado por guardrail",
-    "05:20 transcrição de referência consolidada",
-    "06:30 pré-brief da manhã gerado",
-  ],
-  sponsorHub: { rateCardReady: true, mediaKitReady: false, pitchTemplates: 6, outreachLeads: 12 },
-  contentLibrary: { items: 34, drafts: 7, published: 27 },
+  decisions: [],
+  cronJobs: [],
+  systems: [],
+  projects: [],
+  orgDivisions: [],
+  integrations: [],
+  overnightTimeline: [],
+  sponsorHub: { rateCardReady: false, mediaKitReady: false, pitchTemplates: 0, outreachLeads: 0 },
+  contentLibrary: { items: 0, drafts: 0, published: 0 },
   runDispatches: [],
   brainDocs: [],
   fileTree: [],
@@ -397,11 +272,7 @@ export function MissionControlPage() {
 
       const modelList = Array.isArray(mdl.models) ? mdl.models : [];
       if (!modelList.length) {
-        setModels([
-          { id: "gpt-5.3-codex", share: 80 },
-          { id: "claude-opus", share: 15 },
-          { id: "gemini-cli", share: 5 },
-        ]);
+        setModels([]);
       } else {
         const pct = Math.max(1, Math.floor(100 / modelList.length));
         setModels(modelList.slice(0, 4).map((m) => ({ id: m.id, share: pct })));
@@ -696,17 +567,21 @@ export function MissionControlPage() {
           <section className={css.card}>
             <h3>Modelos em uso</h3>
             <div className={css.modelList}>
-              {models.map((m) => (
-                <div key={m.id}>
-                  <div className={css.row}>
-                    <span>{m.id}</span>
-                    <span>{m.share}%</span>
+              {models.length === 0 ? (
+                <p className={css.muted}>Nenhum modelo ativo detectado.</p>
+              ) : (
+                models.map((m) => (
+                  <div key={m.id}>
+                    <div className={css.row}>
+                      <span>{m.id}</span>
+                      <span>{m.share}%</span>
+                    </div>
+                    <div className={css.bar}>
+                      <i style={{ width: `${m.share}%` }} />
+                    </div>
                   </div>
-                  <div className={css.bar}>
-                    <i style={{ width: `${m.share}%` }} />
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
 
