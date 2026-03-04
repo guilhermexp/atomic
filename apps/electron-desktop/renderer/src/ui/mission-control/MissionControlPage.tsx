@@ -7,6 +7,7 @@ import type {
   SessionEntry,
   SessionsListResponse,
 } from "@gateway/types";
+import type { ChannelsStatusResult } from "../onboarding/hooks/types";
 import { addToastError } from "@shared/toast";
 import { routes } from "../app/routes";
 import { CronJobModal, type CronJobFormData } from "./CronJobModal";
@@ -146,9 +147,16 @@ function newSessionKey(): string {
   return `agent:main:main:${crypto.randomUUID().slice(0, 8)}`;
 }
 
-function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefined): Integration[] {
+function deriveIntegrationsFromConfig(
+  config: Record<string, unknown> | undefined,
+  statusProbe?: ChannelsStatusResult
+): Integration[] {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const channels = (anyCfg.channels ?? {}) as Record<string, unknown>;
+  const channelAccounts = (statusProbe?.channelAccounts ?? {}) as Record<
+    string,
+    Array<{ configured?: boolean; lastError?: string }>
+  >;
   const seeds = [
     { key: "webchat", name: "Webchat", channel: "webchat" },
     { key: "telegram", name: "Telegram", channel: "telegram" },
@@ -159,11 +167,20 @@ function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefine
   return seeds.map((s, idx) => {
     const entry = (channels[s.key] ?? {}) as Record<string, unknown>;
     const enabled = entry.enabled === true;
+    const accountRows = Array.isArray(channelAccounts[s.key]) ? channelAccounts[s.key] : [];
+    const configuredCount = accountRows.filter((a) => a.configured).length;
+    const errorCount = accountRows.filter((a) => !!a.lastError).length;
+    const status: Integration["status"] = !enabled
+      ? "disabled"
+      : configuredCount > 0
+        ? "connected"
+        : "pending";
     return {
       id: `int-auto-${idx + 1}`,
       name: s.name,
       channel: s.channel,
-      status: enabled ? "connected" : "disabled",
+      status,
+      errorsCount24h: errorCount > 0 ? errorCount : undefined,
     } as Integration;
   });
 }
@@ -194,10 +211,13 @@ function deriveBackupSnapshots(
   return derived.slice(0, 30);
 }
 
-function readMissionControl(config: Record<string, unknown> | undefined): MissionControlData {
+function readMissionControl(
+  config: Record<string, unknown> | undefined,
+  channelsStatus?: ChannelsStatusResult
+): MissionControlData {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const incoming = (anyCfg.missionControl ?? {}) as Partial<MissionControlData>;
-  const autoIntegrations = deriveIntegrationsFromConfig(config);
+  const autoIntegrations = deriveIntegrationsFromConfig(config, channelsStatus);
   const persistedSnapshots = Array.isArray(incoming.backupSnapshots)
     ? incoming.backupSnapshots
     : DEFAULT_DATA.backupSnapshots;
@@ -278,6 +298,38 @@ function deriveProjects(sessions: SessionEntry[], existing: Project[]): Project[
   return derived.slice(0, 30);
 }
 
+function deriveIntegrationErrorsFromStatus(statusProbe?: ChannelsStatusResult): IntegrationError[] {
+  const rows = statusProbe?.channelAccounts ?? {};
+  const out: IntegrationError[] = [];
+  for (const [channel, accounts] of Object.entries(rows)) {
+    for (const account of accounts ?? []) {
+      if (!account?.lastError) continue;
+      out.push({
+        id: crypto.randomUUID(),
+        channel,
+        message: account.lastError,
+        timestamp: nowLabel(),
+      });
+    }
+  }
+  return out.slice(0, 50);
+}
+
+function mergeIntegrationErrors(
+  incoming: IntegrationError[],
+  existing: IntegrationError[]
+): IntegrationError[] {
+  const seen = new Set<string>();
+  const merged: IntegrationError[] = [];
+  for (const err of [...incoming, ...existing]) {
+    const key = `${err.channel}:${err.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(err);
+  }
+  return merged.slice(0, 50);
+}
+
 function deriveSystemsRuntime(
   base: SystemCard[],
   connected: boolean,
@@ -335,20 +387,24 @@ export function MissionControlPage() {
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [cfg, sess, mdl] = await Promise.all([
+      const [cfg, sess, mdl, chStatus] = await Promise.all([
         gw.request<ConfigGetResponse>("config.get", {}),
         gw.request<SessionsListResponse>("sessions.list", {
           limit: 100,
           includeDerivedTitles: true,
         }),
         gw.request<ModelsListResponse>("models.list", {}).catch(() => ({ models: [] })),
+        gw
+          .request<ChannelsStatusResult>("channels.status", { probe: false, timeoutMs: 4000 })
+          .catch(() => ({ channelAccounts: {} })),
       ]);
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
 
-      const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {});
+      const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {}, chStatus);
       const sessionRows = Array.isArray(sess.sessions) ? sess.sessions : [];
       setSessionsCount(sessionRows.length);
       setSessions(sessionRows);
+      const statusErrors = deriveIntegrationErrorsFromStatus(chStatus);
       const withRuntimeSystems = {
         ...parsed,
         systems: deriveSystemsRuntime(
@@ -359,6 +415,7 @@ export function MissionControlPage() {
         ),
         fileTree: deriveFileTree(sessionRows, parsed.fileTree),
         projects: deriveProjects(sessionRows, parsed.projects),
+        integrationErrors: mergeIntegrationErrors(statusErrors, parsed.integrationErrors),
       };
       const withRunStatuses = {
         ...withRuntimeSystems,
