@@ -74,9 +74,9 @@
   margin-top: 0;
 }
 
-/* Last assistant message row: minimum height so content area fills the viewport above the input. */
+/* Last assistant message row: small bottom padding so content doesn't hug the composer. */
 .UiChatRowLastAssistant {
-  min-height: calc(-260px + 100dvh);
+  padding-bottom: 16px;
 }
 
 @keyframes uiChatBubbleEnter {

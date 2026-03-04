@@ -144,6 +144,8 @@ export function spawnGateway(params: {
       console.log("[gateway] WHISPER_CPP_MODEL =", modelPath);
       return { WHISPER_CPP_MODEL: modelPath };
     })(),
+    // Allow the gateway to import missing env vars (incl. PATH entries) from the login shell.
+    OPENCLAW_LOAD_SHELL_ENV: "1",
     // Reduce noise in embedded contexts.
     NO_COLOR: "1",
     FORCE_COLOR: "0",

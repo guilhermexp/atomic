@@ -540,6 +540,10 @@ export function MissionControlPage() {
   // Cron modal state
   const [cronModalOpen, setCronModalOpen] = React.useState(false);
   const [cronEditTarget, setCronEditTarget] = React.useState<CronJob | null>(null);
+  const [cronFilter, setCronFilter] = React.useState<"all" | "warning" | "paused" | "active">(
+    "all"
+  );
+  const [cronSort, setCronSort] = React.useState<"next" | "failures">("next");
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -1038,6 +1042,17 @@ export function MissionControlPage() {
   const failedRuns = data.runDispatches.filter((r) => r.status === "failed").length;
   const totalRuns = completedRuns + failedRuns;
   const successRate = totalRuns > 0 ? Math.round((completedRuns / totalRuns) * 100) : null;
+  const displayedCronJobs = [...data.cronJobs]
+    .filter((j) => {
+      if (cronFilter === "all") return true;
+      if (cronFilter === "warning") return j.status === "warning";
+      if (cronFilter === "paused") return j.status === "paused";
+      return j.status === "healthy" || j.status === "warning";
+    })
+    .sort((a, b) => {
+      if (cronSort === "failures") return (b.failureCount ?? 0) - (a.failureCount ?? 0);
+      return String(a.nextRun).localeCompare(String(b.nextRun));
+    });
   const filteredEvents = liveEvents.filter((e) => {
     if (!eventFilter.trim()) return true;
     const q = eventFilter.toLowerCase();
@@ -1269,6 +1284,27 @@ export function MissionControlPage() {
                 + Adicionar rotina
               </button>
             </div>
+            <div className={css.row} style={{ gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+              <select
+                value={cronFilter}
+                onChange={(e) => setCronFilter(e.target.value as typeof cronFilter)}
+              >
+                <option value="all">Todas</option>
+                <option value="warning">Com erro</option>
+                <option value="paused">Pausadas</option>
+                <option value="active">Ativas</option>
+              </select>
+              <select
+                value={cronSort}
+                onChange={(e) => setCronSort(e.target.value as typeof cronSort)}
+              >
+                <option value="next">Ordenar: próxima execução</option>
+                <option value="failures">Ordenar: mais falhas</option>
+              </select>
+              <span className={css.muted}>
+                Mostrando {displayedCronJobs.length} de {data.cronJobs.length}
+              </span>
+            </div>
             {topProblematicJobs.length > 0 && (
               <div className={css.muted} style={{ marginBottom: 8 }}>
                 Mais problemáticas:{" "}
@@ -1291,7 +1327,7 @@ export function MissionControlPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.cronJobs.map((j) => (
+                  {displayedCronJobs.map((j) => (
                     <tr key={j.id}>
                       <td>{j.name}</td>
                       <td className={css.mono}>{j.schedule}</td>
