@@ -34,6 +34,7 @@ type CronJob = {
   status: JobStatus;
   nextRun: string;
   lastRun?: string;
+  gatewayJobId?: string;
 };
 type SystemCard = {
   id: string;
@@ -128,6 +129,26 @@ const DEFAULT_DATA: MissionControlData = {
 
 type ModelShare = { id: string; share: number };
 type ActiveTab = "operations" | "brain" | "eventos";
+
+type GatewayCronSchedule =
+  | { kind: "cron"; expr?: string }
+  | { kind: "every"; everyMs?: number }
+  | { kind: "at"; at?: string };
+
+type GatewayCronJob = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  sessionTarget?: "main" | "isolated";
+  schedule: GatewayCronSchedule;
+  state?: {
+    nextRunAtMs?: number;
+    lastRunAtMs?: number;
+    lastError?: string;
+  };
+};
+
+type CronListResponse = { jobs?: GatewayCronJob[] };
 
 function classifyEventSeverity(event: string, payload: unknown): EventSeverity {
   if (event.includes("error") || event.includes("fail")) return "error";
@@ -272,6 +293,33 @@ function deriveFileTree(sessions: SessionEntry[], existing: string[]): string[] 
 }
 
 /** Derive projects from active sessions grouped by prefix. */
+function formatMs(ms?: number): string {
+  if (!ms || !Number.isFinite(ms)) return "--";
+  return new Date(ms).toLocaleString();
+}
+
+function scheduleToLabel(schedule: GatewayCronSchedule): string {
+  if (schedule.kind === "cron") return schedule.expr ?? "cron";
+  if (schedule.kind === "every") return `a cada ${schedule.everyMs ?? 0}ms`;
+  if (schedule.kind === "at") return schedule.at ?? "at";
+  return "--";
+}
+
+function deriveCronJobsFromGateway(gatewayJobs: GatewayCronJob[], existing: CronJob[]): CronJob[] {
+  const manualOnly = existing.filter((j) => !j.gatewayJobId);
+  const fromGateway: CronJob[] = gatewayJobs.map((job) => ({
+    id: `gw:${job.id}`,
+    gatewayJobId: job.id,
+    name: job.name,
+    schedule: scheduleToLabel(job.schedule),
+    isolatedSession: job.sessionTarget !== "main",
+    status: !job.enabled ? "paused" : job.state?.lastError ? "warning" : "healthy",
+    nextRun: formatMs(job.state?.nextRunAtMs),
+    lastRun: formatMs(job.state?.lastRunAtMs),
+  }));
+  return [...fromGateway, ...manualOnly].slice(0, 100);
+}
+
 function deriveProjects(sessions: SessionEntry[], existing: Project[]): Project[] {
   const existingIds = new Set(existing.map((p) => p.id));
   const derived: Project[] = [...existing];
@@ -387,7 +435,7 @@ export function MissionControlPage() {
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [cfg, sess, mdl, chStatus] = await Promise.all([
+      const [cfg, sess, mdl, chStatus, cronPage] = await Promise.all([
         gw.request<ConfigGetResponse>("config.get", {}),
         gw.request<SessionsListResponse>("sessions.list", {
           limit: 100,
@@ -397,6 +445,9 @@ export function MissionControlPage() {
         gw
           .request<ChannelsStatusResult>("channels.status", { probe: false, timeoutMs: 4000 })
           .catch(() => ({ channelAccounts: {} })),
+        gw
+          .request<CronListResponse>("cron.list", { includeDisabled: true, limit: 100 })
+          .catch(() => ({ jobs: [] })),
       ]);
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
 
@@ -415,6 +466,10 @@ export function MissionControlPage() {
         ),
         fileTree: deriveFileTree(sessionRows, parsed.fileTree),
         projects: deriveProjects(sessionRows, parsed.projects),
+        cronJobs: deriveCronJobsFromGateway(
+          Array.isArray(cronPage.jobs) ? cronPage.jobs : [],
+          parsed.cronJobs
+        ),
         integrationErrors: mergeIntegrationErrors(statusErrors, parsed.integrationErrors),
       };
       const withRunStatuses = {
@@ -602,7 +657,19 @@ export function MissionControlPage() {
   };
 
   /* ── Cron CRUD ── */
-  const togglePauseJob = (id: string) => {
+  const togglePauseJob = async (id: string) => {
+    const target = data.cronJobs.find((j) => j.id === id);
+    if (!target) return;
+    if (target.gatewayJobId) {
+      try {
+        const enable = target.status === "paused";
+        await gw.request("cron.update", { id: target.gatewayJobId, patch: { enabled: enable } });
+        await load();
+        return;
+      } catch (err) {
+        addToastError(err);
+      }
+    }
     updateAndPersist({
       ...data,
       cronJobs: data.cronJobs.map((j) => {
@@ -612,8 +679,42 @@ export function MissionControlPage() {
     });
   };
 
-  const saveCronJob = (form: CronJobFormData) => {
+  const saveCronJob = async (form: CronJobFormData) => {
     const existing = data.cronJobs.find((j) => j.id === form.id);
+    try {
+      if (existing?.gatewayJobId) {
+        await gw.request("cron.update", {
+          id: existing.gatewayJobId,
+          patch: {
+            name: form.name,
+            schedule: { kind: "cron", expr: form.schedule },
+            sessionTarget: form.isolatedSession ? "isolated" : "main",
+          },
+        });
+        setCronModalOpen(false);
+        setCronEditTarget(null);
+        await load();
+        return;
+      }
+      if (!existing) {
+        await gw.request("cron.add", {
+          name: form.name,
+          schedule: { kind: "cron", expr: form.schedule },
+          sessionTarget: form.isolatedSession ? "isolated" : "main",
+          wakeMode: "next-heartbeat",
+          payload: form.isolatedSession
+            ? { kind: "agentTurn", message: `Executar rotina: ${form.name}` }
+            : { kind: "systemEvent", text: `Executar rotina: ${form.name}` },
+        });
+        setCronModalOpen(false);
+        setCronEditTarget(null);
+        await load();
+        return;
+      }
+    } catch (err) {
+      addToastError(err);
+    }
+
     let nextJobs: CronJob[];
     if (existing) {
       nextJobs = data.cronJobs.map((j) =>
@@ -645,7 +746,19 @@ export function MissionControlPage() {
     setCronEditTarget(null);
   };
 
-  const deleteCronJob = (id: string) => {
+  const deleteCronJob = async (id: string) => {
+    const target = data.cronJobs.find((j) => j.id === id);
+    if (target?.gatewayJobId) {
+      try {
+        await gw.request("cron.remove", { id: target.gatewayJobId });
+        setCronModalOpen(false);
+        setCronEditTarget(null);
+        await load();
+        return;
+      } catch (err) {
+        addToastError(err);
+      }
+    }
     updateAndPersist({ ...data, cronJobs: data.cronJobs.filter((j) => j.id !== id) });
     setCronModalOpen(false);
     setCronEditTarget(null);
@@ -656,6 +769,21 @@ export function MissionControlPage() {
     if (!target) return;
     const stamp = nowLabel();
     try {
+      if (target.gatewayJobId) {
+        await gw.request("cron.run", { id: target.gatewayJobId, mode: "force" });
+        const next = {
+          ...data,
+          overnightTimeline: [
+            `${stamp} execução manual disparada (cron.run): ${target.name}`,
+            ...data.overnightTimeline,
+          ].slice(0, 15),
+        };
+        setData(next);
+        await persist(next);
+        await load();
+        return;
+      }
+
       const sessionKey = newSessionKey();
       const message = [
         `[RUNNOW] ${target.name}`,
