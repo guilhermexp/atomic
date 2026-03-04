@@ -261,6 +261,16 @@ export function Sidebar() {
             Terminal
           </NavLink>
         )}
+        <NavLink
+          to={routes.missionControl}
+          className={css.UiChatSidebarSettings}
+          aria-label="Mission Control"
+        >
+          <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
+            🛰️
+          </span>
+          Mission Control
+        </NavLink>
         <NavLink to={routes.settings} className={css.UiChatSidebarSettings} aria-label="Settings">
           <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
             <svg

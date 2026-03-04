@@ -14,6 +14,7 @@ import { StartChatPage } from "../chat/StartChatPage";
 import { Sidebar } from "../sidebar/Sidebar";
 import { SettingsIndexRedirect, SettingsPage, SettingsTab } from "../settings/SettingsPage";
 import { TerminalPage } from "../terminal/TerminalPage";
+import { MissionControlPage } from "../mission-control/MissionControlPage";
 import { WelcomePage } from "../onboarding/WelcomePage";
 import { ConsentScreen } from "../onboarding/ConsentScreen";
 import { LoadingScreen } from "../onboarding/LoadingScreen";
@@ -213,6 +214,7 @@ export function App() {
           <Route index element={<Navigate to={routes.chat} replace />} />
           <Route path="chat" element={<ChatRoute state={state} />} />
           <Route path="terminal" element={<TerminalPage />} />
+          <Route path={routes.missionControl} element={<MissionControlPage />} />
           <Route path={routes.settings} element={<SettingsPage state={state} />}>
             <Route index element={<SettingsIndexRedirect />} />
             <Route path="ai-models" element={<SettingsTab tab="model" />} />
