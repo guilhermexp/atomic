@@ -44,16 +44,16 @@ export function BrainTab(props: {
     <div className={css.grid}>
       {/* Markdown docs viewer */}
       <section className={`${css.card} ${css.wide}`}>
-        <h3>Knowledge Base</h3>
+        <h3>Base de conhecimento</h3>
         <div className={css.brainLayout}>
           <div className={css.brainSidebar}>
             <div style={{ marginBottom: 8 }}>
               <button className={css.smallBtn} onClick={() => setShowAddDoc(!showAddDoc)}>
-                {showAddDoc ? "Cancel" : "+ Add doc"}
+                {showAddDoc ? "Cancelar" : "+ Adicionar doc"}
               </button>
             </div>
             {props.docs.length === 0 && !showAddDoc && (
-              <p className={css.muted}>No documents yet. Add one to get started.</p>
+              <p className={css.muted}>Ainda não há documentos. Adicione um para começar.</p>
             )}
             {props.docs.map((d) => (
               <div
@@ -78,16 +78,20 @@ export function BrainTab(props: {
           <div className={css.brainContent}>
             {showAddDoc ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <TextInput value={newTitle} onChange={setNewTitle} placeholder="Document title" />
+                <TextInput
+                  value={newTitle}
+                  onChange={setNewTitle}
+                  placeholder="Título do documento"
+                />
                 <textarea
                   className={css.brainTextarea}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Markdown content..."
+                  placeholder="Conteúdo em markdown..."
                   rows={10}
                 />
                 <button className={css.smallBtn} onClick={handleAddDoc}>
-                  Save document
+                  Salvar documento
                 </button>
               </div>
             ) : activeDoc ? (
@@ -96,7 +100,7 @@ export function BrainTab(props: {
                 <pre className={css.brainPre}>{activeDoc.content}</pre>
               </div>
             ) : (
-              <p className={css.muted}>Select a document to view its content.</p>
+              <p className={css.muted}>Selecione um documento para ver o conteúdo.</p>
             )}
           </div>
         </div>
@@ -104,11 +108,11 @@ export function BrainTab(props: {
 
       {/* Session search */}
       <section className={css.card}>
-        <h3>Session Search</h3>
-        <TextInput value={search} onChange={setSearch} placeholder="Search sessions..." isSearch />
+        <h3>Busca de sessões</h3>
+        <TextInput value={search} onChange={setSearch} placeholder="Buscar sessões..." isSearch />
         <div className={css.sessionList}>
           {filteredSessions.length === 0 ? (
-            <p className={css.muted}>No sessions found.</p>
+            <p className={css.muted}>Nenhuma sessão encontrada.</p>
           ) : (
             filteredSessions.map((s) => (
               <div key={s.key} className={css.sessionItem}>
@@ -125,9 +129,9 @@ export function BrainTab(props: {
 
       {/* File tree */}
       <section className={css.card}>
-        <h3>File Tree</h3>
+        <h3>Árvore de arquivos</h3>
         {props.fileTree.length === 0 ? (
-          <p className={css.muted}>No files tracked.</p>
+          <p className={css.muted}>Nenhum arquivo rastreado.</p>
         ) : (
           <ul className={css.list}>
             {props.fileTree.map((f, i) => (

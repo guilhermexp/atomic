@@ -283,12 +283,12 @@ export function Sidebar() {
         <NavLink
           to={`${routes.missionControl}?tab=runs`}
           className={css.UiChatSidebarSettings}
-          aria-label="Mission Control"
+          aria-label="Centro de Missão"
         >
           <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
             🛰️
           </span>
-          <span className={css.UiChatSidebarSettingsLabel}>Mission Control</span>
+          <span className={css.UiChatSidebarSettingsLabel}>Centro de Missão</span>
           {missionPendingCount > 0 && (
             <span
               className={css.UiChatSidebarBadge}

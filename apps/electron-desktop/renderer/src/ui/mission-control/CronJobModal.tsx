@@ -46,30 +46,30 @@ export function CronJobModal(props: {
     <Modal
       open={props.open}
       onClose={props.onClose}
-      header={isEdit ? "Edit Cron Job" : "New Cron Job"}
+      header={isEdit ? "Editar rotina cron" : "Nova rotina cron"}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <TextInput
-          label="Job name"
+          label="Nome da rotina"
           value={name}
           onChange={setName}
-          placeholder="e.g. Daily GitHub Backup"
+          placeholder="ex.: Backup diário no GitHub"
         />
         <TextInput
-          label="Cron schedule"
+          label="Agenda cron"
           value={schedule}
           onChange={setSchedule}
-          placeholder="e.g. 0 2 * * *"
+          placeholder="ex.: 0 2 * * *"
         />
         <CheckboxRow checked={isolated} onChange={setIsolated}>
-          Run in isolated session
+          Executar em sessão isolada
         </CheckboxRow>
         <ButtonRow>
           <PrimaryButton onClick={handleSave} disabled={!valid}>
-            {isEdit ? "Save" : "Create"}
+            {isEdit ? "Salvar" : "Criar"}
           </PrimaryButton>
           {isEdit && props.onDelete && (
-            <SecondaryButton onClick={props.onDelete}>Delete</SecondaryButton>
+            <SecondaryButton onClick={props.onDelete}>Excluir</SecondaryButton>
           )}
         </ButtonRow>
       </div>

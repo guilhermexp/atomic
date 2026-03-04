@@ -630,25 +630,25 @@ export function MissionControlPage() {
   return (
     <div className={css.wrap}>
       <div className={css.header}>
-        <h1>Mission Control</h1>
+        <h1>Centro de Missão</h1>
         <div className={css.headerRight}>
           <div className={css.tabBar}>
             <button
               className={`${css.tabBtn} ${activeTab === "operations" ? css.tabActive : ""}`}
               onClick={() => setActiveTab("operations")}
             >
-              Operations
+              Operações
             </button>
             <button
               className={`${css.tabBtn} ${activeTab === "brain" ? css.tabActive : ""}`}
               onClick={() => setActiveTab("brain")}
             >
-              Brain
+              Cérebro
             </button>
           </div>
-          <div className={css.syncMeta}>sync: {lastSyncAt}</div>
+          <div className={css.syncMeta}>sincronia: {lastSyncAt}</div>
           <button className={css.refreshBtn} onClick={() => void load()} disabled={loading}>
-            {loading ? "Syncing..." : "Refresh"}
+            {loading ? "Sincronizando..." : "Atualizar"}
           </button>
         </div>
       </div>
@@ -665,35 +665,36 @@ export function MissionControlPage() {
         <div className={css.grid}>
           {/* Morning brief */}
           <section className={css.card}>
-            <h3>Morning brief</h3>
+            <h3>Resumo da manhã</h3>
             <div className={css.metrics}>
               <div>
-                <span>Sessions</span>
+                <span>Sessões</span>
                 <strong>{sessionsCount}</strong>
               </div>
               <div>
-                <span>Pending</span>
+                <span>Pendentes</span>
                 <strong>{pending}</strong>
               </div>
               <div>
-                <span>Healthy jobs</span>
+                <span>Rotinas saudáveis</span>
                 <strong>
                   {healthyJobs}/{data.cronJobs.length}
                 </strong>
               </div>
               <div>
-                <span>Projects</span>
+                <span>Projetos</span>
                 <strong>{data.projects.length}</strong>
               </div>
             </div>
             <p className={css.muted}>
-              Auto-refresh every {Math.floor(AUTO_REFRESH_MS / 1000)}s + gateway events.
+              Atualização automática a cada {Math.floor(AUTO_REFRESH_MS / 1000)}s + eventos do
+              gateway.
             </p>
           </section>
 
           {/* Models */}
           <section className={css.card}>
-            <h3>Models in use</h3>
+            <h3>Modelos em uso</h3>
             <div className={css.modelList}>
               {models.map((m) => (
                 <div key={m.id}>
@@ -711,18 +712,18 @@ export function MissionControlPage() {
 
           {/* Decisions */}
           <section className={`${css.card} ${css.wide}`}>
-            <h3>Blocked by Boss</h3>
+            <h3>Bloqueado pelo Boss</h3>
             <div className={css.decisions}>
               {data.decisions.map((d) => (
                 <div key={d.id} className={css.decision}>
                   <div>
                     <div className={css.title}>{d.title}</div>
                     <div className={css.meta}>
-                      Impact: {d.impact} · Status: {d.status}
+                      Impacto: {d.impact} · Status: {d.status}
                     </div>
                   </div>
                   <div className={css.actions}>
-                    <button onClick={() => setDecision(d.id, "approved")}>Go</button>
+                    <button onClick={() => setDecision(d.id, "approved")}>Aprovar</button>
                     <button onClick={() => setDecision(d.id, "rejected")}>X</button>
                   </div>
                 </div>
@@ -733,7 +734,7 @@ export function MissionControlPage() {
           {/* Cron center with CRUD */}
           <section className={`${css.card} ${css.wide}`}>
             <div className={css.cardHeader}>
-              <h3>Cron center (isolated sessions)</h3>
+              <h3>Central de cron (sessões isoladas)</h3>
               <button
                 className={css.smallBtn}
                 onClick={() => {
@@ -741,19 +742,19 @@ export function MissionControlPage() {
                   setCronModalOpen(true);
                 }}
               >
-                + Add job
+                + Adicionar rotina
               </button>
             </div>
             <div className={css.tableWrap}>
               <table className={css.table}>
                 <thead>
                   <tr>
-                    <th>Job</th>
-                    <th>Schedule</th>
-                    <th>Isolated</th>
+                    <th>Rotina</th>
+                    <th>Agenda</th>
+                    <th>Isolada</th>
                     <th>Status</th>
-                    <th>Next</th>
-                    <th>Last</th>
+                    <th>Próxima</th>
+                    <th>Última</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -762,17 +763,17 @@ export function MissionControlPage() {
                     <tr key={j.id}>
                       <td>{j.name}</td>
                       <td className={css.mono}>{j.schedule}</td>
-                      <td>{j.isolatedSession ? "yes" : "no"}</td>
+                      <td>{j.isolatedSession ? "sim" : "não"}</td>
                       <td>{j.status}</td>
                       <td className={css.mono}>{j.nextRun}</td>
                       <td className={css.mono}>{j.lastRun ?? "--"}</td>
                       <td>
                         <div className={css.inlineActions}>
                           <button className={css.smallBtn} onClick={() => runNowJob(j.id)}>
-                            Run now
+                            Executar agora
                           </button>
                           <button className={css.smallBtn} onClick={() => togglePauseJob(j.id)}>
-                            {j.status === "paused" ? "Resume" : "Pause"}
+                            {j.status === "paused" ? "Retomar" : "Pausar"}
                           </button>
                           <button
                             className={css.smallBtn}
@@ -781,7 +782,7 @@ export function MissionControlPage() {
                               setCronModalOpen(true);
                             }}
                           >
-                            Edit
+                            Editar
                           </button>
                         </div>
                       </td>
@@ -794,18 +795,18 @@ export function MissionControlPage() {
 
           {/* Run-now dispatches */}
           <section ref={runsSectionRef} className={`${css.card} ${css.wide}`}>
-            <h3>Run-now dispatches</h3>
+            <h3>Despachos de execução manual</h3>
             {!data.runDispatches.length ? (
-              <p className={css.muted}>No manual runs dispatched yet.</p>
+              <p className={css.muted}>Nenhuma execução manual disparada ainda.</p>
             ) : (
               <div className={css.tableWrap}>
                 <table className={css.table}>
                   <thead>
                     <tr>
-                      <th>Job</th>
+                      <th>Rotina</th>
                       <th>Status</th>
-                      <th>Requested</th>
-                      <th>Session</th>
+                      <th>Solicitada em</th>
+                      <th>Sessão</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -822,14 +823,14 @@ export function MissionControlPage() {
                               className={css.smallBtn}
                               onClick={() => openSession(r.sessionKey)}
                             >
-                              Open session
+                              Abrir sessão
                             </button>
                             {r.status !== "completed" && (
                               <button
                                 className={css.smallBtn}
                                 onClick={() => markRunCompleted(r.id)}
                               >
-                                Mark done
+                                Marcar como concluída
                               </button>
                             )}
                           </div>
@@ -845,13 +846,15 @@ export function MissionControlPage() {
           {/* Backup / Restore timeline */}
           <section className={`${css.card} ${css.wide}`}>
             <div className={css.cardHeader}>
-              <h3>Backup / Restore</h3>
+              <h3>Backup / Restauração</h3>
               <button className={css.smallBtn} onClick={addSnapshot}>
                 + Snapshot
               </button>
             </div>
             {data.backupSnapshots.length === 0 ? (
-              <p className={css.muted}>No snapshots yet. Create one to start tracking backups.</p>
+              <p className={css.muted}>
+                Ainda não há snapshots. Crie um para começar o histórico de backups.
+              </p>
             ) : (
               <div className={css.snapshotList}>
                 {data.backupSnapshots.map((snap) => (
@@ -859,13 +862,13 @@ export function MissionControlPage() {
                     <div>
                       <div className={css.title}>{snap.label}</div>
                       <div className={css.meta}>
-                        Created: {snap.createdAt} · Restore check:{" "}
-                        {snap.restoreChecked ? "passed" : "pending"}
+                        Criado em: {snap.createdAt} · Verificação de restauração:{" "}
+                        {snap.restoreChecked ? "ok" : "pendente"}
                       </div>
                     </div>
                     {!snap.restoreChecked && (
                       <button className={css.smallBtn} onClick={() => markRestoreChecked(snap.id)}>
-                        Mark restore OK
+                        Marcar restauração OK
                       </button>
                     )}
                   </div>
@@ -876,7 +879,7 @@ export function MissionControlPage() {
 
           {/* Systems */}
           <section className={css.card}>
-            <h3>Systems</h3>
+            <h3>Sistemas</h3>
             <div className={css.systems}>
               {data.systems.map((s) => (
                 <div key={s.id} className={css.system}>
@@ -897,7 +900,7 @@ export function MissionControlPage() {
 
           {/* Integrations operational panel */}
           <section className={css.card}>
-            <h3>Integrations</h3>
+            <h3>Integrações</h3>
             <ul className={css.list}>
               {data.integrations.map((intg) => (
                 <li key={intg.id}>
@@ -914,9 +917,9 @@ export function MissionControlPage() {
             {data.integrationErrors.length > 0 && (
               <div className={css.errorLog}>
                 <div className={css.cardHeader}>
-                  <div className={css.meta}>Recent errors ({data.integrationErrors.length})</div>
+                  <div className={css.meta}>Erros recentes ({data.integrationErrors.length})</div>
                   <button className={css.tinyBtn} onClick={clearIntegrationErrors}>
-                    Clear
+                    Limpar
                   </button>
                 </div>
                 {data.integrationErrors.slice(0, 5).map((err) => (
@@ -933,13 +936,13 @@ export function MissionControlPage() {
 
           {/* Projects */}
           <section className={css.card}>
-            <h3>Projects</h3>
+            <h3>Projetos</h3>
             <ul className={css.list}>
               {data.projects.map((p) => (
                 <li key={p.id}>
                   <span>{p.name}</span>
                   <span className={css.meta}>
-                    {p.status} · risk:{p.risk}
+                    {p.status} · risco:{p.risk}
                   </span>
                 </li>
               ))}
@@ -948,14 +951,14 @@ export function MissionControlPage() {
 
           {/* Org chart */}
           <section className={css.card}>
-            <h3>Org chart</h3>
+            <h3>Organograma</h3>
             <ul className={css.list}>
               {data.orgDivisions.map((o) => (
                 <li key={o.id}>
                   <span>
                     {o.division} ({o.lead})
                   </span>
-                  <span className={css.meta}>{o.agents.length} agents</span>
+                  <span className={css.meta}>{o.agents.length} agentes</span>
                 </li>
               ))}
             </ul>
@@ -963,15 +966,15 @@ export function MissionControlPage() {
 
           {/* Sponsor hub */}
           <section className={css.card}>
-            <h3>Sponsor hub</h3>
+            <h3>Hub de patrocínio</h3>
             <div className={css.metrics}>
               <div>
-                <span>Rate card</span>
-                <strong>{data.sponsorHub.rateCardReady ? "ok" : "todo"}</strong>
+                <span>Tabela de preços</span>
+                <strong>{data.sponsorHub.rateCardReady ? "ok" : "a fazer"}</strong>
               </div>
               <div>
-                <span>Media kit</span>
-                <strong>{data.sponsorHub.mediaKitReady ? "ok" : "todo"}</strong>
+                <span>Mídia kit</span>
+                <strong>{data.sponsorHub.mediaKitReady ? "ok" : "a fazer"}</strong>
               </div>
               <div>
                 <span>Templates</span>
@@ -986,18 +989,18 @@ export function MissionControlPage() {
 
           {/* Content library */}
           <section className={css.card}>
-            <h3>Content library</h3>
+            <h3>Biblioteca de conteúdo</h3>
             <div className={css.metrics}>
               <div>
                 <span>Total</span>
                 <strong>{data.contentLibrary.items}</strong>
               </div>
               <div>
-                <span>Drafts</span>
+                <span>Rascunhos</span>
                 <strong>{data.contentLibrary.drafts}</strong>
               </div>
               <div>
-                <span>Published</span>
+                <span>Publicados</span>
                 <strong>{data.contentLibrary.published}</strong>
               </div>
             </div>
@@ -1005,7 +1008,7 @@ export function MissionControlPage() {
 
           {/* Overnight activity */}
           <section className={`${css.card} ${css.wide}`}>
-            <h3>Overnight activity</h3>
+            <h3>Atividade da madrugada</h3>
             <ul className={css.timeline}>
               {data.overnightTimeline.map((entry, idx) => (
                 <li key={`${idx}-${entry}`}>{entry}</li>
