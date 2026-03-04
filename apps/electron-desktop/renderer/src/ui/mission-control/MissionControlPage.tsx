@@ -54,6 +54,9 @@ type Integration = {
   name: string;
   status: "connected" | "pending" | "disabled";
   channel: string;
+  lastActivity?: string;
+  messagesCount24h?: number;
+  errorsCount24h?: number;
 };
 type SponsorHub = {
   rateCardReady: boolean;
@@ -71,11 +74,15 @@ type RunDispatch = {
   status: "dispatched" | "running" | "completed" | "failed" | "unknown";
 };
 
+type EventSeverity = "info" | "success" | "warning" | "error";
 type LiveEvent = {
   id: string;
   at: string;
   event: string;
   payload: unknown;
+  severity: EventSeverity;
+  sessionKey?: string;
+  runId?: string;
 };
 type BrainDoc = { id: string; title: string; content: string };
 type BackupSnapshot = { id: string; label: string; createdAt: string; restoreChecked: boolean };
@@ -99,6 +106,7 @@ type MissionControlData = {
 };
 
 const AUTO_REFRESH_MS = 15000;
+const DEBOUNCE_RELOAD_MS = 800;
 
 const DEFAULT_DATA: MissionControlData = {
   decisions: [],
@@ -119,6 +127,17 @@ const DEFAULT_DATA: MissionControlData = {
 
 type ModelShare = { id: string; share: number };
 type ActiveTab = "operations" | "brain" | "eventos";
+
+function classifyEventSeverity(event: string, payload: unknown): EventSeverity {
+  if (event.includes("error") || event.includes("fail")) return "error";
+  if (event.includes("warn")) return "warning";
+  if (event.includes("complete") || event.includes("success") || event.includes("connected"))
+    return "success";
+  const p = (payload ?? {}) as Record<string, unknown>;
+  if (p.state === "error" || p.error) return "error";
+  if (p.state === "final") return "success";
+  return "info";
+}
 
 function nowLabel() {
   return new Date().toLocaleTimeString();
@@ -149,10 +168,39 @@ function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefine
   });
 }
 
+/** Derive backup snapshots from config-level backup state if available. */
+function deriveBackupSnapshots(
+  config: Record<string, unknown> | undefined,
+  existing: BackupSnapshot[]
+): BackupSnapshot[] {
+  const anyCfg = (config ?? {}) as Record<string, unknown>;
+  const backup = (anyCfg.backup ?? {}) as Record<string, unknown>;
+  const lastBackupAt = typeof backup.lastBackupAt === "string" ? backup.lastBackupAt : null;
+  const lastRestoreAt = typeof backup.lastRestoreAt === "string" ? backup.lastRestoreAt : null;
+  const existingIds = new Set(existing.map((s) => s.id));
+  const derived: BackupSnapshot[] = [...existing];
+
+  if (lastBackupAt) {
+    const syntheticId = `backup-auto-${lastBackupAt}`;
+    if (!existingIds.has(syntheticId)) {
+      derived.unshift({
+        id: syntheticId,
+        label: `Backup automático ${lastBackupAt}`,
+        createdAt: lastBackupAt,
+        restoreChecked: !!lastRestoreAt,
+      });
+    }
+  }
+  return derived.slice(0, 30);
+}
+
 function readMissionControl(config: Record<string, unknown> | undefined): MissionControlData {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const incoming = (anyCfg.missionControl ?? {}) as Partial<MissionControlData>;
   const autoIntegrations = deriveIntegrationsFromConfig(config);
+  const persistedSnapshots = Array.isArray(incoming.backupSnapshots)
+    ? incoming.backupSnapshots
+    : DEFAULT_DATA.backupSnapshots;
   return {
     ...DEFAULT_DATA,
     ...incoming,
@@ -179,13 +227,55 @@ function readMissionControl(config: Record<string, unknown> | undefined): Missio
       : DEFAULT_DATA.runDispatches,
     brainDocs: Array.isArray(incoming.brainDocs) ? incoming.brainDocs : DEFAULT_DATA.brainDocs,
     fileTree: Array.isArray(incoming.fileTree) ? incoming.fileTree : DEFAULT_DATA.fileTree,
-    backupSnapshots: Array.isArray(incoming.backupSnapshots)
-      ? incoming.backupSnapshots
-      : DEFAULT_DATA.backupSnapshots,
+    backupSnapshots: deriveBackupSnapshots(config, persistedSnapshots),
     integrationErrors: Array.isArray(incoming.integrationErrors)
       ? incoming.integrationErrors
       : DEFAULT_DATA.integrationErrors,
   };
+}
+
+/** Derive file tree from session keys (workspace paths). */
+function deriveFileTree(sessions: SessionEntry[], existing: string[]): string[] {
+  const set = new Set(existing);
+  for (const s of sessions) {
+    // Session keys like "agent:main:workspace:/path/to/dir" carry workspace paths
+    const parts = s.key.split(":");
+    if (parts.length >= 4 && parts[2] !== "main") {
+      set.add(parts.slice(2).join(":"));
+    }
+    // Also derive from session title when it looks like a file path
+    if (s.title && (s.title.startsWith("/") || s.title.startsWith("./"))) {
+      set.add(s.title);
+    }
+  }
+  return Array.from(set).sort().slice(0, 200);
+}
+
+/** Derive projects from active sessions grouped by prefix. */
+function deriveProjects(sessions: SessionEntry[], existing: Project[]): Project[] {
+  const existingIds = new Set(existing.map((p) => p.id));
+  const derived: Project[] = [...existing];
+
+  // Group sessions by agent prefix to detect active projects
+  const prefixCounts = new Map<string, number>();
+  for (const s of sessions) {
+    const parts = s.key.split(":");
+    const prefix = parts.length >= 2 ? parts.slice(0, 2).join(":") : s.key;
+    prefixCounts.set(prefix, (prefixCounts.get(prefix) ?? 0) + 1);
+  }
+  for (const [prefix, count] of prefixCounts) {
+    const projectId = `proj-auto-${prefix}`;
+    if (!existingIds.has(projectId) && count >= 1) {
+      derived.push({
+        id: projectId,
+        name: prefix,
+        status: "active",
+        risk: count > 5 ? "medium" : "low",
+        updated: new Date().toISOString().slice(0, 10),
+      });
+    }
+  }
+  return derived.slice(0, 30);
 }
 
 function deriveSystemsRuntime(
@@ -267,6 +357,8 @@ export function MissionControlPage() {
           sessionRows.length,
           parsed.integrations
         ),
+        fileTree: deriveFileTree(sessionRows, parsed.fileTree),
+        projects: deriveProjects(sessionRows, parsed.projects),
       };
       const withRunStatuses = {
         ...withRuntimeSystems,
@@ -303,9 +395,25 @@ export function MissionControlPage() {
     }, AUTO_REFRESH_MS);
     return () => window.clearInterval(timer);
   }, [load]);
+  // Debounced reload: múltiplos eventos rápidos disparam apenas um load()
+  const debouncedLoadRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleReload = React.useCallback(() => {
+    if (debouncedLoadRef.current) clearTimeout(debouncedLoadRef.current);
+    debouncedLoadRef.current = setTimeout(() => {
+      void load();
+      debouncedLoadRef.current = null;
+    }, DEBOUNCE_RELOAD_MS);
+  }, [load]);
+  React.useEffect(() => {
+    return () => {
+      if (debouncedLoadRef.current) clearTimeout(debouncedLoadRef.current);
+    };
+  }, []);
+
   React.useEffect(() => {
     const off = gw.onEvent((evt) => {
       const stamp = nowLabel();
+      const evtPayload = (evt.payload ?? {}) as Record<string, unknown>;
       setLiveEvents((prev) =>
         [
           {
@@ -313,11 +421,16 @@ export function MissionControlPage() {
             at: stamp,
             event: evt.event,
             payload: evt.payload,
+            severity: classifyEventSeverity(evt.event, evt.payload),
+            sessionKey:
+              typeof evtPayload.sessionKey === "string" ? evtPayload.sessionKey : undefined,
+            runId: typeof evtPayload.runId === "string" ? evtPayload.runId : undefined,
           },
           ...prev,
         ].slice(0, 300)
       );
 
+      // Atualização incremental por tipo de evento
       if (evt.event === "chat") {
         const payload = (evt.payload ?? {}) as { sessionKey?: string; state?: string };
         if (payload.sessionKey) {
@@ -340,10 +453,53 @@ export function MissionControlPage() {
         }
       }
 
-      void load();
+      // Atualizar contadores de canal em tempo real
+      if (evt.event === "chat" || evt.event === "message" || evt.event === "channel.deliver") {
+        const msgPayload = (evt.payload ?? {}) as { channel?: string };
+        if (msgPayload.channel) {
+          setData((curr) => ({
+            ...curr,
+            integrations: curr.integrations.map((intg) =>
+              intg.channel !== msgPayload.channel
+                ? intg
+                : {
+                    ...intg,
+                    lastActivity: stamp,
+                    messagesCount24h: (intg.messagesCount24h ?? 0) + 1,
+                  }
+            ),
+          }));
+        }
+      }
+
+      if (evt.event === "channel.error") {
+        const errPayload = (evt.payload ?? {}) as { channel?: string; message?: string };
+        if (errPayload.channel) {
+          setData((curr) => ({
+            ...curr,
+            integrationErrors: [
+              {
+                id: crypto.randomUUID(),
+                channel: errPayload.channel!,
+                message: errPayload.message ?? "Erro desconhecido",
+                timestamp: stamp,
+              },
+              ...curr.integrationErrors,
+            ].slice(0, 50),
+            integrations: curr.integrations.map((intg) =>
+              intg.channel !== errPayload.channel
+                ? intg
+                : { ...intg, errorsCount24h: (intg.errorsCount24h ?? 0) + 1 }
+            ),
+          }));
+        }
+      }
+
+      // Fallback: reload completo debounced ao invés de imediato
+      scheduleReload();
     });
     return off;
-  }, [gw, load]);
+  }, [gw, scheduleReload]);
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("tab") === "runs") {
@@ -461,7 +617,7 @@ export function MissionControlPage() {
       const next = {
         ...data,
         cronJobs: data.cronJobs.map((j) =>
-          j.id === id ? { ...j, lastRun: stamp, status: "healthy" } : j
+          j.id === id ? { ...j, lastRun: stamp, status: "healthy" as JobStatus } : j
         ),
         runDispatches: [
           {
@@ -544,12 +700,17 @@ export function MissionControlPage() {
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
   const healthyJobs = data.cronJobs.filter((j) => j.status === "healthy").length;
-  const filteredEvents = liveEvents.filter((e) =>
-    eventFilter.trim()
-      ? e.event.toLowerCase().includes(eventFilter.toLowerCase()) ||
-        JSON.stringify(e.payload).toLowerCase().includes(eventFilter.toLowerCase())
-      : true
-  );
+  const filteredEvents = liveEvents.filter((e) => {
+    if (!eventFilter.trim()) return true;
+    const q = eventFilter.toLowerCase();
+    return (
+      e.event.toLowerCase().includes(q) ||
+      (e.sessionKey ?? "").toLowerCase().includes(q) ||
+      (e.runId ?? "").toLowerCase().includes(q) ||
+      e.severity.includes(q) ||
+      JSON.stringify(e.payload).toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className={css.wrap}>
@@ -602,16 +763,32 @@ export function MissionControlPage() {
             </div>
             <input
               className={css.inputLike}
-              placeholder="Filtrar eventos (ex.: chat, agent, error)"
+              placeholder="Filtrar por evento, sessionKey, runId, severidade (info/success/warning/error)"
               value={eventFilter}
               onChange={(e) => setEventFilter(e.target.value)}
             />
+            <div className={css.eventStats}>
+              <span className={`${css.eventBadge} ${css.badgeInfo}`}>
+                info: {liveEvents.filter((e) => e.severity === "info").length}
+              </span>
+              <span className={`${css.eventBadge} ${css.badgeSuccess}`}>
+                sucesso: {liveEvents.filter((e) => e.severity === "success").length}
+              </span>
+              <span className={`${css.eventBadge} ${css.badgeWarning}`}>
+                aviso: {liveEvents.filter((e) => e.severity === "warning").length}
+              </span>
+              <span className={`${css.eventBadge} ${css.badgeError}`}>
+                erro: {liveEvents.filter((e) => e.severity === "error").length}
+              </span>
+            </div>
             <div className={css.tableWrap}>
               <table className={css.table}>
                 <thead>
                   <tr>
                     <th>Horário</th>
+                    <th>Tipo</th>
                     <th>Evento</th>
+                    <th>Sessão / RunId</th>
                     <th>Payload</th>
                   </tr>
                 </thead>
@@ -619,8 +796,35 @@ export function MissionControlPage() {
                   {filteredEvents.slice(0, 200).map((ev) => (
                     <tr key={ev.id}>
                       <td className={css.mono}>{ev.at}</td>
+                      <td>
+                        <span className={`${css.eventBadge} ${css[`badge_${ev.severity}`]}`}>
+                          {ev.severity}
+                        </span>
+                      </td>
                       <td>{ev.event}</td>
-                      <td className={css.mono}>{JSON.stringify(ev.payload).slice(0, 260)}</td>
+                      <td className={css.mono}>
+                        {ev.sessionKey && (
+                          <span
+                            className={css.clickable}
+                            onClick={() => setEventFilter(ev.sessionKey!)}
+                            title="Filtrar por esta sessão"
+                          >
+                            {ev.sessionKey.slice(0, 24)}
+                          </span>
+                        )}
+                        {ev.runId && (
+                          <span
+                            className={css.clickable}
+                            onClick={() => setEventFilter(ev.runId!)}
+                            title="Filtrar por este runId"
+                          >
+                            {ev.sessionKey ? " · " : ""}
+                            {ev.runId.slice(0, 12)}
+                          </span>
+                        )}
+                        {!ev.sessionKey && !ev.runId && <span className={css.muted}>--</span>}
+                      </td>
+                      <td className={css.mono}>{JSON.stringify(ev.payload).slice(0, 200)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -882,9 +1086,20 @@ export function MissionControlPage() {
                     <span className={`${css.statusDot} ${css[`dot_${intg.status}`]}`} />
                     <span>{intg.name}</span>
                   </div>
-                  <span className={css.meta}>
-                    {intg.channel} · {intg.status}
-                  </span>
+                  <div className={css.integrationMeta}>
+                    <span className={css.meta}>
+                      {intg.channel} · {intg.status}
+                    </span>
+                    {(intg.messagesCount24h ?? 0) > 0 && (
+                      <span className={css.meta}>{intg.messagesCount24h} msgs</span>
+                    )}
+                    {(intg.errorsCount24h ?? 0) > 0 && (
+                      <span className={css.errorMeta}>{intg.errorsCount24h} erros</span>
+                    )}
+                    {intg.lastActivity && (
+                      <span className={css.meta}>última: {intg.lastActivity}</span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
