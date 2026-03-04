@@ -35,6 +35,40 @@
   cursor: pointer;
 }
 
+/* ── Tabs ── */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.tabBtn {
+  border: none;
+  background: transparent;
+  color: #9f9f9f;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.tabBtn:hover {
+  color: #f5f5f5;
+}
+
+.tabActive {
+  background: #2d2d2d;
+  color: #f5f5f5;
+}
+
+/* ── Grid ── */
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -54,6 +88,17 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #cfcfcf;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cardHeader h3 {
+  margin: 0;
 }
 
 .wide {
@@ -188,6 +233,17 @@
   border-radius: 6px;
   padding: 4px 8px;
   cursor: pointer;
+  font-size: 12px;
+}
+
+.tinyBtn {
+  border: 1px solid #3a3a3a;
+  background: transparent;
+  color: #9f9f9f;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 11px;
 }
 
 .inlineActions {
@@ -247,6 +303,155 @@
   font-size: 13px;
 }
 
+/* ── Backup/Restore ── */
+
+.snapshotList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.snapshotCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #202020;
+  border-radius: 8px;
+  padding: 10px;
+  gap: 12px;
+}
+
+/* ── Integrations operational panel ── */
+
+.integrationRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot_connected {
+  background: #22c55e;
+}
+
+.dot_pending {
+  background: #f59e0b;
+}
+
+.dot_disabled {
+  background: #6b7280;
+}
+
+.errorLog {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #2b2b2b;
+}
+
+.errorEntry {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #ef4444;
+  padding: 4px 0;
+}
+
+/* ── Brain tab ── */
+
+.brainLayout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.brainSidebar {
+  border-right: 1px solid #2b2b2b;
+  padding-right: 12px;
+}
+
+.brainDocItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.brainDocItem:hover {
+  background: #252525;
+}
+
+.brainDocActive {
+  background: #2d2d2d;
+}
+
+.brainContent {
+  min-height: 200px;
+}
+
+.brainTextarea {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  color: #f5f5f5;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.brainMarkdown {
+  padding: 4px;
+}
+
+.brainMarkdown h4 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+}
+
+.brainPre {
+  background: #1a1a1a;
+  border: 1px solid #2b2b2b;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.sessionList {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sessionItem {
+  background: #202020;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.sessionTitle {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;
@@ -254,5 +459,16 @@
 
   .wide {
     grid-column: auto;
+  }
+
+  .brainLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .brainSidebar {
+    border-right: none;
+    border-bottom: 1px solid #2b2b2b;
+    padding-right: 0;
+    padding-bottom: 12px;
   }
 }

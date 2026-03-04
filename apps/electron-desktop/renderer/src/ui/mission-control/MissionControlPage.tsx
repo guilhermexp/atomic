@@ -1,10 +1,19 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGatewayRpc } from "@gateway/context";
-import type { ConfigGetResponse, ModelsListResponse, SessionsListResponse } from "@gateway/types";
+import type {
+  ConfigGetResponse,
+  ModelsListResponse,
+  SessionEntry,
+  SessionsListResponse,
+} from "@gateway/types";
 import { addToastError } from "@shared/toast";
 import { routes } from "../app/routes";
+import { CronJobModal, type CronJobFormData } from "./CronJobModal";
+import { BrainTab } from "./BrainTab";
 import css from "./MissionControlPage.module.css";
+
+/* ── types ── */
 
 type DecisionStatus = "pending" | "approved" | "rejected";
 type JobStatus = "healthy" | "warning" | "paused";
@@ -61,6 +70,9 @@ type RunDispatch = {
   requestedAt: string;
   status: "dispatched" | "running" | "completed" | "unknown";
 };
+type BrainDoc = { id: string; title: string; content: string };
+type BackupSnapshot = { id: string; label: string; createdAt: string; restoreChecked: boolean };
+type IntegrationError = { id: string; channel: string; message: string; timestamp: string };
 
 type MissionControlData = {
   decisions: Decision[];
@@ -73,6 +85,10 @@ type MissionControlData = {
   sponsorHub: SponsorHub;
   contentLibrary: ContentLibrary;
   runDispatches: RunDispatch[];
+  brainDocs: BrainDoc[];
+  fileTree: string[];
+  backupSnapshots: BackupSnapshot[];
+  integrationErrors: IntegrationError[];
 };
 
 const AUTO_REFRESH_MS = 15000;
@@ -213,14 +229,18 @@ const DEFAULT_DATA: MissionControlData = {
   sponsorHub: { rateCardReady: true, mediaKitReady: false, pitchTemplates: 6, outreachLeads: 12 },
   contentLibrary: { items: 34, drafts: 7, published: 27 },
   runDispatches: [],
+  brainDocs: [],
+  fileTree: [],
+  backupSnapshots: [],
+  integrationErrors: [],
 };
 
 type ModelShare = { id: string; share: number };
+type ActiveTab = "operations" | "brain";
 
 function nowLabel() {
   return new Date().toLocaleTimeString();
 }
-
 function newSessionKey(): string {
   return `agent:main:main:${crypto.randomUUID().slice(0, 8)}`;
 }
@@ -228,7 +248,7 @@ function newSessionKey(): string {
 function deriveIntegrationsFromConfig(config: Record<string, unknown> | undefined): Integration[] {
   const anyCfg = (config ?? {}) as Record<string, unknown>;
   const channels = (anyCfg.channels ?? {}) as Record<string, unknown>;
-  const seeds: Array<{ key: string; name: string; channel: string }> = [
+  const seeds = [
     { key: "webchat", name: "Webchat", channel: "webchat" },
     { key: "telegram", name: "Telegram", channel: "telegram" },
     { key: "discord", name: "Discord", channel: "discord" },
@@ -275,6 +295,14 @@ function readMissionControl(config: Record<string, unknown> | undefined): Missio
     runDispatches: Array.isArray(incoming.runDispatches)
       ? (incoming.runDispatches as RunDispatch[])
       : DEFAULT_DATA.runDispatches,
+    brainDocs: Array.isArray(incoming.brainDocs) ? incoming.brainDocs : DEFAULT_DATA.brainDocs,
+    fileTree: Array.isArray(incoming.fileTree) ? incoming.fileTree : DEFAULT_DATA.fileTree,
+    backupSnapshots: Array.isArray(incoming.backupSnapshots)
+      ? incoming.backupSnapshots
+      : DEFAULT_DATA.backupSnapshots,
+    integrationErrors: Array.isArray(incoming.integrationErrors)
+      ? incoming.integrationErrors
+      : DEFAULT_DATA.integrationErrors,
   };
 }
 
@@ -306,7 +334,6 @@ function deriveSystemsRuntime(
     health: Math.max(40, Math.min(100, 40 + connectedIntegrations * 20)),
     detail: `${connectedIntegrations}/${integrations.length} canais conectados`,
   };
-
   const withoutReplaced = base.filter(
     (s) => !["sys-gateway-live", "sys-sessions-live", "sys-integrations-live"].includes(s.id)
   );
@@ -322,8 +349,14 @@ export function MissionControlPage() {
   const [configHash, setConfigHash] = React.useState<string | null>(null);
   const [data, setData] = React.useState<MissionControlData>(DEFAULT_DATA);
   const [sessionsCount, setSessionsCount] = React.useState(0);
+  const [sessions, setSessions] = React.useState<SessionEntry[]>([]);
   const [models, setModels] = React.useState<ModelShare[]>([]);
   const [lastSyncAt, setLastSyncAt] = React.useState<string>("--:--:--");
+  const [activeTab, setActiveTab] = React.useState<ActiveTab>("operations");
+
+  // Cron modal state
+  const [cronModalOpen, setCronModalOpen] = React.useState(false);
+  const [cronEditTarget, setCronEditTarget] = React.useState<CronJob | null>(null);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -340,14 +373,14 @@ export function MissionControlPage() {
 
       const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {});
       const sessionRows = Array.isArray(sess.sessions) ? sess.sessions : [];
-      const visibleSessions = sessionRows.length;
-      setSessionsCount(visibleSessions);
+      setSessionsCount(sessionRows.length);
+      setSessions(sessionRows);
       const withRuntimeSystems = {
         ...parsed,
         systems: deriveSystemsRuntime(
           parsed.systems,
           gw.connected,
-          visibleSessions,
+          sessionRows.length,
           parsed.integrations
         ),
       };
@@ -384,25 +417,25 @@ export function MissionControlPage() {
   React.useEffect(() => {
     void load();
   }, [load]);
-
   React.useEffect(() => {
     const timer = window.setInterval(() => {
       void load();
     }, AUTO_REFRESH_MS);
     return () => window.clearInterval(timer);
   }, [load]);
-
   React.useEffect(() => {
     const off = gw.onEvent(() => {
       void load();
     });
     return off;
   }, [gw, load]);
-
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("tab") === "runs") {
+      setActiveTab("operations");
       runsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (params.get("tab") === "brain") {
+      setActiveTab("brain");
     }
   }, [location.search]);
 
@@ -411,9 +444,7 @@ export function MissionControlPage() {
       try {
         const fresh = await gw.request<ConfigGetResponse>("config.get", {});
         const baseHash = typeof fresh.hash === "string" ? fresh.hash : configHash;
-        if (!baseHash) {
-          throw new Error("Config hash indisponível para persistir Mission Control");
-        }
+        if (!baseHash) throw new Error("Config hash indisponível para persistir Mission Control");
         await gw.request("config.patch", {
           baseHash,
           raw: JSON.stringify({ missionControl: next }, null, 2),
@@ -427,33 +458,73 @@ export function MissionControlPage() {
     [gw, configHash]
   );
 
-  const setDecision = (id: string, status: DecisionStatus) => {
-    const next = {
-      ...data,
-      decisions: data.decisions.map((d) => (d.id === id ? { ...d, status } : d)),
-    };
+  const updateAndPersist = (next: MissionControlData) => {
     setData(next);
     void persist(next);
   };
 
+  /* ── Decision actions ── */
+  const setDecision = (id: string, status: DecisionStatus) => {
+    updateAndPersist({
+      ...data,
+      decisions: data.decisions.map((d) => (d.id === id ? { ...d, status } : d)),
+    });
+  };
+
+  /* ── Cron CRUD ── */
   const togglePauseJob = (id: string) => {
-    const next = {
+    updateAndPersist({
       ...data,
       cronJobs: data.cronJobs.map((j) => {
         if (j.id !== id) return j;
-        if (j.status === "paused") return { ...j, status: "healthy" as JobStatus };
-        return { ...j, status: "paused" as JobStatus };
+        return { ...j, status: (j.status === "paused" ? "healthy" : "paused") as JobStatus };
       }),
-    };
-    setData(next);
-    void persist(next);
+    });
+  };
+
+  const saveCronJob = (form: CronJobFormData) => {
+    const existing = data.cronJobs.find((j) => j.id === form.id);
+    let nextJobs: CronJob[];
+    if (existing) {
+      nextJobs = data.cronJobs.map((j) =>
+        j.id === form.id
+          ? {
+              ...j,
+              name: form.name,
+              schedule: form.schedule,
+              isolatedSession: form.isolatedSession,
+            }
+          : j
+      );
+    } else {
+      nextJobs = [
+        ...data.cronJobs,
+        {
+          id: form.id,
+          name: form.name,
+          schedule: form.schedule,
+          isolatedSession: form.isolatedSession,
+          status: "healthy" as JobStatus,
+          nextRun: "--",
+          lastRun: undefined,
+        },
+      ];
+    }
+    updateAndPersist({ ...data, cronJobs: nextJobs });
+    setCronModalOpen(false);
+    setCronEditTarget(null);
+  };
+
+  const deleteCronJob = (id: string) => {
+    updateAndPersist({ ...data, cronJobs: data.cronJobs.filter((j) => j.id !== id) });
+    setCronModalOpen(false);
+    setCronEditTarget(null);
   };
 
   const runNowJob = async (id: string) => {
     const target = data.cronJobs.find((j) => j.id === id);
     if (!target) return;
     const stamp = nowLabel();
-
     try {
       const sessionKey = newSessionKey();
       const message = [
@@ -463,14 +534,12 @@ export function MissionControlPage() {
         `RequestedAt: ${stamp}`,
         "Execute this routine now in this isolated session and return a short completion summary.",
       ].join("\n");
-
       await gw.request("chat.send", {
         sessionKey,
         message,
         deliver: false,
         idempotencyKey: crypto.randomUUID(),
       });
-
       const next = {
         ...data,
         cronJobs: data.cronJobs.map((j) =>
@@ -504,14 +573,55 @@ export function MissionControlPage() {
   };
 
   const markRunCompleted = (runId: string) => {
-    const next = {
+    updateAndPersist({
       ...data,
       runDispatches: data.runDispatches.map((r) =>
         r.id === runId ? { ...r, status: "completed" as const } : r
       ),
+    });
+  };
+
+  /* ── Backup/restore actions ── */
+  const addSnapshot = () => {
+    const stamp = nowLabel();
+    const snap: BackupSnapshot = {
+      id: crypto.randomUUID(),
+      label: `Snapshot ${stamp}`,
+      createdAt: stamp,
+      restoreChecked: false,
     };
-    setData(next);
-    void persist(next);
+    updateAndPersist({
+      ...data,
+      backupSnapshots: [snap, ...data.backupSnapshots].slice(0, 30),
+      overnightTimeline: [
+        `${stamp} snapshot created: ${snap.label}`,
+        ...data.overnightTimeline,
+      ].slice(0, 15),
+    });
+  };
+
+  const markRestoreChecked = (snapId: string) => {
+    const stamp = nowLabel();
+    updateAndPersist({
+      ...data,
+      backupSnapshots: data.backupSnapshots.map((s) =>
+        s.id === snapId ? { ...s, restoreChecked: true } : s
+      ),
+      overnightTimeline: [`${stamp} restore-check passed`, ...data.overnightTimeline].slice(0, 15),
+    });
+  };
+
+  /* ── Integration error log ── */
+  const clearIntegrationErrors = () => {
+    updateAndPersist({ ...data, integrationErrors: [] });
+  };
+
+  /* ── Brain tab actions ── */
+  const addBrainDoc = (doc: BrainDoc) => {
+    updateAndPersist({ ...data, brainDocs: [...data.brainDocs, doc] });
+  };
+  const deleteBrainDoc = (id: string) => {
+    updateAndPersist({ ...data, brainDocs: data.brainDocs.filter((d) => d.id !== id) });
   };
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
@@ -522,155 +632,157 @@ export function MissionControlPage() {
       <div className={css.header}>
         <h1>Mission Control</h1>
         <div className={css.headerRight}>
+          <div className={css.tabBar}>
+            <button
+              className={`${css.tabBtn} ${activeTab === "operations" ? css.tabActive : ""}`}
+              onClick={() => setActiveTab("operations")}
+            >
+              Operations
+            </button>
+            <button
+              className={`${css.tabBtn} ${activeTab === "brain" ? css.tabActive : ""}`}
+              onClick={() => setActiveTab("brain")}
+            >
+              Brain
+            </button>
+          </div>
           <div className={css.syncMeta}>sync: {lastSyncAt}</div>
           <button className={css.refreshBtn} onClick={() => void load()} disabled={loading}>
-            {loading ? "Atualizando..." : "Atualizar"}
+            {loading ? "Syncing..." : "Refresh"}
           </button>
         </div>
       </div>
 
-      <div className={css.grid}>
-        <section className={css.card}>
-          <h3>Morning brief</h3>
-          <div className={css.metrics}>
-            <div>
-              <span>Sessões</span>
-              <strong>{sessionsCount}</strong>
-            </div>
-            <div>
-              <span>Pendências</span>
-              <strong>{pending}</strong>
-            </div>
-            <div>
-              <span>Jobs saudáveis</span>
-              <strong>
-                {healthyJobs}/{data.cronJobs.length}
-              </strong>
-            </div>
-            <div>
-              <span>Projetos</span>
-              <strong>{data.projects.length}</strong>
-            </div>
-          </div>
-          <p className={css.muted}>
-            Auto-refresh a cada {Math.floor(AUTO_REFRESH_MS / 1000)}s + eventos do gateway.
-          </p>
-        </section>
-
-        <section className={css.card}>
-          <h3>Models in use</h3>
-          <div className={css.modelList}>
-            {models.map((m) => (
-              <div key={m.id}>
-                <div className={css.row}>
-                  <span>{m.id}</span>
-                  <span>{m.share}%</span>
-                </div>
-                <div className={css.bar}>
-                  <i style={{ width: `${m.share}%` }} />
-                </div>
+      {activeTab === "brain" ? (
+        <BrainTab
+          docs={data.brainDocs}
+          sessions={sessions}
+          fileTree={data.fileTree}
+          onAddDoc={addBrainDoc}
+          onDeleteDoc={deleteBrainDoc}
+        />
+      ) : (
+        <div className={css.grid}>
+          {/* Morning brief */}
+          <section className={css.card}>
+            <h3>Morning brief</h3>
+            <div className={css.metrics}>
+              <div>
+                <span>Sessions</span>
+                <strong>{sessionsCount}</strong>
               </div>
-            ))}
-          </div>
-        </section>
+              <div>
+                <span>Pending</span>
+                <strong>{pending}</strong>
+              </div>
+              <div>
+                <span>Healthy jobs</span>
+                <strong>
+                  {healthyJobs}/{data.cronJobs.length}
+                </strong>
+              </div>
+              <div>
+                <span>Projects</span>
+                <strong>{data.projects.length}</strong>
+              </div>
+            </div>
+            <p className={css.muted}>
+              Auto-refresh every {Math.floor(AUTO_REFRESH_MS / 1000)}s + gateway events.
+            </p>
+          </section>
 
-        <section className={`${css.card} ${css.wide}`}>
-          <h3>Blocked by Boss</h3>
-          <div className={css.decisions}>
-            {data.decisions.map((d) => (
-              <div key={d.id} className={css.decision}>
-                <div>
-                  <div className={css.title}>{d.title}</div>
-                  <div className={css.meta}>
-                    Impacto: {d.impact} • Status: {d.status}
+          {/* Models */}
+          <section className={css.card}>
+            <h3>Models in use</h3>
+            <div className={css.modelList}>
+              {models.map((m) => (
+                <div key={m.id}>
+                  <div className={css.row}>
+                    <span>{m.id}</span>
+                    <span>{m.share}%</span>
+                  </div>
+                  <div className={css.bar}>
+                    <i style={{ width: `${m.share}%` }} />
                   </div>
                 </div>
-                <div className={css.actions}>
-                  <button onClick={() => setDecision(d.id, "approved")}>Go</button>
-                  <button onClick={() => setDecision(d.id, "rejected")}>X</button>
+              ))}
+            </div>
+          </section>
+
+          {/* Decisions */}
+          <section className={`${css.card} ${css.wide}`}>
+            <h3>Blocked by Boss</h3>
+            <div className={css.decisions}>
+              {data.decisions.map((d) => (
+                <div key={d.id} className={css.decision}>
+                  <div>
+                    <div className={css.title}>{d.title}</div>
+                    <div className={css.meta}>
+                      Impact: {d.impact} · Status: {d.status}
+                    </div>
+                  </div>
+                  <div className={css.actions}>
+                    <button onClick={() => setDecision(d.id, "approved")}>Go</button>
+                    <button onClick={() => setDecision(d.id, "rejected")}>X</button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        <section className={`${css.card} ${css.wide}`}>
-          <h3>Cron center (isolated sessions)</h3>
-          <div className={css.tableWrap}>
-            <table className={css.table}>
-              <thead>
-                <tr>
-                  <th>Job</th>
-                  <th>Schedule</th>
-                  <th>Isolated</th>
-                  <th>Status</th>
-                  <th>Next</th>
-                  <th>Last</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.cronJobs.map((j) => (
-                  <tr key={j.id}>
-                    <td>{j.name}</td>
-                    <td className={css.mono}>{j.schedule}</td>
-                    <td>{j.isolatedSession ? "yes" : "no"}</td>
-                    <td>{j.status}</td>
-                    <td className={css.mono}>{j.nextRun}</td>
-                    <td className={css.mono}>{j.lastRun ?? "--"}</td>
-                    <td>
-                      <div className={css.inlineActions}>
-                        <button className={css.smallBtn} onClick={() => runNowJob(j.id)}>
-                          Run now
-                        </button>
-                        <button className={css.smallBtn} onClick={() => togglePauseJob(j.id)}>
-                          {j.status === "paused" ? "Resume" : "Pause"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section ref={runsSectionRef} className={`${css.card} ${css.wide}`}>
-          <h3>Run-now dispatches</h3>
-          {!data.runDispatches.length ? (
-            <p className={css.muted}>Nenhuma execução manual disparada ainda.</p>
-          ) : (
+          {/* Cron center with CRUD */}
+          <section className={`${css.card} ${css.wide}`}>
+            <div className={css.cardHeader}>
+              <h3>Cron center (isolated sessions)</h3>
+              <button
+                className={css.smallBtn}
+                onClick={() => {
+                  setCronEditTarget(null);
+                  setCronModalOpen(true);
+                }}
+              >
+                + Add job
+              </button>
+            </div>
             <div className={css.tableWrap}>
               <table className={css.table}>
                 <thead>
                   <tr>
                     <th>Job</th>
+                    <th>Schedule</th>
+                    <th>Isolated</th>
                     <th>Status</th>
-                    <th>Requested</th>
-                    <th>Session</th>
+                    <th>Next</th>
+                    <th>Last</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.runDispatches.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.jobName}</td>
-                      <td>{r.status}</td>
-                      <td className={css.mono}>{r.requestedAt}</td>
-                      <td className={css.mono}>{r.sessionKey}</td>
+                  {data.cronJobs.map((j) => (
+                    <tr key={j.id}>
+                      <td>{j.name}</td>
+                      <td className={css.mono}>{j.schedule}</td>
+                      <td>{j.isolatedSession ? "yes" : "no"}</td>
+                      <td>{j.status}</td>
+                      <td className={css.mono}>{j.nextRun}</td>
+                      <td className={css.mono}>{j.lastRun ?? "--"}</td>
                       <td>
                         <div className={css.inlineActions}>
+                          <button className={css.smallBtn} onClick={() => runNowJob(j.id)}>
+                            Run now
+                          </button>
+                          <button className={css.smallBtn} onClick={() => togglePauseJob(j.id)}>
+                            {j.status === "paused" ? "Resume" : "Pause"}
+                          </button>
                           <button
                             className={css.smallBtn}
-                            onClick={() => openSession(r.sessionKey)}
+                            onClick={() => {
+                              setCronEditTarget(j);
+                              setCronModalOpen(true);
+                            }}
                           >
-                            Open session
+                            Edit
                           </button>
-                          {r.status !== "completed" && (
-                            <button className={css.smallBtn} onClick={() => markRunCompleted(r.id)}>
-                              Mark done
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -678,120 +790,251 @@ export function MissionControlPage() {
                 </tbody>
               </table>
             </div>
-          )}
-        </section>
+          </section>
 
-        <section className={css.card}>
-          <h3>Systems</h3>
-          <div className={css.systems}>
-            {data.systems.map((s) => (
-              <div key={s.id} className={css.system}>
-                <div className={css.row}>
-                  <span>{s.name}</span>
-                  <span>{s.health}%</span>
-                </div>
-                <div className={css.bar}>
-                  <i style={{ width: `${s.health}%` }} />
-                </div>
-                <div className={css.meta}>
-                  {s.status} • {s.detail}
-                </div>
+          {/* Run-now dispatches */}
+          <section ref={runsSectionRef} className={`${css.card} ${css.wide}`}>
+            <h3>Run-now dispatches</h3>
+            {!data.runDispatches.length ? (
+              <p className={css.muted}>No manual runs dispatched yet.</p>
+            ) : (
+              <div className={css.tableWrap}>
+                <table className={css.table}>
+                  <thead>
+                    <tr>
+                      <th>Job</th>
+                      <th>Status</th>
+                      <th>Requested</th>
+                      <th>Session</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.runDispatches.map((r) => (
+                      <tr key={r.id}>
+                        <td>{r.jobName}</td>
+                        <td>{r.status}</td>
+                        <td className={css.mono}>{r.requestedAt}</td>
+                        <td className={css.mono}>{r.sessionKey}</td>
+                        <td>
+                          <div className={css.inlineActions}>
+                            <button
+                              className={css.smallBtn}
+                              onClick={() => openSession(r.sessionKey)}
+                            >
+                              Open session
+                            </button>
+                            {r.status !== "completed" && (
+                              <button
+                                className={css.smallBtn}
+                                onClick={() => markRunCompleted(r.id)}
+                              >
+                                Mark done
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
-          </div>
-        </section>
+            )}
+          </section>
 
-        <section className={css.card}>
-          <h3>Projects</h3>
-          <ul className={css.list}>
-            {data.projects.map((p) => (
-              <li key={p.id}>
-                <span>{p.name}</span>
-                <span className={css.meta}>
-                  {p.status} • risk:{p.risk}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {/* Backup / Restore timeline */}
+          <section className={`${css.card} ${css.wide}`}>
+            <div className={css.cardHeader}>
+              <h3>Backup / Restore</h3>
+              <button className={css.smallBtn} onClick={addSnapshot}>
+                + Snapshot
+              </button>
+            </div>
+            {data.backupSnapshots.length === 0 ? (
+              <p className={css.muted}>No snapshots yet. Create one to start tracking backups.</p>
+            ) : (
+              <div className={css.snapshotList}>
+                {data.backupSnapshots.map((snap) => (
+                  <div key={snap.id} className={css.snapshotCard}>
+                    <div>
+                      <div className={css.title}>{snap.label}</div>
+                      <div className={css.meta}>
+                        Created: {snap.createdAt} · Restore check:{" "}
+                        {snap.restoreChecked ? "passed" : "pending"}
+                      </div>
+                    </div>
+                    {!snap.restoreChecked && (
+                      <button className={css.smallBtn} onClick={() => markRestoreChecked(snap.id)}>
+                        Mark restore OK
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
-        <section className={css.card}>
-          <h3>Org chart</h3>
-          <ul className={css.list}>
-            {data.orgDivisions.map((o) => (
-              <li key={o.id}>
-                <span>
-                  {o.division} ({o.lead})
-                </span>
-                <span className={css.meta}>{o.agents.length} agentes</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {/* Systems */}
+          <section className={css.card}>
+            <h3>Systems</h3>
+            <div className={css.systems}>
+              {data.systems.map((s) => (
+                <div key={s.id} className={css.system}>
+                  <div className={css.row}>
+                    <span>{s.name}</span>
+                    <span>{s.health}%</span>
+                  </div>
+                  <div className={css.bar}>
+                    <i style={{ width: `${s.health}%` }} />
+                  </div>
+                  <div className={css.meta}>
+                    {s.status} · {s.detail}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        <section className={css.card}>
-          <h3>Integrations</h3>
-          <ul className={css.list}>
-            {data.integrations.map((i) => (
-              <li key={i.id}>
-                <span>{i.name}</span>
-                <span className={css.meta}>
-                  {i.channel} • {i.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {/* Integrations operational panel */}
+          <section className={css.card}>
+            <h3>Integrations</h3>
+            <ul className={css.list}>
+              {data.integrations.map((intg) => (
+                <li key={intg.id}>
+                  <div className={css.integrationRow}>
+                    <span className={`${css.statusDot} ${css[`dot_${intg.status}`]}`} />
+                    <span>{intg.name}</span>
+                  </div>
+                  <span className={css.meta}>
+                    {intg.channel} · {intg.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {data.integrationErrors.length > 0 && (
+              <div className={css.errorLog}>
+                <div className={css.cardHeader}>
+                  <div className={css.meta}>Recent errors ({data.integrationErrors.length})</div>
+                  <button className={css.tinyBtn} onClick={clearIntegrationErrors}>
+                    Clear
+                  </button>
+                </div>
+                {data.integrationErrors.slice(0, 5).map((err) => (
+                  <div key={err.id} className={css.errorEntry}>
+                    <span className={css.mono}>{err.timestamp}</span>
+                    <span>
+                      {err.channel}: {err.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
-        <section className={css.card}>
-          <h3>Sponsor hub</h3>
-          <div className={css.metrics}>
-            <div>
-              <span>Rate card</span>
-              <strong>{data.sponsorHub.rateCardReady ? "ok" : "todo"}</strong>
-            </div>
-            <div>
-              <span>Media kit</span>
-              <strong>{data.sponsorHub.mediaKitReady ? "ok" : "todo"}</strong>
-            </div>
-            <div>
-              <span>Templates</span>
-              <strong>{data.sponsorHub.pitchTemplates}</strong>
-            </div>
-            <div>
-              <span>Leads</span>
-              <strong>{data.sponsorHub.outreachLeads}</strong>
-            </div>
-          </div>
-        </section>
+          {/* Projects */}
+          <section className={css.card}>
+            <h3>Projects</h3>
+            <ul className={css.list}>
+              {data.projects.map((p) => (
+                <li key={p.id}>
+                  <span>{p.name}</span>
+                  <span className={css.meta}>
+                    {p.status} · risk:{p.risk}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        <section className={css.card}>
-          <h3>Content library</h3>
-          <div className={css.metrics}>
-            <div>
-              <span>Total</span>
-              <strong>{data.contentLibrary.items}</strong>
-            </div>
-            <div>
-              <span>Drafts</span>
-              <strong>{data.contentLibrary.drafts}</strong>
-            </div>
-            <div>
-              <span>Published</span>
-              <strong>{data.contentLibrary.published}</strong>
-            </div>
-          </div>
-        </section>
+          {/* Org chart */}
+          <section className={css.card}>
+            <h3>Org chart</h3>
+            <ul className={css.list}>
+              {data.orgDivisions.map((o) => (
+                <li key={o.id}>
+                  <span>
+                    {o.division} ({o.lead})
+                  </span>
+                  <span className={css.meta}>{o.agents.length} agents</span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        <section className={`${css.card} ${css.wide}`}>
-          <h3>Overnight activity</h3>
-          <ul className={css.timeline}>
-            {data.overnightTimeline.map((entry, idx) => (
-              <li key={`${idx}-${entry}`}>{entry}</li>
-            ))}
-          </ul>
-        </section>
-      </div>
+          {/* Sponsor hub */}
+          <section className={css.card}>
+            <h3>Sponsor hub</h3>
+            <div className={css.metrics}>
+              <div>
+                <span>Rate card</span>
+                <strong>{data.sponsorHub.rateCardReady ? "ok" : "todo"}</strong>
+              </div>
+              <div>
+                <span>Media kit</span>
+                <strong>{data.sponsorHub.mediaKitReady ? "ok" : "todo"}</strong>
+              </div>
+              <div>
+                <span>Templates</span>
+                <strong>{data.sponsorHub.pitchTemplates}</strong>
+              </div>
+              <div>
+                <span>Leads</span>
+                <strong>{data.sponsorHub.outreachLeads}</strong>
+              </div>
+            </div>
+          </section>
+
+          {/* Content library */}
+          <section className={css.card}>
+            <h3>Content library</h3>
+            <div className={css.metrics}>
+              <div>
+                <span>Total</span>
+                <strong>{data.contentLibrary.items}</strong>
+              </div>
+              <div>
+                <span>Drafts</span>
+                <strong>{data.contentLibrary.drafts}</strong>
+              </div>
+              <div>
+                <span>Published</span>
+                <strong>{data.contentLibrary.published}</strong>
+              </div>
+            </div>
+          </section>
+
+          {/* Overnight activity */}
+          <section className={`${css.card} ${css.wide}`}>
+            <h3>Overnight activity</h3>
+            <ul className={css.timeline}>
+              {data.overnightTimeline.map((entry, idx) => (
+                <li key={`${idx}-${entry}`}>{entry}</li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
+
+      {/* Cron CRUD modal */}
+      <CronJobModal
+        open={cronModalOpen}
+        onClose={() => {
+          setCronModalOpen(false);
+          setCronEditTarget(null);
+        }}
+        onSave={saveCronJob}
+        onDelete={cronEditTarget ? () => deleteCronJob(cronEditTarget.id) : undefined}
+        initial={
+          cronEditTarget
+            ? {
+                id: cronEditTarget.id,
+                name: cronEditTarget.name,
+                schedule: cronEditTarget.schedule,
+                isolatedSession: cronEditTarget.isolatedSession,
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
