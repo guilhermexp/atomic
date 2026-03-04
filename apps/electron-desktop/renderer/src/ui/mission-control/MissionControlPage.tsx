@@ -35,6 +35,8 @@ type CronJob = {
   nextRun: string;
   lastRun?: string;
   gatewayJobId?: string;
+  failureCount?: number;
+  lastFailure?: string;
 };
 type SystemCard = {
   id: string;
@@ -316,7 +318,27 @@ function scheduleToLabel(schedule: GatewayCronSchedule): string {
   return "--";
 }
 
-function deriveCronJobsFromGateway(gatewayJobs: GatewayCronJob[], existing: CronJob[]): CronJob[] {
+function deriveCronInsights(entries: CronRunEntry[]): {
+  failuresByJob: Record<string, number>;
+  lastFailureByJob: Record<string, string>;
+} {
+  const failuresByJob: Record<string, number> = {};
+  const lastFailureByJob: Record<string, string> = {};
+  for (const entry of entries) {
+    if (entry.status !== "error") continue;
+    failuresByJob[entry.jobId] = (failuresByJob[entry.jobId] ?? 0) + 1;
+    if (!lastFailureByJob[entry.jobId]) {
+      lastFailureByJob[entry.jobId] = entry.summary ?? "Falha sem resumo";
+    }
+  }
+  return { failuresByJob, lastFailureByJob };
+}
+
+function deriveCronJobsFromGateway(
+  gatewayJobs: GatewayCronJob[],
+  existing: CronJob[],
+  insights?: { failuresByJob: Record<string, number>; lastFailureByJob: Record<string, string> }
+): CronJob[] {
   const manualOnly = existing.filter((j) => !j.gatewayJobId);
   const fromGateway: CronJob[] = gatewayJobs.map((job) => ({
     id: `gw:${job.id}`,
@@ -327,6 +349,8 @@ function deriveCronJobsFromGateway(gatewayJobs: GatewayCronJob[], existing: Cron
     status: !job.enabled ? "paused" : job.state?.lastError ? "warning" : "healthy",
     nextRun: formatMs(job.state?.nextRunAtMs),
     lastRun: formatMs(job.state?.lastRunAtMs),
+    failureCount: insights?.failuresByJob[job.id] ?? 0,
+    lastFailure: insights?.lastFailureByJob[job.id],
   }));
   return [...fromGateway, ...manualOnly].slice(0, 100);
 }
@@ -546,6 +570,7 @@ export function MissionControlPage() {
       setSessions(sessionRows);
       const statusErrors = deriveIntegrationErrorsFromStatus(chStatus);
       const cronRunEntries = Array.isArray(cronRuns.entries) ? cronRuns.entries : [];
+      const cronInsights = deriveCronInsights(cronRunEntries);
       const withRuntimeSystems = {
         ...parsed,
         systems: deriveSystemsRuntime(
@@ -558,7 +583,8 @@ export function MissionControlPage() {
         projects: deriveProjects(sessionRows, parsed.projects),
         cronJobs: deriveCronJobsFromGateway(
           Array.isArray(cronPage.jobs) ? cronPage.jobs : [],
-          parsed.cronJobs
+          parsed.cronJobs,
+          cronInsights
         ),
         runDispatches: deriveRunDispatchesFromCronRuns(cronRunEntries, parsed.runDispatches),
         brainDocs: deriveBrainDocsFromSessions(sessionRows, [
@@ -1004,6 +1030,10 @@ export function MissionControlPage() {
   const pending = data.decisions.filter((d) => d.status === "pending").length;
   const healthyJobs = data.cronJobs.filter((j) => j.status === "healthy").length;
   const warningJobs = data.cronJobs.filter((j) => j.status === "warning").length;
+  const topProblematicJobs = [...data.cronJobs]
+    .filter((j) => (j.failureCount ?? 0) > 0)
+    .sort((a, b) => (b.failureCount ?? 0) - (a.failureCount ?? 0))
+    .slice(0, 3);
   const completedRuns = data.runDispatches.filter((r) => r.status === "completed").length;
   const failedRuns = data.runDispatches.filter((r) => r.status === "failed").length;
   const totalRuns = completedRuns + failedRuns;
@@ -1239,6 +1269,12 @@ export function MissionControlPage() {
                 + Adicionar rotina
               </button>
             </div>
+            {topProblematicJobs.length > 0 && (
+              <div className={css.muted} style={{ marginBottom: 8 }}>
+                Mais problemáticas:{" "}
+                {topProblematicJobs.map((j) => `${j.name} (${j.failureCount} falhas)`).join(" · ")}
+              </div>
+            )}
             <div className={css.tableWrap}>
               <table className={css.table}>
                 <thead>
@@ -1247,8 +1283,10 @@ export function MissionControlPage() {
                     <th>Agenda</th>
                     <th>Isolada</th>
                     <th>Status</th>
+                    <th>Falhas</th>
                     <th>Próxima</th>
                     <th>Última</th>
+                    <th>Última causa</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -1259,8 +1297,10 @@ export function MissionControlPage() {
                       <td className={css.mono}>{j.schedule}</td>
                       <td>{j.isolatedSession ? "sim" : "não"}</td>
                       <td>{j.status}</td>
+                      <td className={css.mono}>{j.failureCount ?? 0}</td>
                       <td className={css.mono}>{j.nextRun}</td>
                       <td className={css.mono}>{j.lastRun ?? "--"}</td>
+                      <td title={j.lastFailure ?? ""}>{j.lastFailure ?? "--"}</td>
                       <td>
                         <div className={css.inlineActions}>
                           <button className={css.smallBtn} onClick={() => runNowJob(j.id)}>
