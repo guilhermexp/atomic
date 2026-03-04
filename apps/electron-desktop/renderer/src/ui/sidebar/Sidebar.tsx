@@ -281,7 +281,7 @@ export function Sidebar() {
           </NavLink>
         )}
         <NavLink
-          to={routes.missionControl}
+          to={`${routes.missionControl}?tab=runs`}
           className={css.UiChatSidebarSettings}
           aria-label="Mission Control"
         >

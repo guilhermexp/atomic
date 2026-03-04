@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGatewayRpc } from "@gateway/context";
 import type { ConfigGetResponse, ModelsListResponse, SessionsListResponse } from "@gateway/types";
 import { addToastError } from "@shared/toast";
@@ -316,6 +316,8 @@ function deriveSystemsRuntime(
 export function MissionControlPage() {
   const gw = useGatewayRpc();
   const navigate = useNavigate();
+  const location = useLocation();
+  const runsSectionRef = React.useRef<HTMLElement | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [configHash, setConfigHash] = React.useState<string | null>(null);
   const [data, setData] = React.useState<MissionControlData>(DEFAULT_DATA);
@@ -396,6 +398,13 @@ export function MissionControlPage() {
     });
     return off;
   }, [gw, load]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("tab") === "runs") {
+      runsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [location.search]);
 
   const persist = React.useCallback(
     async (next: MissionControlData) => {
@@ -626,7 +635,7 @@ export function MissionControlPage() {
           </div>
         </section>
 
-        <section className={`${css.card} ${css.wide}`}>
+        <section ref={runsSectionRef} className={`${css.card} ${css.wide}`}>
           <h3>Run-now dispatches</h3>
           {!data.runDispatches.length ? (
             <p className={css.muted}>Nenhuma execução manual disparada ainda.</p>
