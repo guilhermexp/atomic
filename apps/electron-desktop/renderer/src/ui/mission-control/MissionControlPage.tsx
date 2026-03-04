@@ -1,7 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useGatewayRpc } from "@gateway/context";
 import type { ConfigGetResponse, ModelsListResponse, SessionsListResponse } from "@gateway/types";
 import { addToastError } from "@shared/toast";
+import { routes } from "../app/routes";
 import css from "./MissionControlPage.module.css";
 
 type DecisionStatus = "pending" | "approved" | "rejected";
@@ -51,6 +53,15 @@ type SponsorHub = {
   outreachLeads: number;
 };
 type ContentLibrary = { items: number; drafts: number; published: number };
+type RunDispatch = {
+  id: string;
+  jobId: string;
+  jobName: string;
+  sessionKey: string;
+  requestedAt: string;
+  status: "dispatched" | "running" | "completed" | "unknown";
+};
+
 type MissionControlData = {
   decisions: Decision[];
   cronJobs: CronJob[];
@@ -61,6 +72,7 @@ type MissionControlData = {
   overnightTimeline: string[];
   sponsorHub: SponsorHub;
   contentLibrary: ContentLibrary;
+  runDispatches: RunDispatch[];
 };
 
 const AUTO_REFRESH_MS = 15000;
@@ -200,6 +212,7 @@ const DEFAULT_DATA: MissionControlData = {
   ],
   sponsorHub: { rateCardReady: true, mediaKitReady: false, pitchTemplates: 6, outreachLeads: 12 },
   contentLibrary: { items: 34, drafts: 7, published: 27 },
+  runDispatches: [],
 };
 
 type ModelShare = { id: string; share: number };
@@ -259,6 +272,9 @@ function readMissionControl(config: Record<string, unknown> | undefined): Missio
       : DEFAULT_DATA.overnightTimeline,
     sponsorHub: { ...DEFAULT_DATA.sponsorHub, ...(incoming.sponsorHub ?? {}) },
     contentLibrary: { ...DEFAULT_DATA.contentLibrary, ...(incoming.contentLibrary ?? {}) },
+    runDispatches: Array.isArray(incoming.runDispatches)
+      ? (incoming.runDispatches as RunDispatch[])
+      : DEFAULT_DATA.runDispatches,
   };
 }
 
@@ -299,6 +315,7 @@ function deriveSystemsRuntime(
 
 export function MissionControlPage() {
   const gw = useGatewayRpc();
+  const navigate = useNavigate();
   const [loading, setLoading] = React.useState(true);
   const [configHash, setConfigHash] = React.useState<string | null>(null);
   const [data, setData] = React.useState<MissionControlData>(DEFAULT_DATA);
@@ -320,7 +337,8 @@ export function MissionControlPage() {
       setConfigHash(typeof cfg.hash === "string" ? cfg.hash : null);
 
       const parsed = readMissionControl((cfg.config as Record<string, unknown>) || {});
-      const visibleSessions = Array.isArray(sess.sessions) ? sess.sessions.length : 0;
+      const sessionRows = Array.isArray(sess.sessions) ? sess.sessions : [];
+      const visibleSessions = sessionRows.length;
       setSessionsCount(visibleSessions);
       const withRuntimeSystems = {
         ...parsed,
@@ -331,7 +349,16 @@ export function MissionControlPage() {
           parsed.integrations
         ),
       };
-      setData(withRuntimeSystems);
+      const withRunStatuses = {
+        ...withRuntimeSystems,
+        runDispatches: withRuntimeSystems.runDispatches.map((run) => {
+          const found = sessionRows.some((s) => s.key === run.sessionKey);
+          if (!found) return { ...run, status: "unknown" as const };
+          if (run.status === "completed") return run;
+          return { ...run, status: "running" as const };
+        }),
+      };
+      setData(withRunStatuses);
 
       const modelList = Array.isArray(mdl.models) ? mdl.models : [];
       if (!modelList.length) {
@@ -440,6 +467,17 @@ export function MissionControlPage() {
         cronJobs: data.cronJobs.map((j) =>
           j.id === id ? { ...j, lastRun: stamp, status: "healthy" } : j
         ),
+        runDispatches: [
+          {
+            id: crypto.randomUUID(),
+            jobId: target.id,
+            jobName: target.name,
+            sessionKey,
+            requestedAt: stamp,
+            status: "dispatched" as const,
+          },
+          ...data.runDispatches,
+        ].slice(0, 20),
         overnightTimeline: [
           `${stamp} execução manual disparada: ${target.name}`,
           ...data.overnightTimeline,
@@ -450,6 +488,21 @@ export function MissionControlPage() {
     } catch (err) {
       addToastError(err);
     }
+  };
+
+  const openSession = (sessionKey: string) => {
+    void navigate(`${routes.chat}?session=${encodeURIComponent(sessionKey)}`, { replace: true });
+  };
+
+  const markRunCompleted = (runId: string) => {
+    const next = {
+      ...data,
+      runDispatches: data.runDispatches.map((r) =>
+        r.id === runId ? { ...r, status: "completed" as const } : r
+      ),
+    };
+    setData(next);
+    void persist(next);
   };
 
   const pending = data.decisions.filter((d) => d.status === "pending").length;
@@ -571,6 +624,52 @@ export function MissionControlPage() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        <section className={`${css.card} ${css.wide}`}>
+          <h3>Run-now dispatches</h3>
+          {!data.runDispatches.length ? (
+            <p className={css.muted}>Nenhuma execução manual disparada ainda.</p>
+          ) : (
+            <div className={css.tableWrap}>
+              <table className={css.table}>
+                <thead>
+                  <tr>
+                    <th>Job</th>
+                    <th>Status</th>
+                    <th>Requested</th>
+                    <th>Session</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.runDispatches.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.jobName}</td>
+                      <td>{r.status}</td>
+                      <td className={css.mono}>{r.requestedAt}</td>
+                      <td className={css.mono}>{r.sessionKey}</td>
+                      <td>
+                        <div className={css.inlineActions}>
+                          <button
+                            className={css.smallBtn}
+                            onClick={() => openSession(r.sessionKey)}
+                          >
+                            Open session
+                          </button>
+                          {r.status !== "completed" && (
+                            <button className={css.smallBtn} onClick={() => markRunCompleted(r.id)}>
+                              Mark done
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <section className={css.card}>
