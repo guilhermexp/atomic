@@ -121,6 +121,7 @@
 }
 
 .UiChatLayoutMain {
+  position: relative;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
@@ -128,6 +129,33 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.UiLeftSidebarPane {
+  display: flex;
+  min-height: 0;
+}
+
+.UiSidebarToggleBtn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-light);
+  background: rgba(11, 15, 20, 0.72);
+  color: var(--text-muted, #9f9f9f);
+  border-radius: 999px;
+  padding: 0;
+  line-height: 1;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.UiSidebarToggleBtn:hover {
+  opacity: 1;
 }
 
 .UiChatLayout {

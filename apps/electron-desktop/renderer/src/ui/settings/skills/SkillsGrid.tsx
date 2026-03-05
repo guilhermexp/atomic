@@ -9,6 +9,17 @@ import { SKILLS } from "./skillDefinitions";
 import { filterSkillsForPlatform } from "./platformSkills";
 import { getDesktopApiOrNull } from "@ipc/desktopApi";
 
+function detectBrowserPlatform(): "darwin" | "win32" | "linux" {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes("win")) {
+    return "win32";
+  }
+  if (ua.includes("mac")) {
+    return "darwin";
+  }
+  return "linux";
+}
+
 export function SkillsGrid(props: {
   searchQuery: string;
   customSkills: CustomSkillMeta[];
@@ -18,7 +29,7 @@ export function SkillsGrid(props: {
 }) {
   const { searchQuery, customSkills, statuses, onOpenModal, onRemoveCustomSkill } = props;
 
-  const platform = getDesktopApiOrNull()?.platform ?? process.platform;
+  const platform = getDesktopApiOrNull()?.platform ?? detectBrowserPlatform();
   const availableSkills = filterSkillsForPlatform(SKILLS, platform);
 
   const q = searchQuery.trim().toLowerCase();

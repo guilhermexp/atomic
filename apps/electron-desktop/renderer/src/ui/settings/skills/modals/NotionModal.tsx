@@ -19,12 +19,21 @@ export function NotionModalContent(props: {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string | null>(null);
+  const run = React.useCallback(
+    async <T,>(fn: () => Promise<T>): Promise<T | undefined> => fn(),
+    []
+  );
+  const markSkillConnected = React.useCallback((_skillId: string) => {}, []);
+  const goSkills = React.useCallback(() => {}, []);
 
   const { saveNotionApiKey } = useWelcomeNotion({
     gw: props.gw,
     loadConfig: props.loadConfig,
     setError,
     setStatus,
+    run,
+    markSkillConnected,
+    goSkills,
   });
 
   // Pre-fill: detect if API key is already configured.

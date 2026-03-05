@@ -553,7 +553,10 @@ const chatSlice = createSlice({
       }
       state.messages =
         liveOnly.length > 0
-          ? [...fromHistory, ...liveOnly.toSorted((a, b) => (a.ts ?? 0) - (b.ts ?? 0))]
+          ? [
+              ...fromHistory,
+              ...[...liveOnly].sort((a: UiMessage, b: UiMessage) => (a.ts ?? 0) - (b.ts ?? 0)),
+            ]
           : fromHistory;
       // Selectively clean up completed streams instead of clearing all.
       // Active streams for in-flight runs must persist so the UI keeps
@@ -731,12 +734,13 @@ const chatSlice = createSlice({
       // Fallback for replay edge cases where a duplicate final arrives with a
       // different runId but same rendered text right after the original one.
       const normalizedNextText = normalizeMessageTextForDedup(text);
+      const nextMessageTs = nextMessage.ts ?? Date.now();
       const last = state.messages[state.messages.length - 1];
       if (
         last &&
         last.role === "assistant" &&
         last.ts != null &&
-        nextMessage.ts - last.ts <= 30_000 &&
+        nextMessageTs - last.ts <= 30_000 &&
         normalizedNextText.length > 0 &&
         normalizeMessageTextForDedup(last.text) === normalizedNextText
       ) {

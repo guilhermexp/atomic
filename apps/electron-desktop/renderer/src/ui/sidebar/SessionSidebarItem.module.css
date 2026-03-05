@@ -36,6 +36,16 @@
   white-space: nowrap;
 }
 
+.SessionSidebarItem__activeSpinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(230, 237, 243, 0.28);
+  border-top-color: rgba(230, 237, 243, 0.78);
+  border-radius: 999px;
+  animation: SessionSidebarItemSpin 900ms linear infinite;
+  flex-shrink: 0;
+}
+
 .SessionSidebarItem__title:hover {
   background: var(--border-subtle);
 }
@@ -114,6 +124,12 @@
 .SessionSidebarItem__popoverIcon {
   flex-shrink: 0;
   color: var(--muted);
+}
+
+@keyframes SessionSidebarItemSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Confirm delete dialog ─────────────────────────────── */

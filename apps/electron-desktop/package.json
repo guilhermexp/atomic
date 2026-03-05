@@ -99,6 +99,7 @@
     "electron-updater": "^6.7.3",
     "json5": "^2.2.3",
     "jszip": "^3.10.1",
+    "lucide-react": "^0.577.0",
     "node-pty": "^1.1.0",
     "react-hot-toast": "^2.6.0"
   },

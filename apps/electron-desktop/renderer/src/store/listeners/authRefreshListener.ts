@@ -1,5 +1,10 @@
-import { createListenerMiddleware, isAnyOf, type TypedStartListening } from "@reduxjs/toolkit";
-import type { UnknownAction } from "@reduxjs/toolkit";
+import {
+  createListenerMiddleware,
+  isAnyOf,
+  type Dispatch,
+  type TypedStartListening,
+  type UnknownAction,
+} from "@reduxjs/toolkit";
 import {
   authActions,
   clearAuth,
@@ -16,7 +21,7 @@ const BACKOFF_BASE_MS = 5_000;
 const BACKOFF_MAX_MS = 120_000;
 
 type RootLikeState = { auth: AuthSliceState };
-type StartListening = TypedStartListening<RootLikeState, unknown>;
+type StartListening = TypedStartListening<RootLikeState, Dispatch<UnknownAction>>;
 
 type IntervalHandle = ReturnType<typeof setInterval>;
 
@@ -33,7 +38,7 @@ function stopRefreshInterval(): void {
   refreshIntervalHandle = null;
 }
 
-function ensureRefreshInterval(listenerApi: { dispatch: (action: UnknownAction) => void }): void {
+function ensureRefreshInterval(listenerApi: { dispatch: Dispatch<UnknownAction> }): void {
   if (refreshIntervalHandle !== null) return;
   refreshIntervalHandle = setInterval(() => {
     listenerApi.dispatch(authActions.requestBackgroundRefresh({ reason: "interval" }));
@@ -45,8 +50,19 @@ function computeBackoffMs(failureCount: number): number {
   return Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** power);
 }
 
+function extractErrorMessage(result: unknown): string {
+  if (!result || typeof result !== "object") {
+    return "Failed to refresh status";
+  }
+  const error = (result as { error?: { message?: unknown } }).error;
+  if (error && typeof error.message === "string" && error.message.trim()) {
+    return error.message;
+  }
+  return "Failed to refresh status";
+}
+
 async function runRefresh(listenerApi: {
-  dispatch: (action: UnknownAction) => unknown;
+  dispatch: Dispatch<UnknownAction>;
   getState: () => RootLikeState;
 }): Promise<void> {
   const current = listenerApi.getState().auth;
@@ -64,15 +80,10 @@ async function runRefresh(listenerApi: {
 
   listenerApi.dispatch(authActions.markRefreshStarted());
   try {
-    const result = await (listenerApi.dispatch as (action: unknown) => Promise<UnknownAction>)(
-      fetchDesktopStatus()
-    );
+    const dispatchAsync = listenerApi.dispatch as unknown as (action: unknown) => Promise<unknown>;
+    const result = await dispatchAsync(fetchDesktopStatus());
     if (!fetchDesktopStatus.fulfilled.match(result)) {
-      const message =
-        typeof result.error?.message === "string"
-          ? result.error.message
-          : "Failed to refresh status";
-      throw new Error(message);
+      throw new Error(extractErrorMessage(result));
     }
     const completedAt = Date.now();
     listenerApi.dispatch(
@@ -100,18 +111,21 @@ function registerLifecycleListener(startListening: StartListening): void {
       restoreMode.fulfilled
     ),
     effect: async (_action, listenerApi) => {
-      const auth = listenerApi.getState().auth;
+      const typedApi = listenerApi as unknown as {
+        getState: () => RootLikeState;
+        dispatch: Dispatch<UnknownAction>;
+      };
+      const auth = typedApi.getState().auth;
       if (!isPaidAuthenticated(auth)) {
         stopRefreshInterval();
         return;
       }
       if (!auth.autoTopUpLoaded && !auth.autoTopUpLoading) {
-        void (listenerApi.dispatch as (action: unknown) => Promise<UnknownAction>)(
-          fetchAutoTopUpSettings()
-        );
+        const dispatchAsync = typedApi.dispatch as unknown as (action: unknown) => Promise<unknown>;
+        void dispatchAsync(fetchAutoTopUpSettings());
       }
-      ensureRefreshInterval(listenerApi);
-      listenerApi.dispatch(authActions.requestBackgroundRefresh({ reason: "immediate" }));
+      ensureRefreshInterval(typedApi);
+      typedApi.dispatch(authActions.requestBackgroundRefresh({ reason: "immediate" }));
     },
   });
 }
@@ -120,21 +134,29 @@ function registerTriggerListeners(startListening: StartListening): void {
   startListening({
     actionCreator: authActions.requestBackgroundRefresh,
     effect: async (_action, listenerApi) => {
-      await runRefresh(listenerApi);
+      const typedApi = listenerApi as unknown as {
+        getState: () => RootLikeState;
+        dispatch: Dispatch<UnknownAction>;
+      };
+      await runRefresh(typedApi);
     },
   });
 
   startListening({
     actionCreator: authActions.appFocused,
     effect: async (_action, listenerApi) => {
-      listenerApi.dispatch(authActions.requestBackgroundRefresh({ reason: "focus" }));
+      (listenerApi.dispatch as Dispatch<UnknownAction>)(
+        authActions.requestBackgroundRefresh({ reason: "focus" })
+      );
     },
   });
 
   startListening({
     actionCreator: authActions.appVisible,
     effect: async (_action, listenerApi) => {
-      listenerApi.dispatch(authActions.requestBackgroundRefresh({ reason: "visibility" }));
+      (listenerApi.dispatch as Dispatch<UnknownAction>)(
+        authActions.requestBackgroundRefresh({ reason: "visibility" })
+      );
     },
   });
 }

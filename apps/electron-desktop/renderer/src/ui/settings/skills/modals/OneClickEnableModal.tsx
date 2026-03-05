@@ -19,12 +19,21 @@ export function AppleNotesModalContent(props: {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string | null>(null);
+  const run = React.useCallback(
+    async <T,>(fn: () => Promise<T>): Promise<T | undefined> => fn(),
+    []
+  );
+  const markSkillConnected = React.useCallback((_skillId: string) => {}, []);
+  const goSkills = React.useCallback(() => {}, []);
 
   const { enableAppleNotes } = useWelcomeAppleNotes({
     gw: props.gw,
     loadConfig: props.loadConfig,
     setError,
     setStatus,
+    run,
+    markSkillConnected,
+    goSkills,
   });
 
   const handleEnable = React.useCallback(async () => {
@@ -92,12 +101,21 @@ export function AppleRemindersModalContent(props: {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string | null>(null);
+  const run = React.useCallback(
+    async <T,>(fn: () => Promise<T>): Promise<T | undefined> => fn(),
+    []
+  );
+  const markSkillConnected = React.useCallback((_skillId: string) => {}, []);
+  const goSkills = React.useCallback(() => {}, []);
 
   const { enableAppleReminders } = useWelcomeAppleReminders({
     gw: props.gw,
     loadConfig: props.loadConfig,
     setError,
     setStatus,
+    run,
+    markSkillConnected,
+    goSkills,
   });
 
   const handleEnable = React.useCallback(async () => {

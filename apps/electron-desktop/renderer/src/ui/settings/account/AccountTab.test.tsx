@@ -15,7 +15,29 @@ const mockFetchAutoTopUpSettings = vi.fn();
 const mockGetDesktopApiOrNull = vi.fn();
 const mockOpenExternal = vi.fn();
 
-const mockAuthState = {
+type MockAuthState = {
+  mode: string;
+  jwt: string;
+  email: string;
+  balance: { remaining: number; limit: number; usage: number } | null;
+  subscription: { status: string; currentPeriodEnd: string; stripeSubscriptionId: string } | null;
+  lastRefreshAt: number;
+  topUpPending: boolean;
+  autoTopUp: {
+    enabled: boolean;
+    thresholdUsd: number;
+    topupAmountUsd: number;
+    monthlyCapUsd: number;
+    hasPaymentMethod: boolean;
+    currentMonthSpentUsd: number;
+  };
+  autoTopUpLoading: boolean;
+  autoTopUpSaving: boolean;
+  autoTopUpError: string | null;
+  autoTopUpLoaded: boolean;
+};
+
+const mockAuthState: MockAuthState = {
   mode: "paid",
   jwt: "jwt-token",
   email: "user@test.com",

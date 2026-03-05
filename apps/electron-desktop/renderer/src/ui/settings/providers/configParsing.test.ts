@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { getDefaultModelPrimary, getConfiguredProviders } from "./configParsing";
 
+type ConfigInput = Parameters<typeof getConfiguredProviders>[0];
+
 // ── getDefaultModelPrimary ─────────────────────────────────────────────────────
 
 describe("getDefaultModelPrimary", () => {
@@ -53,7 +55,7 @@ describe("getDefaultModelPrimary", () => {
   });
 
   it("returns null if primary is not a string", () => {
-    const cfg = { agents: { defaults: { model: { primary: 42 } } } };
+    const cfg = { agents: { defaults: { model: { primary: 42 } } } } as unknown as ConfigInput;
     expect(getDefaultModelPrimary(cfg)).toBeNull();
   });
 });
@@ -79,7 +81,9 @@ describe("getConfiguredProviders", () => {
   });
 
   it("returns empty set when auth.order is an array", () => {
-    expect(getConfiguredProviders({ auth: { order: ["anthropic"] } })).toEqual(new Set());
+    expect(
+      getConfiguredProviders({ auth: { order: ["anthropic"] } } as unknown as ConfigInput)
+    ).toEqual(new Set());
   });
 
   it("extracts valid providers from auth.order", () => {
@@ -114,7 +118,7 @@ describe("getConfiguredProviders", () => {
           openai: ["openai:default"],
         },
       },
-    };
+    } as unknown as ConfigInput;
     expect(getConfiguredProviders(cfg)).toEqual(new Set(["openai"]));
   });
 
@@ -150,7 +154,7 @@ describe("getConfiguredProviders", () => {
           OPENAI: ["openai:default"],
         },
       },
-    };
+    } as unknown as ConfigInput;
     expect(getConfiguredProviders(cfg)).toEqual(new Set(["anthropic", "openai"]));
   });
 

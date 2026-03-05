@@ -47,7 +47,7 @@ import { TestShell, noop, expectRendered } from "./helpers/onboarding-test-helpe
 describe("Onboarding flow smoke tests", () => {
   afterEach(() => cleanup());
   beforeEach(() => {
-    (window as Record<string, unknown>).openclawDesktop = {
+    (window as unknown as { openclawDesktop?: unknown }).openclawDesktop = {
       getConsentInfo: vi.fn(() => Promise.resolve({ accepted: false })),
       openExternal: vi.fn(),
     };

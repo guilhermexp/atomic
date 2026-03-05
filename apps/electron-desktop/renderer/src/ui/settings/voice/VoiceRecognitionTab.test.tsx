@@ -102,10 +102,13 @@ function renderWithStore(ui: React.ReactElement) {
 }
 
 describe("VoiceRecognitionTab", () => {
+  const mockGwRequest = vi.fn(() => Promise.resolve({ config: {}, raw: "{}", error: null }));
   const mockGw = {
-    request: vi.fn(() =>
-      Promise.resolve({ config: {}, raw: "{}", error: null })
-    ) as unknown as typeof stableRequest,
+    request: (<T = unknown,>(_method: string, _params?: unknown) =>
+      mockGwRequest().then((value) => value as T)) as <T = unknown>(
+      method: string,
+      params?: unknown
+    ) => Promise<T>,
   };
   const defaultProps = {
     gw: mockGw,
@@ -156,7 +159,7 @@ describe("VoiceRecognitionTab", () => {
         size: 0,
       },
     ]);
-    vi.mocked(mockGw.request).mockReset().mockResolvedValue({
+    mockGwRequest.mockReset().mockResolvedValue({
       config: {},
       raw: "{}",
       error: null,
@@ -260,7 +263,7 @@ describe("VoiceRecognitionTab", () => {
   it("shows error when download fails with retry button", async () => {
     mockDesktopApi.whisperModelDownload.mockResolvedValue({
       ok: false,
-      error: "Network error",
+      modelPath: "",
     });
 
     renderWithStore(<VoiceRecognitionTab {...defaultProps} />);
@@ -274,7 +277,7 @@ describe("VoiceRecognitionTab", () => {
     fireEvent.click(screen.getByText(/Download Small/i));
 
     await waitFor(() => {
-      expect(screen.getByText(/Network error/i)).toBeTruthy();
+      expect(screen.getByText(/Failed to download model/i)).toBeTruthy();
       expect(screen.getByText(/Retry download/i)).toBeTruthy();
     });
   });
@@ -342,7 +345,7 @@ describe("VoiceRecognitionTab", () => {
   });
 
   it("persists openai provider immediately when API key is configured", async () => {
-    vi.mocked(mockGw.request).mockResolvedValue({
+    mockGwRequest.mockResolvedValue({
       config: {
         auth: {
           profiles: { p1: { provider: "openai" } },

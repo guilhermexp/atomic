@@ -87,7 +87,7 @@ beforeEach(() => {
     }
   } as unknown as typeof WebSocket;
   // Also expose static constants
-  Object.assign((globalThis as Record<string, unknown>).WebSocket, {
+  Object.assign(globalThis.WebSocket as object, {
     CONNECTING: 0,
     OPEN: 1,
     CLOSING: 2,

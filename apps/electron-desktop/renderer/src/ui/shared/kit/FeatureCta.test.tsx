@@ -77,7 +77,7 @@ describe("FeatureCta", () => {
 
     it("is disabled when onConnect is not provided", () => {
       render(<FeatureCta status="connect" />);
-      const btn = screen.getByRole("button", { name: "Connect" });
+      const btn = screen.getByRole("button", { name: "Connect" }) as HTMLButtonElement;
       expect(btn.disabled).toBe(true);
       expect(btn.getAttribute("title")).toBe("Not available yet");
     });

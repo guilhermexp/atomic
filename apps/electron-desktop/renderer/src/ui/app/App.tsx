@@ -14,7 +14,6 @@ import { StartChatPage } from "../chat/StartChatPage";
 import { Sidebar } from "../sidebar/Sidebar";
 import { SettingsIndexRedirect, SettingsPage, SettingsTab } from "../settings/SettingsPage";
 import { TerminalPage } from "../terminal/TerminalPage";
-import { MissionControlPage } from "../mission-control/MissionControlPage";
 import { WelcomePage } from "../onboarding/WelcomePage";
 import { ConsentScreen } from "../onboarding/ConsentScreen";
 import { LoadingScreen } from "../onboarding/LoadingScreen";
@@ -45,6 +44,8 @@ function ChatRoute({ state }: { state: Extract<GatewayState, { kind: "ready" }> 
 }
 
 function SidebarLayout({ state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
+  const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(true);
+
   return (
     <GatewayRpcProvider url={state.url} token={state.token}>
       <OptimisticSessionProvider>
@@ -53,8 +54,23 @@ function SidebarLayout({ state }: { state: Extract<GatewayState, { kind: "ready"
         <SubscriptionPromoBannerSource />
         <div className={a.UiAppShell}>
           <div className={`${a.UiAppPage} ${a.UiChatLayout}`}>
-            <Sidebar />
+            {leftSidebarOpen && (
+              <div className={a.UiLeftSidebarPane}>
+                <Sidebar />
+              </div>
+            )}
             <div className={a.UiChatLayoutMain}>
+              <button
+                type="button"
+                className={a.UiSidebarToggleBtn}
+                onClick={() => setLeftSidebarOpen((prev) => !prev)}
+                aria-label={
+                  leftSidebarOpen ? "Fechar sidebar de sessões" : "Abrir sidebar de sessões"
+                }
+                title={leftSidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
+              >
+                {leftSidebarOpen ? "◀" : "☰"}
+              </button>
               <Outlet />
             </div>
           </div>
@@ -214,7 +230,6 @@ export function App() {
           <Route index element={<Navigate to={routes.chat} replace />} />
           <Route path="chat" element={<ChatRoute state={state} />} />
           <Route path="terminal" element={<TerminalPage />} />
-          <Route path={routes.missionControl} element={<MissionControlPage />} />
           <Route path={routes.settings} element={<SettingsPage state={state} />}>
             <Route index element={<SettingsIndexRedirect />} />
             <Route path="ai-models" element={<SettingsTab tab="model" />} />

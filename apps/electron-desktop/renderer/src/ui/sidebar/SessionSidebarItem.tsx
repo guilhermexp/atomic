@@ -171,6 +171,13 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
           title={sessionKey}
         >
           <span className={s.SessionSidebarItem__titleText}>{title}</span>
+          {isActive && (
+            <span
+              className={s.SessionSidebarItem__activeSpinner}
+              aria-hidden="true"
+              title="Active session"
+            />
+          )}
           <div className={s.SessionSidebarItem__actions}>
             <span
               ref={menuTriggerRef}

@@ -12,6 +12,13 @@ const STUB_API = { version: "0.0.0-test" } as unknown as NonNullable<Window["ope
 
 describe("desktopApi", () => {
   let originalApi: Window["openclawDesktop"];
+  const setDesktopApi = (value: unknown) => {
+    Object.defineProperty(window, "openclawDesktop", {
+      value,
+      configurable: true,
+      writable: true,
+    });
+  };
 
   beforeEach(() => {
     originalApi = window.openclawDesktop;
@@ -19,19 +26,19 @@ describe("desktopApi", () => {
 
   afterEach(() => {
     // Restore whatever was there before.
-    (window as Record<string, unknown>).openclawDesktop = originalApi;
+    setDesktopApi(originalApi);
   });
 
   // ---------- getDesktopApi ----------
 
   describe("getDesktopApi", () => {
     it("returns the API when available", () => {
-      (window as Record<string, unknown>).openclawDesktop = STUB_API;
+      setDesktopApi(STUB_API);
       expect(getDesktopApi()).toBe(STUB_API);
     });
 
     it("throws when the API is undefined", () => {
-      (window as Record<string, unknown>).openclawDesktop = undefined;
+      setDesktopApi(undefined);
       expect(() => getDesktopApi()).toThrow("Desktop API not available");
     });
   });
@@ -40,12 +47,12 @@ describe("desktopApi", () => {
 
   describe("getDesktopApiOrNull", () => {
     it("returns the API when available", () => {
-      (window as Record<string, unknown>).openclawDesktop = STUB_API;
+      setDesktopApi(STUB_API);
       expect(getDesktopApiOrNull()).toBe(STUB_API);
     });
 
     it("returns null when the API is undefined", () => {
-      (window as Record<string, unknown>).openclawDesktop = undefined;
+      setDesktopApi(undefined);
       expect(getDesktopApiOrNull()).toBeNull();
     });
   });
@@ -54,17 +61,17 @@ describe("desktopApi", () => {
 
   describe("isDesktopApiAvailable", () => {
     it("returns true when the API is present", () => {
-      (window as Record<string, unknown>).openclawDesktop = STUB_API;
+      setDesktopApi(STUB_API);
       expect(isDesktopApiAvailable()).toBe(true);
     });
 
     it("returns false when the API is undefined", () => {
-      (window as Record<string, unknown>).openclawDesktop = undefined;
+      setDesktopApi(undefined);
       expect(isDesktopApiAvailable()).toBe(false);
     });
 
     it("returns false when the API is null", () => {
-      (window as Record<string, unknown>).openclawDesktop = null as unknown as undefined;
+      setDesktopApi(null);
       expect(isDesktopApiAvailable()).toBe(false);
     });
   });

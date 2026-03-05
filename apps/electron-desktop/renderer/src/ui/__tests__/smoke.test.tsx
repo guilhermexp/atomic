@@ -126,7 +126,7 @@ describe("Smoke render tests", () => {
 
   beforeEach(() => {
     // Provide a minimal window.openclawDesktop stub for components that access it.
-    (window as Record<string, unknown>).openclawDesktop = {
+    (window as unknown as { openclawDesktop?: unknown }).openclawDesktop = {
       getConsentInfo: vi.fn(() => Promise.resolve({ accepted: false })),
       acceptConsent: vi.fn(() => Promise.resolve({ ok: true })),
       startGateway: vi.fn(() => Promise.resolve({ ok: true })),
