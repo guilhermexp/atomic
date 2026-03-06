@@ -23,6 +23,12 @@ export function initAutoUpdater(getMainWindow: () => BrowserWindow | null): void
   }
   initialized = true;
 
+  // Auto-update is disabled for this fork — the upstream GitHub release feed
+  // does not host builds for our private fork, so checking is pointless and
+  // would show a misleading "Update available" banner.
+  console.info("[updater] auto-update disabled (private fork)");
+  return;
+
   // Don't auto-download; let the user decide when to download.
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
