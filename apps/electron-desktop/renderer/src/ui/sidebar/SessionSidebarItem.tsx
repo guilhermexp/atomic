@@ -5,6 +5,8 @@ export type SessionSidebarItemProps = {
   sessionKey: string;
   title: string;
   isActive: boolean;
+  /** True when the gateway has an active agent run for this session. */
+  isRunning: boolean;
   onSelect: () => void;
   onDelete: (key: string) => void;
 };
@@ -99,6 +101,7 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
   sessionKey,
   title,
   isActive,
+  isRunning,
   onSelect,
   onDelete,
 }: SessionSidebarItemProps) {
@@ -171,11 +174,11 @@ export const SessionSidebarItem = React.memo(function SessionSidebarItem({
           title={sessionKey}
         >
           <span className={s.SessionSidebarItem__titleText}>{title}</span>
-          {isActive && (
+          {isRunning && (
             <span
               className={s.SessionSidebarItem__activeSpinner}
               aria-hidden="true"
-              title="Active session"
+              title="Agent running"
             />
           )}
           <div className={s.SessionSidebarItem__actions}>

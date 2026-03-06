@@ -8,6 +8,7 @@ import { addToastError } from "@shared/toast";
 import { SplashLogo } from "@shared/kit";
 import { SessionSidebarItem } from "./SessionSidebarItem";
 import { cleanDerivedTitle } from "../chat/hooks/messageParser";
+import { useAutoRenameSessions } from "./useAutoRename";
 import css from "./Sidebar.module.css";
 
 const TERMINAL_SIDEBAR_KEY = "terminal-sidebar-visible";
@@ -54,7 +55,52 @@ type SessionsListResult = {
 type SessionWithTitle = {
   key: string;
   title: string;
+  label?: string;
 };
+
+// ── Active session tracking via gateway events ──────────────────────
+// Listens for `chat` events and tracks which sessions have active runs.
+// A run is considered active from the first `delta` until `final`/`error`/`aborted`.
+
+function useActiveSessionKeys(): Set<string> {
+  const gw = useGatewayRpc();
+  const [activeKeys, setActiveKeys] = React.useState<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    type ChatEventPayload = {
+      sessionKey?: string;
+      state?: string;
+    };
+    return gw.onEvent((evt) => {
+      if (evt.event !== "chat") return;
+      const payload = evt.payload as ChatEventPayload;
+      const sk = payload?.sessionKey;
+      if (!sk) return;
+
+      if (payload.state === "delta") {
+        setActiveKeys((prev) => {
+          if (prev.has(sk)) return prev;
+          const next = new Set(prev);
+          next.add(sk);
+          return next;
+        });
+      } else if (
+        payload.state === "final" ||
+        payload.state === "error" ||
+        payload.state === "aborted"
+      ) {
+        setActiveKeys((prev) => {
+          if (!prev.has(sk)) return prev;
+          const next = new Set(prev);
+          next.delete(sk);
+          return next;
+        });
+      }
+    });
+  }, [gw]);
+
+  return activeKeys;
+}
 
 const SESSIONS_LIST_LIMIT = 50;
 const TITLE_MAX_LEN = 48;
@@ -81,6 +127,10 @@ function isHeartbeatSession(row: SessionsListResult["sessions"][number]): boolea
 // cleanDerivedTitle is now in ./utils/messageParser.ts
 
 function titleFromRow(row: SessionsListResult["sessions"][number]): string {
+  // Prefer explicit label (set by auto-rename or user) over derived title.
+  if (row.label) {
+    return row.label.length > TITLE_MAX_LEN ? `${row.label.slice(0, TITLE_MAX_LEN)}…` : row.label;
+  }
   const cleaned = cleanDerivedTitle(row.derivedTitle);
   if (cleaned) {
     return cleaned.length > TITLE_MAX_LEN ? `${cleaned.slice(0, TITLE_MAX_LEN)}…` : cleaned;
@@ -140,6 +190,7 @@ export function Sidebar() {
   const gw = useGatewayRpc();
   const { optimistic: optimisticFromContext, setOptimistic } = useOptimisticSession();
   const showTerminal = useTerminalSidebarVisible();
+  const activeSessionKeys = useActiveSessionKeys();
   const optimisticFromState =
     (location.state as { optimisticNewSession?: OptimisticSession } | null)?.optimisticNewSession ??
     null;
@@ -165,6 +216,7 @@ export function Sidebar() {
         const withTitles: SessionWithTitle[] = rows.map((row) => ({
           key: row.key,
           title: titleFromRow(row),
+          label: row.label,
         }));
 
         setSessions(withTitles);
@@ -207,6 +259,12 @@ export function Sidebar() {
       void loadSessionsWithTitles(true);
     }
   }, [gw.connected, currentSessionKey, optimistic, loadSessionsWithTitles]);
+
+  // Auto-rename sessions with generic/short titles via a lightweight LLM call.
+  const handleTitleUpdated = React.useCallback((key: string, title: string) => {
+    setSessions((prev) => prev.map((s) => (s.key === key ? { ...s, title, label: title } : s)));
+  }, []);
+  useAutoRenameSessions(sessions, gw, handleTitleUpdated);
 
   const handleNewSession = React.useCallback(() => {
     void navigate(routes.chat, { replace: true, state: { focusComposer: true } });
@@ -267,6 +325,7 @@ export function Sidebar() {
                 sessionKey={s.key}
                 title={s.title}
                 isActive={currentSessionKey != null && currentSessionKey === s.key}
+                isRunning={activeSessionKeys.has(s.key)}
                 onSelect={() => handleSelectSession(s.key)}
                 onDelete={handleDeleteSession}
               />
