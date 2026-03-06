@@ -24,7 +24,7 @@ renderer/src/
 ├── ipc/                  # desktop IPC wrapper (desktopApi)
 ├── store/                # Redux store, typed hooks, slices (chat, config, gateway, onboarding)
 └── ui/
-    ├── app/              # app shell: App.tsx, routes.ts, ExecApprovalModal.tsx
+    ├── app/              # app shell: App.tsx, routes.ts, chatBaseRoute.tsx, ExecApprovalModal.tsx
     ├── chat/             # chat feature: ChatPage, ChatComposer, StartChatPage, messageParser, etc.
     ├── sidebar/          # sidebar: Sidebar, SessionSidebarItem
     ├── terminal/         # terminal: TerminalPage
@@ -109,3 +109,17 @@ ui/settings/
 - **Per-component CSS**: lives next to the component (e.g. `chat/ChatComposer.css`).
 - **Global CSS**: lives in `ui/styles/` and is imported once via `ui/styles/index.css` in `main.tsx`.
 - Some component CSS is imported in `main.tsx` for global side-effect styles (Sidebar.css, chat transcript styles). Keep this pattern when adding new global-scope component styles.
+
+## Mission Control
+
+Mission Control is an iframe-based dashboard view embedded in the Electron app. It does **not** have its own `ui/mission-control/` directory — the component (`MissionControlScreen`) lives inline in `ui/app/App.tsx`.
+
+- **Route:** `/mission-control` (registered in `ui/app/routes.ts` as `routes.missionControl`).
+- **Layout:** split-pane with a resizable divider — left side is an iframe pointing to `http://127.0.0.1:1530` (the standalone dashboard app), right side is an embedded chat panel.
+- **Chat context override:** `chatBaseRoute.tsx` exports `ChatBaseRouteCtx` — when set (e.g. inside Mission Control), the chat component stays on the Mission Control route after sending a message instead of navigating to `/chat`.
+- **Sidebar link:** The sidebar footer (`ui/sidebar/Sidebar.tsx`) includes a `MissionControlLink` component that navigates to the Mission Control view, preserving the current session query param.
+- **Design reference:** The standalone dashboard design lives in `apps/missioncontrol-macclaw-dashboard-design/` (a separate Next.js app, not part of the Electron build).
+
+## Gateway Startup
+
+- The Electron main process spawns the gateway with `OPENCLAW_LOAD_SHELL_ENV: "1"` (in `src/main/gateway/spawn.ts`) so the gateway inherits the user's full login shell PATH — this ensures binaries like `openclaw`, `rg`, etc. are available even though Electron's default PATH is minimal on macOS.
