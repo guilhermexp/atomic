@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { downloadWhisperModel } from "@store/slices/whisperSlice";
 import { addToastError } from "@shared/toast";
 import { routes } from "../app/routes";
+import { useChatBaseRoute } from "../app/chatBaseRoute";
 import ct from "./ChatTranscript.module.css";
 
 function newSessionKey(): string {
@@ -23,6 +24,7 @@ export function StartChatPage({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const chatBaseRoute = useChatBaseRoute();
   const gw = useGatewayRpc();
   const dispatch = useAppDispatch();
   const composerRef = React.useRef<ChatComposerRef | null>(null);
@@ -167,7 +169,7 @@ export function StartChatPage({
             ? `${message.slice(0, 48)}…`
             : message
           : `[${attachments.length} file(s)]`;
-      void navigate(`${routes.chat}?session=${encodeURIComponent(sessionKey)}`, {
+      void navigate(`${chatBaseRoute}?session=${encodeURIComponent(sessionKey)}`, {
         replace: true,
         state: {
           optimisticNewSession: { key: sessionKey, title },

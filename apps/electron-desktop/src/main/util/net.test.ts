@@ -47,22 +47,17 @@ describe("createTailBuffer", () => {
 });
 
 describe("pickPort", () => {
-  it("returns a valid port number for a high preferred port", async () => {
-    // port 0 means "any free port" to the OS, which pickPort treats as "preferred=0 is free"
-    // so we use a high random port as the preferred one
+  it("returns preferred port when free", async () => {
     const preferred = 49152 + Math.floor(Math.random() * 10000);
     const port = await pickPort(preferred);
-    expect(typeof port).toBe("number");
-    expect(port).toBeGreaterThan(0);
-    expect(port).toBeLessThan(65536);
+    expect(port).toBe(preferred);
   });
 
-  it("returns preferred port if free", async () => {
-    // Use a random high port that is very likely free
+  it("always returns the preferred port even if occupied (waits then falls through)", async () => {
+    // pickPort now always returns the preferred port — it waits for it to free up
+    // and if it doesn't, returns it anyway so the gateway can fail loudly.
     const preferred = 49152 + Math.floor(Math.random() * 10000);
-    const port = await pickPort(preferred);
-    // It should either return the preferred port or a different free one
-    expect(typeof port).toBe("number");
-    expect(port).toBeGreaterThan(0);
+    const port = await pickPort(preferred, 200);
+    expect(port).toBe(preferred);
   });
 });

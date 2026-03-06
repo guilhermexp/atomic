@@ -25,6 +25,7 @@ import { initGatewayState } from "@store/slices/gatewaySlice";
 import { loadOnboardingFromStorage } from "@store/slices/onboardingSlice";
 import type { GatewayState } from "@main/types";
 import { isBootstrapPath, routes } from "./routes";
+import { ChatBaseRouteCtx } from "./chatBaseRoute";
 import {
   OptimisticSessionProvider,
   OptimisticSessionSync,
@@ -45,6 +46,7 @@ function ChatRoute({ state }: { state: Extract<GatewayState, { kind: "ready" }> 
 
 function SidebarLayout({ state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
   const [leftSidebarOpen, setLeftSidebarOpen] = React.useState(true);
+  const location = useLocation();
 
   return (
     <GatewayRpcProvider url={state.url} token={state.token}>
@@ -126,6 +128,52 @@ function ErrorScreen({ state }: { state: Extract<GatewayState, { kind: "failed" 
           <div className={a.UiPill}>logs: {state.logsDir}</div>
         </div>
         <pre>{state.details || "No details."}</pre>
+      </div>
+    </div>
+  );
+}
+
+function MissionControlScreen({ state }: { state: Extract<GatewayState, { kind: "ready" }> }) {
+  const [chatWidth, setChatWidth] = React.useState(420);
+  const dragging = React.useRef(false);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  const onMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = true;
+    // Disable pointer events on iframe while dragging so mousemove isn't swallowed
+    if (iframeRef.current) iframeRef.current.style.pointerEvents = "none";
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!dragging.current) return;
+      const newWidth = window.innerWidth - ev.clientX;
+      setChatWidth(Math.max(280, Math.min(newWidth, window.innerWidth - 400)));
+    };
+    const onMouseUp = () => {
+      dragging.current = false;
+      if (iframeRef.current) iframeRef.current.style.pointerEvents = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
+
+  return (
+    <div className={a.MissionControlLayout}>
+      <div className={a.MissionControlMain}>
+        <iframe ref={iframeRef} title="Mission Control" src="http://127.0.0.1:1530" />
+      </div>
+      <div className={a.MissionControlDivider} onMouseDown={onMouseDown} />
+      <div
+        className={a.MissionControlChatPanel}
+        data-mission-chat
+        style={{ width: chatWidth, flex: `0 0 ${chatWidth}px` }}
+      >
+        <ChatBaseRouteCtx.Provider value={routes.missionControl}>
+          <OptimisticSessionSync />
+          <ChatRoute state={state} />
+        </ChatBaseRouteCtx.Provider>
       </div>
     </div>
   );
@@ -229,6 +277,7 @@ export function App() {
         <Route path="/" element={<SidebarLayout state={state} />}>
           <Route index element={<Navigate to={routes.chat} replace />} />
           <Route path="chat" element={<ChatRoute state={state} />} />
+          <Route path="mission-control" element={<MissionControlScreen state={state} />} />
           <Route path="terminal" element={<TerminalPage />} />
           <Route path={routes.settings} element={<SettingsPage state={state} />}>
             <Route index element={<SettingsIndexRedirect />} />

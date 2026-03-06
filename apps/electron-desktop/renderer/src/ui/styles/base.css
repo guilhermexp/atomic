@@ -230,3 +230,20 @@ pre {
     animation: none;
   }
 }
+
+/* ── Mission Control chat panel: force chat to fit the narrow panel ─── */
+[data-mission-chat] {
+  overflow: hidden;
+}
+
+[data-mission-chat] * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+[data-mission-chat] pre {
+  white-space: pre-wrap !important;
+  overflow-x: hidden !important;
+}

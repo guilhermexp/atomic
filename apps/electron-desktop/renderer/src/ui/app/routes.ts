@@ -4,6 +4,7 @@ export const routes = {
   error: "/error",
   welcome: "/welcome",
   legacy: "/legacy",
+  missionControl: "/mission-control",
   chat: "/chat",
   settings: "/settings",
   terminal: "/terminal",

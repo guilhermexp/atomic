@@ -19,6 +19,7 @@
     "prepare:runtimes": "npm run prepare:node && npm run prepare:gog:all && npm run prepare:jq:all && npm run prepare:memo:all && npm run prepare:remindctl:all && npm run prepare:obsidian-cli:all && npm run prepare:gh:all && npm run prepare:whisper-cli:all",
     "rebuild": "electron-rebuild -f -w node-pty",
     "dev": "npm run rebuild && npm run build:all && electron .",
+    "dev:all": "npm run rebuild && npm run build:all && electron .",
     "build": "tsc -p tsconfig.json",
     "build:renderer": "vite build --config renderer/vite.config.ts",
     "prepare:all": "npm run prepare:openclaw && npm run prepare:runtimes",
@@ -48,7 +49,7 @@
     "reset:local:yes": "node scripts/reset-local-state.mjs --yes",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "dist:local": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist -- --publish never",
+    "dist:local": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false CSC_LINK= npm run dist -- --publish never -c.mac.identity=null",
     "dist:local:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false ELECTRON_BUILDER_COMPRESSION_LEVEL=1 npm run dist -- --publish never --win",
     "dist": "npm run build:all && electron-builder",
     "dist:env": "npm run build:all &&  node --env-file=.env ./node_modules/electron-builder/out/cli/cli.js",
@@ -205,6 +206,7 @@
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.inherit.plist",
       "target": [
+        "dmg",
         "zip"
       ],
       "extendInfo": {

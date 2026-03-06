@@ -88,6 +88,50 @@ function titleFromRow(row: SessionsListResult["sessions"][number]): string {
   return "New Chat";
 }
 
+function MissionControlLink() {
+  const [searchParams] = useSearchParams();
+  const session = searchParams.get("session");
+  const to = session
+    ? `${routes.missionControl}?session=${encodeURIComponent(session)}`
+    : routes.missionControl;
+  return (
+    <NavLink to={to} className={css.UiChatSidebarSettings} aria-label="Mission Control">
+      <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+        >
+          <path
+            d="M10 2L3 6V14L10 18L17 14V6L10 2Z"
+            stroke="#8B8B8B"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M10 18V10"
+            stroke="#8B8B8B"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M17 6L10 10L3 6"
+            stroke="#8B8B8B"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      Mission Control
+    </NavLink>
+  );
+}
+
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -232,6 +276,7 @@ export function Sidebar() {
       </div>
 
       <div className={css.UiChatSidebarFooter}>
+        <MissionControlLink />
         {showTerminal && (
           <NavLink to={routes.terminal} className={css.UiChatSidebarSettings} aria-label="Terminal">
             <span className={css.UiChatSidebarSettingsIcon} aria-hidden="true">

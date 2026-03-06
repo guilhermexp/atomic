@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import type { ChatAttachmentInput } from "@store/slices/chatSlice";
-import { routes } from "../../app/routes";
+import { useChatBaseRoute } from "../../app/chatBaseRoute";
 
 export type OptimisticSession = {
   key: string;
@@ -29,9 +29,10 @@ export function OptimisticSessionProvider({ children }: { children: React.ReactN
 /** Syncs location.state.optimisticNewSession into context when navigating with that state. */
 export function OptimisticSessionSync() {
   const location = useLocation();
+  const chatBaseRoute = useChatBaseRoute();
   const { setOptimistic } = useOptimisticSession();
   React.useEffect(() => {
-    if (location.pathname !== routes.chat) {
+    if (location.pathname !== chatBaseRoute) {
       setOptimistic(null);
       return;
     }

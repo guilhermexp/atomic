@@ -46,29 +46,31 @@ export async function waitForPortOpen(
   return false;
 }
 
-export async function pickPort(preferred: number): Promise<number> {
-  const isFree = await new Promise<boolean>((resolve) => {
+function isPortFree(port: number): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
     const server = net.createServer();
     server.once("error", () => resolve(false));
-    server.listen(preferred, "127.0.0.1", () => {
+    server.listen(port, "127.0.0.1", () => {
       server.close(() => resolve(true));
     });
   });
-  if (isFree) {
-    return preferred;
+}
+
+/**
+ * Wait for the preferred port to become free, retrying for up to {@link timeoutMs}.
+ * This avoids picking a random port when a recently-killed gateway hasn't released
+ * the port yet (race between process kill and OS socket teardown).
+ */
+export async function pickPort(preferred: number, timeoutMs = 3000): Promise<number> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (await isPortFree(preferred)) {
+      return preferred;
+    }
+    await new Promise((r) => setTimeout(r, 200));
   }
-  return await new Promise<number>((resolve, reject) => {
-    const server = net.createServer();
-    server.once("error", (e: unknown) => reject(e));
-    server.listen(0, "127.0.0.1", () => {
-      const addr = server.address();
-      server.close(() => {
-        if (!addr || typeof addr === "string") {
-          reject(new Error("Failed to resolve random port"));
-          return;
-        }
-        resolve(addr.port);
-      });
-    });
-  });
+  console.warn(
+    `[pickPort] preferred port ${preferred} still occupied after ${timeoutMs}ms — using it anyway (gateway will bind or fail)`
+  );
+  return preferred;
 }

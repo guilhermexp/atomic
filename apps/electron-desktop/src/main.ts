@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, Tray, nativeImage } from "electron";
-import type { ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -9,7 +9,7 @@ import { getPlatform } from "./main/platform";
 const platform = getPlatform();
 import { registerIpcHandlers } from "./main/ipc/register";
 import { registerTerminalIpcHandlers } from "./main/terminal/ipc";
-import { DEFAULT_PORT } from "./main/constants";
+import { DEFAULT_PORT, MISSION_CONTROL_PORT } from "./main/constants";
 import { ensureGatewayConfigFile, readGatewayTokenFromConfig } from "./main/gateway/config";
 import { runConfigMigrations } from "./main/gateway/config-migrations";
 import { spawnGateway } from "./main/gateway/spawn";
@@ -59,6 +59,7 @@ let rendererIndexForWindow: string | null = null;
 
 let gateway: ChildProcess | null = null;
 let gatewayPid: number | null = null;
+let missionControl: ChildProcess | null = null;
 let gatewayStateDir: string | null = null;
 let logsDirForUi: string | null = null;
 let gatewayState: GatewayState | null = null;
@@ -290,6 +291,15 @@ app.on("before-quit", (event) => {
   event.preventDefault();
 
   disposeAutoUpdater();
+  // Stop Mission Control.
+  if (missionControl?.pid) {
+    try {
+      process.kill(missionControl.pid);
+    } catch {
+      // Already dead.
+    }
+    missionControl = null;
+  }
   stopGatewayChild()
     .then(() => {
       if (gatewayStateDir) {
@@ -502,6 +512,31 @@ void app.whenReady().then(async () => {
     obsidianCliBin,
     ghBin,
   });
+
+  // Start Mission Control (Next.js dev server) alongside the gateway.
+  // Mission Control is always a local dev server — not bundled into the packaged app.
+  // This enables hot reload so agents can modify the dashboard in real time.
+  const missionControlDir = path.resolve(
+    openclawDir,
+    "apps/missioncontrol-macclaw-dashboard-design"
+  );
+  if (fs.existsSync(missionControlDir)) {
+    missionControl = spawn("npx", ["next", "dev", "--port", String(MISSION_CONTROL_PORT)], {
+      cwd: missionControlDir,
+      env: { ...process.env, PORT: String(MISSION_CONTROL_PORT) },
+      stdio: "ignore",
+      detached: false,
+    });
+    missionControl.on("exit", (code) => {
+      console.log(`[main] mission-control exited: code=${code}`);
+      missionControl = null;
+    });
+    console.log(
+      `[main] mission-control started on port ${MISSION_CONTROL_PORT} (PID ${missionControl.pid})`
+    );
+  } else {
+    console.warn(`[main] mission-control dir not found: ${missionControlDir}`);
+  }
 
   // Always start the gateway on launch — consent is handled in the renderer
   // after the gateway is ready (loading screen shows while gateway starts).
